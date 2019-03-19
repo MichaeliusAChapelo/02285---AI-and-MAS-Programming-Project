@@ -70,16 +70,17 @@ namespace BoxProblems
             return pos.X + pos.Y * Width;
         }
 
-
         public static Level ReadLevel(string path)
+        {
+            return ReadLevel(File.ReadAllLines(path));
+        }
+
+
+        public static Level ReadLevel(string[] lines)
         {
             List<Entity> agents = new List<Entity>();
             List<Entity> boxes = new List<Entity>();
             List<Goal> goals = new List<Goal>();
-
-            var file = new System.IO.StreamReader(path);
-            // Keep all lines to ensure we only need read the level once.
-            string[] lines = File.ReadAllLines(path);
 
             // Find indexes for levels and goals.
             int initialLevelIndex = 0, goalLevelIndex = 0;
@@ -245,7 +246,9 @@ namespace BoxProblems
             }
 
             Level leavel = Level.ReadLevel("MAExample.lvl");
-            Console.WriteLine("Hello World!");
+            Console.WriteLine(leavel);
+            var levels = LevelSplitter.SplitLevel(leavel);
+            levels.ForEach(x => Console.WriteLine(x));
             Console.Read();
         }
     }

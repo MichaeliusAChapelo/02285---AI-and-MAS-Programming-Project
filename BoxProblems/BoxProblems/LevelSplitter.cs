@@ -7,7 +7,7 @@ namespace BoxProblems
 {
     internal static class LevelSplitter
     {
-        public List<Level> SplitLevel(Level level)
+        public static List<Level> SplitLevel(Level level)
         {
             List<Level> levels = new List<Level>();
 
@@ -127,7 +127,7 @@ namespace BoxProblems
                 boxes.CopyTo(entities, agents.Count);
 
                 State initial = new State(null, entities, 0);
-                levels.Add(new Level(walls, goals.ToArray(), initial, level.Width, level.Height, agents.Count, boxes.Count);
+                levels.Add(new Level(walls, goals.ToArray(), initial, level.Width, level.Height, agents.Count, boxes.Count));
             }
 
             foreach (Entity box in level.GetBoxes())

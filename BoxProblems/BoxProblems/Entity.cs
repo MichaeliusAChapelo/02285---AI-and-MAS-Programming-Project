@@ -24,7 +24,7 @@ namespace BoxProblems
 
         public int Compare(Entity x, Entity y)
         {
-            return ((x.GetX() + x.GetY() * 1000) + x.GetColor() * 1000000) - ((y.GetX() + y.GetY() * 1000) + y.GetColor() * 1000000);
+            return ((x.Pos.X + x.Pos.Y * 1000) + x.Color * 1000000) - ((y.Pos.X + y.Pos.Y * 1000) + y.Color * 1000000);
         }
     }
 }

@@ -8,32 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace BoxProblems
 {
-    internal readonly struct Goal
-    {
-        public readonly Point Pos;
-        public readonly char Type;
-
-        public Goal(Point Pos, char Type)
-        {
-            this.Pos = Pos;
-            this.Type = Type;
-        }
-    }
-
-    internal readonly struct Entity
-    {
-        public readonly Point Pos;
-        public readonly int Color;
-        public readonly char Type;
-
-        public Entity(Point Pos, int Color, char Type)
-        {
-            this.Pos = Pos;
-            this.Color = Color;
-            this.Type = Type;
-        }
-    }
-
     internal enum Direction : byte
     {
         N = 0,
@@ -55,9 +29,11 @@ namespace BoxProblems
                 System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {level} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
             }
 
-            Level leavel = Level.ReadLevel("MAExample.lvl");
+            Level leavel = Level.ReadLevel("SplitExample2.lvl");
             Console.WriteLine(leavel);
             Console.WriteLine("Hello World!");
+            var levels = LevelSplitter.SplitLevel(leavel);
+            levels.ForEach(x => Console.WriteLine(x));
             Console.Read();
         }
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 
 namespace BoxProblems
 {
@@ -16,23 +15,50 @@ namespace BoxProblems
         public readonly int Type;
     }
 
-    internal class State
-    {
-        State Parent;
-        Entity[] entities;
-        //Command CMD;
-        int G;
-    }
-
     internal class Level
     {
-        public readonly byte[,] Walls;
+        public readonly bool[,] Walls;
         public readonly Goal[] Goals;
         public readonly State InitialState;
         public readonly int Width;
         public readonly int Height;
-        public readonly int BoxCount;
         public readonly int AgentCount;
+        public readonly int BoxCount;
+
+        public Level(bool[,] walls, Goal[] goals, State initial, int width, int height, int agentCount, int boxCount)
+        {
+            this.Walls = walls;
+            this.Goals = goals;
+            this.InitialState = initial;
+            this.Width = width;
+            this.Height = height;
+            this.AgentCount = agentCount;
+            this.BoxCount = boxCount;
+        }
+
+        public Span<Entity> GetAgents()
+        {
+            return InitialState.GetAgents(this);
+        }
+
+        public Span<Entity> GetBoxes()
+        {
+            return InitialState.GetBoxes(this);
+        }
+
+        public int PosToIndex(Point pos)
+        {
+            return pos.X + pos.Y * Width;
+        }
+    }
+
+    internal enum Direction : byte
+    {
+        N = 0,
+        W = 1,
+        E = 2,
+        S = 3,
+        NONE = 4,
     }
 
     class Program

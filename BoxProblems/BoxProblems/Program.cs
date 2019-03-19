@@ -39,8 +39,12 @@ namespace BoxProblems
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            Console.Read();
+            if (args.Length == 0)
+            {
+                string strategy = "-astar";
+                string level = "MAExample.lvl";
+                System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {level} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
+            }
         }
     }
 }

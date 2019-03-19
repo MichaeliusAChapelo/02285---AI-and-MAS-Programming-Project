@@ -8,32 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace BoxProblems
 {
-    internal readonly struct Goal
-    {
-        public readonly Point Pos;
-        public readonly char Type;
-
-        public Goal(Point Pos, char Type)
-        {
-            this.Pos = Pos;
-            this.Type = Type;
-        }
-    }
-
-    internal readonly struct Entity
-    {
-        public readonly Point Pos;
-        public readonly int Color;
-        public readonly char Type;
-
-        public Entity(Point Pos, int Color, char Type)
-        {
-            this.Pos = Pos;
-            this.Color = Color;
-            this.Type = Type;
-        }
-    }
-
     internal class Level
     {
         public readonly bool[,] Walls;

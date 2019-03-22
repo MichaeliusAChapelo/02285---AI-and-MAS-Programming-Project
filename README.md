@@ -8,6 +8,8 @@ That also means memory/space reductions is less a priority.
 Strategies (feel free to add):
 * Only save states of significance (i.e. checkpoints), skip intermediate steps. Saves mostly only memory.
 
+# Johan's ideas:
+
 Idea for structure to be discussed:
 
 1) Load level in.
@@ -31,3 +33,14 @@ Do for each split level:
 		5) Merge the plans for individual agents, and go back to step 4 for the next goals, until level is solved.
 
 6) Merge the plans for split levels, and output this to the server
+
+
+# Michaelius' ideas:
+
+1) Give agents a goal, translate into a destination.
+
+2) For each agent, do A* to goal destination. Compute distance maps.
+
+3) Use distance maps to locate conflicts. Calculate which agent has to wait the least.
+
+4) Once any agent has reached its destination, repeat from step 1 until solved.

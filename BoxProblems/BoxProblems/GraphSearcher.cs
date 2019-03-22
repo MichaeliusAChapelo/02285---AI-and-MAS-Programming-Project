@@ -11,6 +11,7 @@ namespace BoxProblems
             Direction[] world = new Direction[level.Width * level.Height];
             Array.Fill(world, Direction.NONE);
             Queue<Point> frontier = new Queue<Point>();
+            frontier.Enqueue(start);
             List<Point> reachedGoals = new List<Point>();
 
             int depthNodeCount = 1;

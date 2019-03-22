@@ -92,7 +92,7 @@ namespace BoxProblems
 
                     else if (Regex.IsMatch(contents[j], @"[A-Z]"))
                     {
-                        agentColours[char.Parse(contents[j]) - 'A'] = i - 5; // Index of colour in text file.
+                        boxColours[char.Parse(contents[j]) - 'A'] = i - 5; // Index of colour in text file.
                     }
                 }
             }
@@ -128,31 +128,12 @@ namespace BoxProblems
             agents.Sort((x, y) => x.Type.CompareTo(y.Type));
 
             State state = new State(null, agents.Concat(boxes).ToArray(), 0);
-            return new Level(walls, goals.ToArray(), state, width, height, boxes.Count, agents.Count);
+            return new Level(walls, goals.ToArray(), state, width, height, agents.Count, boxes.Count);
         }
 
         public string StateToString(State state)
         {
-            char[][] world = new char[Height][];
-            for (int i = 0; i < Height; i++)
-            {
-                world[i] = new char[Width];
-            }
-
-            for (int y = 0; y < Height; y++)
-            {
-                for (int x = 0; x < Width; x++)
-                {
-                    if (Walls[x, y])
-                    {
-                        world[y][x] = '#';
-                    }
-                    else
-                    {
-                        world[y][x] = ' ';
-                    }
-                }
-            }
+            char[][] world = GetWallsAsWorld();
             foreach (var goal in Goals)
             {
                 int x = goal.Pos.X;
@@ -180,6 +161,44 @@ namespace BoxProblems
                 world[y][x] = type;
             }
 
+            StringBuilder sBuilder = new StringBuilder();
+            foreach (var worldRow in world)
+            {
+                sBuilder.Append(worldRow);
+                sBuilder.Append(Environment.NewLine);
+            }
+
+            return sBuilder.ToString();
+        }
+
+        public char[][] GetWallsAsWorld()
+        {
+            char[][] world = new char[Height][];
+            for (int i = 0; i < Height; i++)
+            {
+                world[i] = new char[Width];
+            }
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    if (Walls[x, y])
+                    {
+                        world[y][x] = '#';
+                    }
+                    else
+                    {
+                        world[y][x] = ' ';
+                    }
+                }
+            }
+
+            return world;
+        }
+
+        public string WorldToString(char[][] world)
+        {
             StringBuilder sBuilder = new StringBuilder();
             foreach (var worldRow in world)
             {

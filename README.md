@@ -25,7 +25,9 @@ b) Even for Single Agent, it is sometimes possible to solve multiple goals at th
 Do for each goal in the correct order. With something to handle if mutiple goals at the same time. Do this seperatly for each agent.
 
 4) Calculate which boxes has to be moved to solve the first goal for each agent, and where they should be moved.
-	4a:This could also just be done in the A*/greedy with a heuristic
-	4b:Do A*/greedy on the subgoals of moving boxes out of the way, and the correct box to the goal.
+	4a) This could also just be done in the A*/greedy with a heuristic
+	4b) Do A*/greedy on the subgoals of moving boxes out of the way, and the correct box to the goal.
 
 5) Merge the plans for individual agents, and go back to step 4 for the next goals, until level is solved.
+
+6) Merge the plans for split levels, and output this to the server

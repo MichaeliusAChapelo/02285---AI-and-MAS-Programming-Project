@@ -29,9 +29,10 @@ namespace BoxProblems
                 System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {level} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
             }
 
-            Level leavel = Level.ReadLevel("SplitExample2.lvl");
+            //Level leavel = Level.ReadLevel(File.ReadAllLines("SplitExample2.lvl"));
+            Level leavel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAAiAiCap.lvl"), "asdas");
             Console.WriteLine(leavel);
-            Console.WriteLine("Hello World!");
+            //Console.WriteLine("Hello World!");
             var levels = LevelSplitter.SplitLevel(leavel);
             levels.ForEach(x => Console.WriteLine(x));
             Console.Read();

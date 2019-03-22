@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -44,15 +43,82 @@ namespace BoxProblems
             return pos.X + pos.Y * Width;
         }
 
+        public static Level ReadOldFormatLevel(string[] lines, string levelName)
+        {
+            List<string> colorLines = new List<string>();
+            List<string> levelNoColors = new List<string>();
+            bool isColor = true;
+            foreach (string line in lines)
+            {
+                if (isColor && char.IsLetter(line.First()))
+                {
+                    colorLines.Add(line);
+                }
+                else
+                {
+                    isColor = false;
+                    levelNoColors.Add(line);
+                }
+            }
 
-        public static Level ReadLevel(string path)
+            List<string> levelWithoutGoals = new List<string>();
+            foreach (string line in levelNoColors)
+            {
+                string correctedLine = "";
+                foreach (char c in line)
+                {
+                    if (char.IsLetter(c) && char.IsLower(c))
+                    {
+                        correctedLine += ' ';
+                    }
+                    else
+                    {
+                        correctedLine += c;
+                    }
+                }
+                levelWithoutGoals.Add(correctedLine);
+            }
+            List<string> levelWithOnlyGoals = new List<string>();
+            foreach (string line in levelNoColors)
+            {
+                string correctedLine = "";
+                foreach (char c in line)
+                {
+                    if (char.IsDigit(c) || (char.IsLetter(c) && char.IsUpper(c)))
+                    {
+                        correctedLine += ' ';
+                    }
+                    else
+                    {
+                        correctedLine += char.ToUpper(c);
+                    }
+                }
+                levelWithOnlyGoals.Add(correctedLine);
+            }
+
+            List<string> newFormat = new List<string>()
+            {
+                "#domain",
+                "hospital",
+                "#levelname",
+                levelName,
+                "#colors",
+            };
+            newFormat.AddRange(colorLines);
+            newFormat.Add("#initial");
+            newFormat.AddRange(levelWithoutGoals);
+            newFormat.Add("#goal");
+            newFormat.AddRange(levelWithOnlyGoals);
+            newFormat.Add("#end");
+
+            return ReadLevel(newFormat.ToArray());
+        }
+
+        public static Level ReadLevel(string[] lines)
         {
             List<Entity> agents = new List<Entity>();
             List<Entity> boxes = new List<Entity>();
             List<Goal> goals = new List<Goal>();
-            
-            // Keep all lines to ensure we only need read the level once.
-            string[] lines = File.ReadAllLines(path);
 
             // Find indexes for levels and goals.
             int initialLevelIndex = 0, goalLevelIndex = 0;

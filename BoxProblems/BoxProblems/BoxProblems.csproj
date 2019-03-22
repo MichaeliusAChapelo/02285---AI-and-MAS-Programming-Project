@@ -16,4 +16,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="mkdir &quot;$(TargetDir)\Levels&quot;&#xD;&#xA;XCOPY &quot;$(ProjectDir)Levels&quot; &quot;$(TargetDir)Levels&quot; /S" />
+  </Target>
+
 </Project>

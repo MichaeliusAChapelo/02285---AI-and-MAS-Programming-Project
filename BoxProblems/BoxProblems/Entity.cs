@@ -16,6 +16,11 @@ namespace BoxProblems
             this.Color = Color;
             this.Type = Type;
         }
+
+        public override string ToString()
+        {
+            return $"[{Pos.X}, {Pos.Y}] Color: {Color}, Type: {Type}";
+        }
     }
 
     internal class EntityComparar : IComparer<Entity>

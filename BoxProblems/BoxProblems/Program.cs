@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace BoxProblems
 {
@@ -21,9 +23,6 @@ namespace BoxProblems
     {
         static void Main(string[] args)
         {
-
-            if (args.Length == 0)
-            {
             //if (args.Length == 0)
             //{
             //    string strategy = "-astar";

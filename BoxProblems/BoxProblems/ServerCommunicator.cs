@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace BoxProblems
 {
     internal class ServerCommunicator
     {
         const string strategy = "-astar";
-        const string levelPath = "MAExample.lvl";
+        const string levelPath = "MAExample.lvl"; // MABahaMAS.lvl
 
         public void Run(string[] args)
         {
@@ -19,6 +20,11 @@ namespace BoxProblems
                 // Ideally, you should input a solution here.
                 //Level level = Level.ReadLevel(new string[] { levelPath});
                 // Solve(); // Most convenient function.
+                NaiveSolver.level = Level.ReadLevel(File.ReadAllLines(levelPath));
+                var solver = new NaiveSolver();
+                solver.Solve();
+
+                
 
                 ExampleCommands(); // Should be commented out.
             }

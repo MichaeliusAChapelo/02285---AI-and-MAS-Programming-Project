@@ -39,6 +39,15 @@ namespace BoxProblems
             return false;
         }
 
+        public static int ManhattenDistance(Point a, Point b)
+        {
+            int x = a.X - b.X;
+            int y = a.Y - b.Y;
+            if (x < 0) x *= -1;
+            if (y < 0) y *= -1;
+            return x + y;
+        }
+
         public override string ToString()
         {
             return $"[{X}, {Y}]";

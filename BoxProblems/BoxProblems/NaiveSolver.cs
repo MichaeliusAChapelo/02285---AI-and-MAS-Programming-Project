@@ -39,19 +39,21 @@ namespace BoxProblems
 
         //const string levelPath = "MAExample.lvl"; // MABahaMAS.lvl
         //NaiveSolver.level = Level.ReadLevel(File.ReadAllLines(levelPath));
-        //    var solver = new NaiveSolver();
+        // var solver = new NaiveSolver();
         //solver.Solve();
+        // return
 
         public void Solve()
         { // Do your magic!
             // Part 1
             List<AgentBoxGoalPairs> priorities = AssignGoals();
 
-            int x;
-            x = 1;
+
             // Part Deux
             List<EntityMapping> mappings = InitialMappings(priorities);
 
+            int x;
+            x = 1;
             // Part Trois
 
 
@@ -119,7 +121,7 @@ namespace BoxProblems
             var frontier = new Queue<Point>();
             frontier.Enqueue(start);
 
-            int currentDistance = 0;
+            //int currentDistance = 0;
             while (frontier.Count != 0)
             {
                 Point p = frontier.Dequeue();
@@ -130,24 +132,27 @@ namespace BoxProblems
                     continue;
                 }
 
-                // Set distance at point.
-                distanceMap[p.X, p.Y] = currentDistance;
+                int dist = 1337;
 
                 // Only adds if not explored.
-                AddIfUnexplored(new Point(p.X + 1, p.Y), distanceMap, frontier, start);
-                AddIfUnexplored(new Point(p.X - 1, p.Y), distanceMap, frontier, start);
-                AddIfUnexplored(new Point(p.X, p.Y + 1), distanceMap, frontier, start);
-                AddIfUnexplored(new Point(p.X, p.Y - 1), distanceMap, frontier, start);
+                AddIfUnexplored(new Point(p.X + 1, p.Y), distanceMap, frontier, start, ref dist);
+                AddIfUnexplored(new Point(p.X - 1, p.Y), distanceMap, frontier, start, ref dist);
+                AddIfUnexplored(new Point(p.X, p.Y + 1), distanceMap, frontier, start, ref dist);
+                AddIfUnexplored(new Point(p.X, p.Y - 1), distanceMap, frontier, start, ref dist);
 
-                currentDistance++;
+                // Set distance at point.
+                distanceMap[p.X, p.Y] = (p == start) ? 0 : dist + 1;
+                //currentDistance++;
             }
             return distanceMap;
         }
 
-        private void AddIfUnexplored(Point next, int[,] distanceMap, Queue<Point> frontier, Point start)
+        private void AddIfUnexplored(Point next, int[,] distanceMap, Queue<Point> frontier, Point start, ref int dist)
         {
             if (distanceMap[next.X, next.Y] == 0 && !next.Equals(start))
                 frontier.Enqueue(next);
+            else if (distanceMap[next.X, next.Y] < dist)
+                dist = distanceMap[next.X, next.Y];
         }
 
         private Point[] BacktrackSolution(Point destination, int[,] distanceMap)

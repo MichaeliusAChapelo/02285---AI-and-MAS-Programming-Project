@@ -120,22 +120,21 @@ namespace BoxProblems
             List<Entity> boxes = new List<Entity>();
             List<Goal> goals = new List<Goal>();
 
-            // Find indexes for levels and goals.
-            int initialLevelIndex = 0, goalLevelIndex = 0;
-            for (int i = 0; i < lines.Length; ++i)
+            //Trim level lines because some levels
+            // starts or ends with spaces which is invalid
+            for (int i = 0; i < lines.Length; i++)
             {
-                if (lines[i] == "#initial")
-                    initialLevelIndex = i + 1;
-                else if (lines[i] == "#goal")
-                {
-                    goalLevelIndex = i + 1;
-                    break;
-                }
+                lines[i] = lines[i].Trim();
             }
 
-            // Define width/height of wall map.
-            int width = lines[initialLevelIndex].Length;
-            int height = goalLevelIndex - initialLevelIndex - 1;
+            int initialLevelIndex = Array.IndexOf(lines, "#initial") + 1;
+            int goalLevelIndex = Array.IndexOf(lines, "#goal") + 1;
+
+            Span<string> initialLevel = new Span<string>(lines, 0, goalLevelIndex - initialLevelIndex - 1);
+            Span<string> goalLevel = new Span<string>(lines, goalLevelIndex, lines.Length - goalLevelIndex - 1);
+
+            int width = initialLevel.Length;
+            int height = initialLevel.Max(x => x.Length);
             bool[,] walls = new bool[width, height];
 
 

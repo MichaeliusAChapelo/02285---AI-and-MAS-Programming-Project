@@ -8,12 +8,33 @@
 
   <ItemGroup>
     <None Remove="server.jar" />
+    <None Remove="webdrivers\.exe" />
+    <None Remove="webdrivers\windows\chromedriver.exe" />
+    <None Remove="webpage\cytoscape-cose-bilkent.js" />
+    <None Remove="webpage\cytoscape.min.js" />
+    <None Remove="webpage\index.html" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="server.jar">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="webdrivers\windows\chromedriver.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="webpage\cytoscape-cose-bilkent.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="webpage\cytoscape.min.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="webpage\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
   </ItemGroup>
 
 </Project>

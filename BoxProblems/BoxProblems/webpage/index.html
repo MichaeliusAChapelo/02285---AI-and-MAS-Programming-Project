@@ -1,0 +1,61 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Box problems</title>
+		<script src="cytoscape.min.js"></script>
+		<script src="cytoscape-cose-bilkent.js"></script>
+		<script>
+function setGraph(nodes, edges)
+{
+	window.graphDiv = cytoscape(
+	{
+		container: document.getElementById('graphDiv'),
+
+		boxSelectionEnabled: false,
+		autounselectify: true,
+
+		layout: {
+			name: 'cose-bilkent',
+			animate: false
+		},
+
+		style: 
+		[
+			{
+				selector: 'node',
+				style: 
+				{
+					'min-zoomed-font-size': 10,
+					'content': 'data(label)',
+					'text-opacity': 0.5,
+					'text-valign': 'center',
+					'text-halign': 'right',
+					'background-color': '#11479e',
+					'text-wrap': 'wrap'
+				}
+			},
+			{
+				selector: 'edge.haystack',
+				style: 
+				{
+					'curve-style': 'haystack',
+					'display': 'none'
+				}
+			}
+		],
+		wheelSensitivity: 0.2,
+		pixelRatio: 1,
+
+		elements: 
+		{
+			nodes: nodes,
+			edges: edges
+		},
+	});
+}
+		</script>
+	</head>
+	<body>
+		<div id="graphDiv" style="width: 100%; height: 100%;"></div>
+	</body>
+</html>

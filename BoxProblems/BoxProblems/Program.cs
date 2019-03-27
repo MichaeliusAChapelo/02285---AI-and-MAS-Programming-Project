@@ -34,6 +34,13 @@ namespace BoxProblems
             Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SADangerBot.lvl"), "asdas");
 
             GoalGraph graph = new GoalGraph(level.InitialState, level);
+            GoalPriority goalPriority = new GoalPriority();
+            var goalPriorities = goalPriority.GetGoalPrioity(graph);
+            foreach (GoalPriority.PriorityGoal gp in goalPriorities)
+            {
+                Console.WriteLine("First goal priority: " + gp.Type + " " + gp.Priority);
+            }
+
             //GraphShower.ShowGraph(graph);
 
 

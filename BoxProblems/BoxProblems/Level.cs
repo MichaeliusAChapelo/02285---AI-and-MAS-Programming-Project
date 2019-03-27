@@ -129,14 +129,12 @@ namespace BoxProblems
             int initialLevelIndex = Array.IndexOf(lines, "#initial") + 1;
             int goalLevelIndex = Array.IndexOf(lines, "#goal") + 1;
 
+            //Split level into its parts
             Span<string> colorLines = new Span<string>(lines, colorIndex, initialLevelIndex - colorIndex - 1);
             Span<string> initialLevel = new Span<string>(lines, initialLevelIndex, goalLevelIndex - initialLevelIndex - 1);
             Span<string> goalLevel = new Span<string>(lines, goalLevelIndex, lines.Length - goalLevelIndex - 1);
 
-            int width = initialLevel.Max(x => x.Length);
-            int height = initialLevel.Length;
-            bool[,] walls = new bool[width, height];
-
+            //Parse the colors
             Dictionary<char, int> entityColors = new Dictionary<char, int>();
             for (int i = 0; i < colorLines.Length; i++)
             {
@@ -150,6 +148,10 @@ namespace BoxProblems
             List<Entity> agents = new List<Entity>();
             List<Entity> boxes = new List<Entity>();
             List<Goal> goals = new List<Goal>();
+
+            int width = initialLevel.Max(x => x.Length);
+            int height = initialLevel.Length;
+            bool[,] walls = new bool[width, height];
 
             for (int y = 0; y < height; y++)
             {
@@ -172,7 +174,7 @@ namespace BoxProblems
                     else if (char.IsLetter(c))
                         boxes.Add(new Entity(new Point(x, y), entityColors[c], c));
 
-                    else throw new Exception("bruh i ain't findin no suitable charz brah");
+                    else throw new Exception($"bruh i ain't findin no suitable charz brah.{Environment.NewLine}Position: [{x}, {y}] Character: {c}");
                 }
             }
 

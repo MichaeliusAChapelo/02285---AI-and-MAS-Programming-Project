@@ -61,6 +61,15 @@ namespace BoxProblems
                 }
             }
 
+            //New format requres colors for all boxes and agents.
+            //If no colors have been specified then give them all
+            //a red color.
+            if (colorLines.Count == 0)
+            {
+                var entities = levelNoColors.SelectMany(x => x.Where(y => char.IsDigit(y) || (char.IsLetter(y) && char.IsUpper(y)))).ToList();
+                colorLines.Add($"red: {string.Join(", ", entities)}");
+            }
+
             List<string> levelWithoutGoals = new List<string>();
             foreach (string line in levelNoColors)
             {
@@ -131,7 +140,7 @@ namespace BoxProblems
             Dictionary<char, int> entityColors = new Dictionary<char, int>();
             for (int i = 0; i < colorLines.Length; i++)
             {
-                string[] entities = colorLines[i].Split(':')[1].Replace(" ", "").Split(',');
+                string[] entities = colorLines[i].Split(':')[1].Replace(" ", string.Empty).Split(',');
                 foreach (var entity in entities)
                 {
                     entityColors.Add(entity.First(), i);

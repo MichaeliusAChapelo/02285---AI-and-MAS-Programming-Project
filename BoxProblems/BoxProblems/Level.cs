@@ -179,6 +179,7 @@ namespace BoxProblems
             }
 
             agents.Sort(EntityComparar.Comparer);
+            boxes.Sort(EntityComparar.Comparer);
 
             State state = new State(null, agents.Concat(boxes).ToArray(), 0);
             return new Level(walls, goals.ToArray(), state, width, height, agents.Count, boxes.Count);

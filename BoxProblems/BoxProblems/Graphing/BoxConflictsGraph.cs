@@ -43,7 +43,6 @@ namespace BoxProblems.Graphing
             foreach (var box in state.GetBoxes(level))
             {
                 Nodes.Add(new BoxConflictNode(new EntityNodeInfo(box, EntityType.BOX)));
-                level.Walls[box.Pos.X, box.Pos.Y] = true;
             }
             foreach (var goal in level.Goals)
             {
@@ -51,11 +50,6 @@ namespace BoxProblems.Graphing
             }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
-
-            foreach (var goal in level.GetBoxes())
-            {
-                level.Walls[goal.Pos.X, goal.Pos.Y] = false;
-            }
         }
     }
 }

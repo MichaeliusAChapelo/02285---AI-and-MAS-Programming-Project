@@ -9,6 +9,14 @@ namespace BoxProblems.Graphing
     {
         public static void CreateGraphIgnoreEntityType(Graph<EntityNodeInfo, EmptyEdgeInfo> graph, Level level, EntityType notAHindrance)
         {
+            foreach (var node in graph.Nodes)
+            {
+                if (node.Value.EntType != notAHindrance)
+                {
+                    level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;
+                }
+            }
+
             List<Point> potentialGoals = new List<Point>();
             foreach (var node in graph.Nodes)
             {
@@ -38,6 +46,14 @@ namespace BoxProblems.Graphing
                 if (node.Value.EntType != notAHindrance)
                 {
                     level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;
+                }
+            }
+
+            foreach (var node in graph.Nodes)
+            {
+                if (node.Value.EntType != notAHindrance)
+                {
+                    level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
                 }
             }
         }

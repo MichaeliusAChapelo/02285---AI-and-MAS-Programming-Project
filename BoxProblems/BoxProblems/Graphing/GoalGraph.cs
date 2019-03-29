@@ -64,15 +64,9 @@ namespace BoxProblems.Graphing
             foreach (var goal in level.Goals)
             {
                 Nodes.Add(new GoalNode(new EntityNodeInfo(goal, EntityType.GOAL)));
-                level.Walls[goal.Pos.X, goal.Pos.Y] = true;
             }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.BOX);
-
-            foreach (var goal in level.Goals)
-            {
-                level.Walls[goal.Pos.X, goal.Pos.Y] = false;
-            }
         }
     }
 }

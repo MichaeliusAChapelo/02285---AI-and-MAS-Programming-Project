@@ -3,74 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 
-namespace BoxProblems
+namespace BoxProblems.Graphing
 {
-    internal class Node<N, E>
-    {
-        public readonly N Value;
-        public readonly List<Edge<N, E>> Edges = new List<Edge<N, E>>();
-
-        public Node(N value)
-        {
-            this.Value = value;
-        }
-
-        public void AddEdge(Edge<N, E> edge)
-        {
-            Edges.Add(edge);
-        }
-    }
-
-    internal class Edge<N, E>
-    {
-        public readonly Node<N, E> End;
-        public readonly E Value;
-
-        public Edge(Node<N, E> end, E value)
-        {
-            this.End = end;
-            this.Value = value;
-        }
-    }
-
-
-
-    internal class Graph<N, E>
-    {
-        public readonly List<Node<N, E>> Nodes = new List<Node<N, E>>();
-
-        public void AddNode(Node<N, E> node)
-        {
-            Nodes.Add(node);
-        }
-
-        public (string nodes, string edges) ToCytoscapeString()
-        {
-            StringBuilder nodesBuilder = new StringBuilder();
-            StringBuilder edgesBuilder = new StringBuilder();
-
-            HashSet<Node<N, E>> foundNodes = new HashSet<Node<N, E>>();
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                nodesBuilder.Append($"{{ data: {{ id: '{i}', label: '{Nodes[i]}' }} }},");
-            }
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                foreach (var edge in Nodes[i].Edges)
-                {
-                    if (foundNodes.Contains(edge.End))
-                    {
-                        continue;
-                    }
-                    foundNodes.Add(Nodes[i]);
-                    edgesBuilder.Append($"{{ data: {{ source: '{i}', target: '{Nodes.IndexOf(edge.End)}' }} }},");
-                }
-            }
-
-            return ($"[{nodesBuilder.ToString()}]", $"[{edgesBuilder.ToString()}]");
-        }
-    }
-
     internal readonly struct GoalNodeInfo
     {
         public readonly char Representation;
@@ -127,10 +61,6 @@ namespace BoxProblems
             foreach (var goal in level.Goals)
             {
                 Nodes.Add(new GoalNode(new GoalNodeInfo(char.ToLower(goal.Type), goal.Pos, true, false)));
-            }
-
-            foreach (var goal in level.Goals)
-            {
                 level.Walls[goal.Pos.X, goal.Pos.Y] = true;
             }
 
@@ -148,7 +78,7 @@ namespace BoxProblems
                 var reachedGoals = GraphSearcher.GetReachedGoalsBFS(level, node.Value.Pos, potentialGoals);
 
                 List<GoalEdge> edges = new List<GoalEdge>();
-                foreach (var reached in reachedGoals)
+                foreach (Point reached in reachedGoals)
                 {
                     GoalNode target = (GoalNode)Nodes.Single(x => x.Value.Pos == reached);
                     if (node.Value.IsBox && target.Value.IsBox)

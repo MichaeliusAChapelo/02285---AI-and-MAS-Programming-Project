@@ -18,5 +18,21 @@ namespace BoxProblems
         {
             return DirectionMovement[(int)dir];
         }
+
+        public static int Max<T>(this Span<T> array, Func<T, int> sel)
+        {
+            if (array.Length == 0)
+            {
+                throw new ArgumentOutOfRangeException("Array can't have a length of 0.");
+            }
+
+            int max = int.MinValue;
+            for (int i = 0; i < array.Length; i++)
+            {
+                max = Math.Max(max, sel(array[i]));
+            }
+
+            return max;
+        }
     }
 }

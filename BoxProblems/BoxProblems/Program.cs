@@ -30,7 +30,7 @@ namespace BoxProblems
             //    System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {level} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
             //}
 
-            //Level leavel = Level.ReadLevel(File.ReadAllLines("SplitExample2.lvl"));
+            Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
             Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SADangerBot.lvl"), "asdas");
 
             GoalGraph graph = new GoalGraph(level.InitialState, level);

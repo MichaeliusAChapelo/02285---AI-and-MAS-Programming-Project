@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -10,6 +11,7 @@ using BoxProblems.Graphing;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
+[assembly: InternalsVisibleTo("BoxTests")]
 namespace BoxProblems
 {
     internal enum Direction : byte

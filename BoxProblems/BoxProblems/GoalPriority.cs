@@ -10,13 +10,15 @@ namespace BoxProblems
         {
             public readonly Point Pos;
             public readonly char Type;
-            public readonly int Priority;
+            public readonly int ThroughGoalPriority;
+            public readonly GoalNode LargerThanPriority; 
 
-            public PriorityGoal(GoalNode goal, int priority)
+            public PriorityGoal(GoalNode goal, int throughGoalPriority, GoalNode largerThanPriority)
             {
                 this.Pos = goal.Value.Pos;
                 this.Type = goal.Value.Representation;
-                this.Priority = priority;
+                this.ThroughGoalPriority = throughGoalPriority;
+                this.LargerThanPriority = largerThanPriority;
             }
         }
 
@@ -29,25 +31,50 @@ namespace BoxProblems
                 int priority = 0;
                 var priorities = new List<int>();
                 var allPaths = FindPath(graph, curGoal, boxes);
+                var goalBoxes = boxes.Where(x => x.Value.Representation == char.ToUpper(curGoal.Value.Representation)).ToList();
+                priorities = new List<int>();
                 foreach (List<GoalNode> curPath in allPaths)
                 {
                     priority = 0;
-                    priorities = new List<int>(); 
-                    foreach (Node<GoalNodeInfo, GoalEdgeInfo> curPos in curPath)
+                    foreach (GoalNode curPos in curPath)
                     {
-                        if (!BoxOnGoal(curGoal, curPos) && curPos.Value.IsGoal)
+                        if (!goalBoxes.Contains(curPos) && curPos != curGoal && curPos.Value.IsGoal)
                         {
                             priority++;
                         }
                     }
                     priorities.Add(priority);
                 }
-                priorityGoals.Add(new PriorityGoal(curGoal, priorities.Min()));
+
+                var firstElm = allPaths.First()[1];
+                GoalNode largerThanPriority = curGoal; 
+                if (allPaths.All(x => x[1] == firstElm))
+                {
+                    largerThanPriority = firstElm; 
+                }
+
+                priorityGoals.Add(new PriorityGoal(curGoal, priorities.Min(), largerThanPriority));
             }
-
-
-            return priorityGoals.OrderByDescending(x => x.Priority).ToList(); 
+            return priorityGoals.OrderByDescending(x => x.ThroughGoalPriority).ToList();
         }
+
+        public List<PriorityGoal> OrderByPriority(List<PriorityGoal> priorityGoals)
+        {
+            var newPriorityGoals = new List<PriorityGoal>(); 
+            //foreach (PriorityGoal priorityGoal in priorityGoals)
+            //{
+            //    if (priorityGoal.LargerThanPriority.Value.Pos != priorityGoal.Pos)
+            //    {
+            //        newPriorityGoals.AddGoal(priorityGoal); 
+            //    }
+            //}
+            return priorityGoals;
+        }
+
+        //public List<PriorityGoal> AddGoal(List<PriorityGoal> priorityGoals, GoalNode newGoal)
+        //{
+
+        //}
 
         public Boolean BoxOnGoal(Node<GoalNodeInfo, GoalEdgeInfo> goal, Node<GoalNodeInfo, GoalEdgeInfo> curPos)
         {
@@ -73,6 +100,56 @@ namespace BoxProblems
 
         public List<List<GoalNode>> FindPath(GoalGraph graph, GoalNode goal, List<GoalNode> boxes)
         {
+            var allPaths = new List<List<GoalNode>>();
+
+            //goal to boxes
+            var goalBoxes = boxes.Where(x => x.Value.Representation == char.ToUpper(goal.Value.Representation)).ToList();
+            var s = new Queue<List<GoalNode>>();
+
+            s.Enqueue(new List<GoalNode>() {goal});
+
+            while(s.Count > 0)
+            {
+                var currentPath = s.Dequeue();
+                var currentNode = currentPath.Last(); 
+
+                if (goalBoxes.Contains(currentNode))
+                {
+                    allPaths.Add(currentPath);
+                    //Console.Write("Goal: " + goal.Value.Representation + ", ");
+                    //foreach (GoalNode gn in currentPath)
+                    //{
+                    //    Console.Write(gn.Value.Representation + " ");
+                    //}
+                    //Console.WriteLine("Done");
+                    continue;
+                }
+
+                if (currentNode.Value.IsBox)
+                {
+                    continue;
+                }
+
+                foreach(Edge<GoalNodeInfo,GoalEdgeInfo> edge in currentNode.Edges)
+                {
+                    //if (edge.end.value.isbox && edge.end.value.representation != char.toupper(goal.value.representation))
+                    //{
+                    //    continue;
+                    //}
+
+                    if (!currentPath.Contains(edge.End))
+                    {
+                        List<GoalNode> currentCurrentPath = new List<GoalNode>();
+                        currentCurrentPath.AddRange(currentPath);
+                        currentCurrentPath.Add((GoalNode)edge.End); 
+                        s.Enqueue((currentCurrentPath));
+                    }
+                }
+            }
+            return allPaths;
+        } 
+        public List<List<GoalNode>> FindPath2(GoalGraph graph, GoalNode goal, List<GoalNode> boxes)
+        {
             //filter boxes to only be boxes that can go on current goal
             var goalBoxes = boxes.Where(x => x.Value.Representation == char.ToUpper(goal.Value.Representation)).ToList();
             var paths = new List<List<GoalNode>>();
@@ -80,7 +157,8 @@ namespace BoxProblems
             foreach (GoalNode box in goalBoxes)
             {
                 var s = new Queue<GoalNode>();
-                var path = new List<GoalNode>(); 
+                //var path = new List<GoalNode>();
+                
                 //Explored node, parent
                 var exploredNodes = new List<(GoalNode, GoalNode)>();
                 
@@ -90,8 +168,10 @@ namespace BoxProblems
                     var v = s.Dequeue(); 
                     if (v == goal)
                     {
+                        //exploredNodes.Add((GoalNode)v);
                         break;
                     } 
+
                     foreach (Edge<GoalNodeInfo, GoalEdgeInfo> edges in v.Edges)
                     {
                         if (!exploredNodes.Contains(((GoalNode)edges.End, v)))
@@ -101,10 +181,8 @@ namespace BoxProblems
                         }
                     }
                 }
-
                 paths.Add(TraversePath(box, exploredNodes));
             }
-
             return paths;
         }
         
@@ -127,6 +205,12 @@ namespace BoxProblems
 
             }
             path.Add(start);
+
+            foreach (GoalNode gn in path)
+            {
+                Console.Write(gn.Value.Representation + " ");
+                Console.WriteLine("Done");
+            }
             return path; 
         }
     }

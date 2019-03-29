@@ -31,17 +31,17 @@ namespace BoxProblems
             //}
 
             //Level leavel = Level.ReadLevel(File.ReadAllLines("SplitExample2.lvl"));
-            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAboXboXboX.lvl"), "asdas");
+            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfHoChiMinh26.lvl"), "asdas");
 
             GoalGraph graph = new GoalGraph(level.InitialState, level);
             GoalPriority goalPriority = new GoalPriority();
             var goalPriorities = goalPriority.GetGoalPrioity(graph);
             foreach (GoalPriority.PriorityGoal gp in goalPriorities)
             {
-                Console.WriteLine(gp.Type + " " + gp.Priority);
+                Console.WriteLine(gp.Type + " " + gp.ThroughGoalPriority);
             }
 
-            GraphShower.ShowGraph(graph);
+            //GraphShower.ShowGraph(graph);
 
 
             //Console.WriteLine(leavel);

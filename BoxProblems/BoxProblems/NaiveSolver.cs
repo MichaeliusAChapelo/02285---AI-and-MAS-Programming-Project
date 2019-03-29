@@ -13,9 +13,9 @@ namespace BoxProblems
         {
             public readonly Entity Agent;
             public readonly Entity Box;
-            public readonly Goal Goal;
+            public readonly Entity Goal;
 
-            public AgentBoxGoalPairs(Entity Agent, Entity Box, Goal Goal)
+            public AgentBoxGoalPairs(Entity Agent, Entity Box, Entity Goal)
             {
                 this.Agent = Agent;
                 this.Box = Box;
@@ -85,7 +85,7 @@ namespace BoxProblems
             var goals = level.Goals;
             foreach (Entity box in boxes)
                 if (agent.Color == box.Color)
-                    foreach (Goal goal in goals)
+                    foreach (Entity goal in goals)
                         if (box.Type == goal.Type)
                             return new AgentBoxGoalPairs(agent, box, goal);
             return null;

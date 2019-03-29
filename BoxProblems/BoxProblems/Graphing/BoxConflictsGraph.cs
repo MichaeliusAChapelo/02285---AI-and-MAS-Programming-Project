@@ -1,103 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BoxProblems.Graphing
 {
-    //internal readonly struct NodeInfo
-    //{
-    //    public readonly char Representation;
-    //    public readonly Point Pos;
-    //    public readonly bool IsGoal;
-    //    public readonly bool IsBox;
+    internal class BoxConflictNode : Node<EntityNodeInfo, EmptyEdgeInfo>
+    {
+        public BoxConflictNode(EntityNodeInfo value) : base(value)
+        {
+        }
 
-    //    public GoalNodeInfo(char rep, Point pos, bool isGoal, bool isBox)
-    //    {
-    //        this.Representation = rep;
-    //        this.Pos = pos;
-    //        this.IsGoal = isGoal;
-    //        this.IsBox = isBox;
-    //    }
-    //}
+        public override string ToString()
+        {
+            if (Value.EntType == EntityType.GOAL)
+            {
+                return char.ToLower(Value.Ent.Type).ToString();
+            }
+            else
+            {
+                return Value.Ent.Type.ToString();
+            }
+        }
+    }
 
-    //internal readonly struct GoalEdgeInfo
-    //{
+    internal class BoxConflictEdge : Edge<EntityNodeInfo, EmptyEdgeInfo>
+    {
+        public BoxConflictEdge(BoxConflictNode end, EmptyEdgeInfo value) : base(end, value)
+        {
+        }
 
-    //}
+        public override string ToString()
+        {
+            return string.Empty;
+        }
+    }
 
-    //internal class GoalNode : Node<GoalNodeInfo, GoalEdgeInfo>
-    //{
-    //    public GoalNode(GoalNodeInfo value) : base(value)
-    //    {
-    //    }
+    internal class BoxConflictGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
+    {
+        public BoxConflictGraph(State state, Level level)
+        {
+            foreach (var box in state.GetBoxes(level))
+            {
+                Nodes.Add(new BoxConflictNode(new EntityNodeInfo(box, EntityType.BOX)));
+                level.Walls[box.Pos.X, box.Pos.Y] = true;
+            }
+            foreach (var goal in level.Goals)
+            {
+                Nodes.Add(new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL)));
+            }
 
-    //    public override string ToString()
-    //    {
-    //        return Value.Representation.ToString();
-    //    }
-    //}
+            GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
 
-    //internal class GoalEdge : Edge<GoalNodeInfo, GoalEdgeInfo>
-    //{
-    //    public GoalEdge(Node<GoalNodeInfo, GoalEdgeInfo> end, GoalEdgeInfo value) : base(end, value)
-    //    {
-    //    }
-
-    //    public override string ToString()
-    //    {
-    //        return string.Empty;
-    //    }
-    //}
-
-    //internal class GoalGraph : Graph<GoalNodeInfo, GoalEdgeInfo>
-    //{
-    //    public GoalGraph(State state, Level level)
-    //    {
-    //        foreach (var box in state.GetBoxes(level))
-    //        {
-    //            Nodes.Add(new GoalNode(new GoalNodeInfo(box.Type, box.Pos, false, true)));
-    //        }
-    //        foreach (var goal in level.Goals)
-    //        {
-    //            Nodes.Add(new GoalNode(new GoalNodeInfo(char.ToLower(goal.Type), goal.Pos, true, false)));
-    //            level.Walls[goal.Pos.X, goal.Pos.Y] = true;
-    //        }
-
-    //        List<Point> potentialGoals = new List<Point>();
-    //        foreach (var node in Nodes)
-    //        {
-    //            potentialGoals.Add(node.Value.Pos);
-    //        }
-    //        for (int i = 0; i < Nodes.Count; i++)
-    //        {
-    //            GoalNode node = (GoalNode)Nodes[i];
-    //            level.Walls[node.Value.Pos.X, node.Value.Pos.Y] = false;
-    //            potentialGoals.Remove(node.Value.Pos);
-
-    //            var reachedGoals = GraphSearcher.GetReachedGoalsBFS(level, node.Value.Pos, potentialGoals);
-
-    //            List<GoalEdge> edges = new List<GoalEdge>();
-    //            foreach (Point reached in reachedGoals)
-    //            {
-    //                GoalNode target = (GoalNode)Nodes.Single(x => x.Value.Pos == reached);
-    //                if (node.Value.IsBox && target.Value.IsBox)
-    //                {
-    //                    continue;
-    //                }
-    //                node.AddEdge(new GoalEdge(target, new GoalEdgeInfo()));
-    //            }
-
-    //            potentialGoals.Add(node.Value.Pos);
-    //            if (!node.Value.IsBox)
-    //            {
-    //                level.Walls[node.Value.Pos.X, node.Value.Pos.Y] = true;
-    //            }
-    //        }
-
-    //        foreach (var goal in level.Goals)
-    //        {
-    //            level.Walls[goal.Pos.X, goal.Pos.Y] = false;
-    //        }
-    //    }
-    //}
+            foreach (var goal in level.GetBoxes())
+            {
+                level.Walls[goal.Pos.X, goal.Pos.Y] = false;
+            }
+        }
+    }
 }

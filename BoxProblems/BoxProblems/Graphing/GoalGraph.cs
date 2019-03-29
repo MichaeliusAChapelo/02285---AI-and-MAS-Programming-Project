@@ -30,13 +30,20 @@ namespace BoxProblems.Graphing
 
         public override string ToString()
         {
-            return Value.Ent.Type.ToString();
+            if (Value.EntType == EntityType.GOAL)
+            {
+                return char.ToLower(Value.Ent.Type).ToString();
+            }
+            else
+            {
+                return Value.Ent.Type.ToString();
+            }            
         }
     }
 
     internal class GoalEdge : Edge<EntityNodeInfo, EmptyEdgeInfo>
     {
-        public GoalEdge(Node<EntityNodeInfo, EmptyEdgeInfo> end, EmptyEdgeInfo value) : base(end, value)
+        public GoalEdge(GoalNode end, EmptyEdgeInfo value) : base(end, value)
         {
         }
 
@@ -60,37 +67,7 @@ namespace BoxProblems.Graphing
                 level.Walls[goal.Pos.X, goal.Pos.Y] = true;
             }
 
-            List<Point> potentialGoals = new List<Point>();
-            foreach (var node in Nodes)
-            {
-                potentialGoals.Add(node.Value.Ent.Pos);
-            }
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                GoalNode node = (GoalNode)Nodes[i];
-                level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
-                potentialGoals.Remove(node.Value.Ent.Pos);
-
-                var reachedGoals = GraphSearcher.GetReachedGoalsBFS(level, node.Value.Ent.Pos, potentialGoals);
-
-                List<GoalEdge> edges = new List<GoalEdge>();
-                foreach (Point reached in reachedGoals)
-                {
-                    GoalNode target = (GoalNode)Nodes.Single(x => x.Value.Ent.Pos == reached);
-                    if (node.Value.EntType == EntityType.BOX && 
-                        target.Value.EntType == EntityType.BOX)
-                    {
-                        continue;
-                    }
-                    node.AddEdge(new GoalEdge(target, new EmptyEdgeInfo()));
-                }
-
-                potentialGoals.Add(node.Value.Ent.Pos);
-                if (node.Value.EntType != EntityType.BOX)
-                {
-                    level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;
-                }
-            }
+            GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.BOX);
 
             foreach (var goal in level.Goals)
             {

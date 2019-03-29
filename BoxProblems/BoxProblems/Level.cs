@@ -141,7 +141,7 @@ namespace BoxProblems
                 string[] entities = colorLines[i].Split(':')[1].Replace(" ", string.Empty).Split(',');
                 foreach (var entity in entities)
                 {
-                    entityColors.Add(entity.First(), i);
+                    entityColors[entity.First()] = i;
                 }
             }
 

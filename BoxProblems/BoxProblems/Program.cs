@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using BoxProblems.Graphing;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -32,10 +33,12 @@ namespace BoxProblems
             //}
 
             //Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
-            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SADangerBot.lvl"), "asdas");
+            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
 
             GoalGraph graph = new GoalGraph(level.InitialState, level);
+            BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
             //GraphShower.ShowGraph(graph);
+            GraphShower.ShowGraph(conflictGraph);
 
 
             //Console.WriteLine(leavel);

@@ -10,14 +10,14 @@ namespace BoxProblems
     internal class Level
     {
         public readonly bool[,] Walls;
-        public readonly Goal[] Goals;
+        public readonly Entity[] Goals;
         public readonly State InitialState;
         public readonly int Width;
         public readonly int Height;
         public readonly int AgentCount;
         public readonly int BoxCount;
 
-        public Level(bool[,] walls, Goal[] goals, State initial, int width, int height, int agentCount, int boxCount)
+        public Level(bool[,] walls, Entity[] goals, State initial, int width, int height, int agentCount, int boxCount)
         {
             this.Walls = walls;
             this.Goals = goals;
@@ -147,7 +147,7 @@ namespace BoxProblems
 
             List<Entity> agents = new List<Entity>();
             List<Entity> boxes = new List<Entity>();
-            List<Goal> goals = new List<Goal>();
+            List<Entity> goals = new List<Entity>();
 
             int width = initialLevel.Max(x => x.Length);
             int height = initialLevel.Length;
@@ -160,7 +160,7 @@ namespace BoxProblems
                     char c = initialLevel[y][x];
 
                     if (char.IsLetter(goalLevel[y][x]))
-                        goals.Add(new Goal(new Point(x, y), (goalLevel[y])[x]));
+                        goals.Add(new Entity(new Point(x, y), 0, (goalLevel[y])[x]));
 
                     if (c == '+')
                         walls[x, y] = true;

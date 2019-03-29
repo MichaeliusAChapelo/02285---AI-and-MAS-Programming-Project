@@ -15,6 +15,7 @@ namespace BoxProblems
         {
             Browser = new ChromeDriver(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "webdrivers", "windows"));
             Browser.Navigate().GoToUrl(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "webpage", "index.html"));
+            Browser.Manage().Window.Maximize();
         }
 
         public static void ShowGraph<N, E>(Graph<N, E> graph)

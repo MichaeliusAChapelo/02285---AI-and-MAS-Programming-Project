@@ -61,6 +61,15 @@ namespace BoxProblems
                 }
             }
 
+            //New format requres colors for all boxes and agents.
+            //If no colors have been specified then give them all
+            //a red color.
+            if (colorLines.Count == 0)
+            {
+                var entities = levelNoColors.SelectMany(x => x.Where(y => char.IsDigit(y) || (char.IsLetter(y) && char.IsUpper(y)))).ToList();
+                colorLines.Add($"red: {string.Join(", ", entities)}");
+            }
+
             List<string> levelWithoutGoals = new List<string>();
             foreach (string line in levelNoColors)
             {
@@ -116,82 +125,61 @@ namespace BoxProblems
 
         public static Level ReadLevel(string[] lines)
         {
+            int colorIndex = Array.IndexOf(lines, "#colors") + 1;
+            int initialLevelIndex = Array.IndexOf(lines, "#initial") + 1;
+            int goalLevelIndex = Array.IndexOf(lines, "#goal") + 1;
+
+            //Split level into its parts
+            Span<string> colorLines = new Span<string>(lines, colorIndex, initialLevelIndex - colorIndex - 1);
+            Span<string> initialLevel = new Span<string>(lines, initialLevelIndex, goalLevelIndex - initialLevelIndex - 1);
+            Span<string> goalLevel = new Span<string>(lines, goalLevelIndex, lines.Length - goalLevelIndex - 1);
+
+            //Parse the colors
+            Dictionary<char, int> entityColors = new Dictionary<char, int>();
+            for (int i = 0; i < colorLines.Length; i++)
+            {
+                string[] entities = colorLines[i].Split(':')[1].Replace(" ", string.Empty).Split(',');
+                foreach (var entity in entities)
+                {
+                    entityColors.Add(entity.First(), i);
+                }
+            }
+
             List<Entity> agents = new List<Entity>();
             List<Entity> boxes = new List<Entity>();
             List<Goal> goals = new List<Goal>();
 
-            // Find indexes for levels and goals.
-            int initialLevelIndex = 0, goalLevelIndex = 0;
-            for (int i = 0; i < lines.Length; ++i)
-            {
-                if (lines[i] == "#initial")
-                    initialLevelIndex = i + 1;
-                else if (lines[i] == "#goal")
-                {
-                    goalLevelIndex = i + 1;
-                    break;
-                }
-            }
-
-            // Define width/height of wall map.
-            int width = lines[initialLevelIndex].Length;
-            int height = goalLevelIndex - initialLevelIndex - 1;
+            int width = initialLevel.Max(x => x.Length);
+            int height = initialLevel.Length;
             bool[,] walls = new bool[width, height];
 
-
-            // Fix 'em colours (yes, elegant, European, superior and majestic British spelling)
-
-            int[] agentColours = new int[10];
-            int[] boxColours = new int[30];
-            for (int i = 5; i < initialLevelIndex - 1; ++i)
+            for (int y = 0; y < height; y++)
             {
-                string[] contents = lines[i].Split(", ");
-                contents[0] = (contents[0]).Substring(contents[0].Length - 1);
-
-                for (int j = 0; j < contents.Length; ++j)
+                for (int x = 0; x < initialLevel[y].Length; x++)
                 {
-                    if (Regex.IsMatch(contents[j], @"[0-9]"))
-                    {
-                        int num = int.Parse(contents[j]);
-                        agentColours[num] = i - 5; // Index of colour in text file.
-                    }
+                    char c = initialLevel[y][x];
 
-                    else if (Regex.IsMatch(contents[j], @"[A-Z]"))
-                    {
-                        boxColours[char.Parse(contents[j]) - 'A'] = i - 5; // Index of colour in text file.
-                    }
-                }
-            }
-            // Read each line and each character.
-            for (int y = 0; y < goalLevelIndex - initialLevelIndex - 1; ++y)
-                for (int x = 0; x < lines[initialLevelIndex + y].Length; ++x)
-                {
-                    char c = (lines[initialLevelIndex + y])[x]; // Initial state character.
+                    if (char.IsLetter(goalLevel[y][x]))
+                        goals.Add(new Goal(new Point(x, y), (goalLevel[y])[x]));
 
-                    if (c == '+') // Wall
+                    if (c == '+')
                         walls[x, y] = true;
 
-                    // Goals
-                    else if ((lines[goalLevelIndex + y])[x] != c
-                        && Regex.IsMatch((lines[goalLevelIndex + y])[x].ToString(), @"[A-Z]"))
-                        goals.Add(new Goal(new Point(x, y), (lines[goalLevelIndex + y])[x]));
-
-                    // Efficiency!
                     else if (c == ' ')
                         continue;
 
-                    // Agent SPOTTED
-                    else if (Regex.IsMatch(c.ToString(), @"[0-9]"))
-                        agents.Add(new Entity(new Point(x, y), agentColours[c - '0'], c)); // Fix me l8 m8 gr8 1 m8
+                    else if (char.IsDigit(c))
+                        agents.Add(new Entity(new Point(x, y), entityColors[c], c));
 
-                    // And another one of them boxes givin' us me problema.
-                    else if (Regex.IsMatch(c.ToString(), @"[A-Z]"))
-                        boxes.Add(new Entity(new Point(x, y), boxColours[c - 'A'], c)); // Fix me l8
+                    else if (char.IsLetter(c))
+                        boxes.Add(new Entity(new Point(x, y), entityColors[c], c));
 
-                    else throw new Exception("bruh i ain't findin no suitable charz brah");
+                    else throw new Exception($"bruh i ain't findin no suitable charz brah.{Environment.NewLine}Position: [{x}, {y}] Character: {c}");
                 }
+            }
 
-            agents.Sort((x, y) => x.Type.CompareTo(y.Type));
+            agents.Sort(EntityComparar.Comparer);
+            boxes.Sort(EntityComparar.Comparer);
 
             State state = new State(null, agents.Concat(boxes).ToArray(), 0);
             return new Level(walls, goals.ToArray(), state, width, height, agents.Count, boxes.Count);

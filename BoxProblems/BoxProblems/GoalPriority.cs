@@ -44,7 +44,7 @@ namespace BoxProblems
                 }
                 priorityGoals.Add(new PriorityGoal(curGoal, priorities.Min()));
             }
-            return priorityGoals; 
+            return priorityGoals.OrderBy(x => x.Priority).ToList(); 
         }
 
         public Boolean BoxOnGoal(Node<GoalNodeInfo, GoalEdgeInfo> goal, Node<GoalNodeInfo, GoalEdgeInfo> curPos)

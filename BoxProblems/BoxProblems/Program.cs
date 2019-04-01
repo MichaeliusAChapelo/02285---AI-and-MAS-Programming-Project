@@ -14,15 +14,6 @@ using OpenQA.Selenium.Chrome;
 [assembly: InternalsVisibleTo("BoxTests")]
 namespace BoxProblems
 {
-    internal enum Direction : byte
-    {
-        N = 0,
-        W = 1,
-        E = 2,
-        S = 3,
-        NONE = 4,
-    }
-
     class Program
     {
         static void Main(string[] args)

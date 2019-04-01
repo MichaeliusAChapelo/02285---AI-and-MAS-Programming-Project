@@ -10,11 +10,18 @@ namespace BoxProblems
         public readonly int Color;
         public readonly char Type;
 
-        public Entity(Point Pos, int Color, char Type)
+        public Entity(int x, int y, int color, char type)
         {
-            this.Pos = Pos;
-            this.Color = Color;
-            this.Type = Type;
+            this.Pos = new Point(x, y);
+            this.Color = color;
+            this.Type = type;
+        }
+
+        public Entity(Point pos, int color, char type)
+        {
+            this.Pos = pos;
+            this.Color = color;
+            this.Type = type;
         }
 
         public override string ToString()

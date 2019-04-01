@@ -98,7 +98,7 @@ namespace BoxProblems
 
                 List<Entity> agents = new List<Entity>();
                 List<Entity> boxes = new List<Entity>();
-                List<Goal> goals = new List<Goal>();
+                List<Entity> goals = new List<Entity>();
 
                 foreach (var agent in level.GetAgents())
                 {

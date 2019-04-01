@@ -34,13 +34,28 @@ namespace BoxProblems
             //    System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {level} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
             //}
 
-            //Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
-            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
+            ////Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
+            //Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
+
+            //GoalGraph graph = new GoalGraph(level.InitialState, level);
+            //BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
+            ////GraphShower.ShowGraph(graph);
+            //GraphShower.ShowGraph(conflictGraph);
+
+
+
+            //Level leavel = Level.ReadLevel(File.ReadAllLines("SplitExample2.lvl"));
+            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfHoChiMinh26.lvl"), "asdas");
 
             GoalGraph graph = new GoalGraph(level.InitialState, level);
-            BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
+            GoalPriority goalPriority = new GoalPriority();
+            var goalPriorities = goalPriority.GetGoalPrioity(graph);
+            foreach (GoalPriority.PriorityGoal gp in goalPriorities)
+            {
+                Console.WriteLine(gp.Type + " " + gp.ThroughGoalPriority);
+            }
+
             //GraphShower.ShowGraph(graph);
-            GraphShower.ShowGraph(conflictGraph);
 
 
             //Console.WriteLine(leavel);

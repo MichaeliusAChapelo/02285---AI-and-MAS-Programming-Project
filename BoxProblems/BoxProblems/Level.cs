@@ -123,6 +123,11 @@ namespace BoxProblems
             return ReadLevel(newFormat.ToArray());
         }
 
+        internal object ToList()
+        {
+            throw new NotImplementedException();
+        }
+
         public static Level ReadLevel(string[] lines)
         {
             int colorIndex = Array.IndexOf(lines, "#colors") + 1;

@@ -69,7 +69,7 @@ namespace BoxTests
         {
             Level level = TestTools.StringToOldFormatLevel(levelString);
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
-            Dictionary<GoalNode, int> actualGoalPriority = GoalPriority2.GetGoalPriority(level, goalGraph);
+            var actualGoalPriority = GoalPriority2.GetGoalPriority(level, goalGraph);
 
             for (int i = 0; i < expectedGoalPriority.Length - 1; i++)
             {

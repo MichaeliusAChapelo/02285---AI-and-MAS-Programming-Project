@@ -30,5 +30,11 @@ namespace BoxProblems
             IJavaScriptExecutor jsExe = (IJavaScriptExecutor)Browser;
             jsExe.ExecuteScript($"setGraph({graphInfo.nodes}, {graphInfo.edges});");
         }
+
+        public static void Shutdown()
+        {
+            Browser?.Quit();
+            Browser = null;
+        }
     }
 }

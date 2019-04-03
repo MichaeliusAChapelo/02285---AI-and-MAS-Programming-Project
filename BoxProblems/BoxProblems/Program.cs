@@ -27,6 +27,8 @@ namespace BoxProblems
     {
         static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += (_, __) => ReleaseResources();
+
             //if (args.Length == 0)
             //{
             //    string strategy = "-astar";
@@ -78,6 +80,11 @@ namespace BoxProblems
             //var levels = LevelSplitter.SplitLevel(leavel);
             //levels.ForEach(x => Console.WriteLine(x));
             Console.Read();
+        }
+
+        private static void ReleaseResources()
+        {
+            GraphShower.Shutdown();
         }
     }
 }

@@ -51,6 +51,7 @@ namespace BoxProblems
             Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
 
             GoalGraph graph = new GoalGraph(level.InitialState, level);
+            GraphShower.ShowGraph(graph);
             GoalPriority2 priority = new GoalPriority2(level, graph);
             //BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
             //GraphShower.ShowGraph(graph);

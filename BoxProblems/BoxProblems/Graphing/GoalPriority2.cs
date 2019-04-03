@@ -41,10 +41,12 @@ namespace BoxProblems.Graphing
             int minLength = int.MaxValue;
             Queue<GoalNode> frontier = new Queue<GoalNode>();
             Dictionary<GoalNode, List<GoalNode>> childToParent = new Dictionary<GoalNode, List<GoalNode>>();
+            HashSet<GoalNode> exploredSet = new HashSet<GoalNode>();
 
             frontier.Enqueue(startNode);
             childToParent.Add(startNode, null);
 
+            //depth implementation copied from https://github.com/TheAIBot/Bioly/blob/master/BiolyCompiler/Routing/Router.cs#L198
             int depthNodeCount = 1;
             int nextDepthNodeCount = 0;
             int depth = 0;
@@ -74,23 +76,21 @@ namespace BoxProblems.Graphing
                     while (toSee.Count > 0)
                     {
                         GoalNode pathEnd = toSee.Pop();
-                        while (childToParent.TryGetValue(pathEnd, out List<GoalNode> parent))
+                        List<GoalNode> parent;
+                        if (!childToParent.TryGetValue(pathEnd, out parent))
                         {
-                            Console.WriteLine(pathEnd.ToString());
-                            nodeCounter[pathEnd] = nodeCounter[pathEnd] + 1;
-                            if (parent == null)
-                            {
-                                break;
-                            }
-                            if (parent.Count > 1)
-                            {
-                                foreach (var node in parent)
-                                {
-                                    toSee.Push(node);
-                                }
-                                break;
-                            }
-                            pathEnd = parent.First();
+                            continue;
+                        }
+
+                        Console.WriteLine(pathEnd.ToString());
+                        nodeCounter[pathEnd] = nodeCounter[pathEnd] + 1;
+                        if (parent == null)
+                        {
+                            continue;
+                        }
+                        foreach (var node in parent)
+                        {
+                            toSee.Push(node);
                         }
                     }
 
@@ -99,16 +99,40 @@ namespace BoxProblems.Graphing
 
                 foreach (var child in leaf.Edges)
                 {
+                    if (leaf.Value.EntType == EntityType.BOX && child.End.Value.EntType == EntityType.BOX)
+                    {
+                        continue;
+                    }
+
+                    if (exploredSet.Contains(child.End))
+                    {
+                        continue;
+                    }
+
                     GoalNode goalChild = (GoalNode)child.End;
                     if (!childToParent.ContainsKey(goalChild))
                     {
                         childToParent.Add(goalChild, new List<GoalNode>());
                     }
+                    else
+                    {
+                        childToParent[goalChild].Add(leaf);
+                        continue;
+                    }
+
+                    if (childToParent[goalChild] == null)
+                    {
+                        continue;
+                    }
 
                     frontier.Enqueue(goalChild);
-                    childToParent[goalChild].Add(leaf);
+                    if (!childToParent[goalChild].Contains(leaf))
+                    {
+                        childToParent[goalChild].Add(leaf);
+                    }
                     nextDepthNodeCount++;
                 }
+                exploredSet.Add(leaf);
             }
         }
     }

@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace BoxProblems.Graphing
 {
-    internal class GoalPriority2
+    internal static class GoalPriority2
     {
-        public GoalPriority2(Level level, GoalGraph goalGraph)
+        public static Dictionary<GoalNode, int> GetGoalPriority(Level level, GoalGraph goalGraph)
         {
             Dictionary<GoalNode, int> nodeCounter = new Dictionary<GoalNode, int>();
             goalGraph.Nodes.ForEach(x => nodeCounter.Add((GoalNode)x, 0));
@@ -27,16 +27,18 @@ namespace BoxProblems.Graphing
                 }
             }
 
-            foreach (var keyValuePair in nodeCounter)
-            {
-                if (keyValuePair.Key.Value.EntType == EntityType.GOAL)
-                {
-                    Console.WriteLine(keyValuePair.Key.ToString() + ": " + keyValuePair.Value);
-                }
-            }
+            //foreach (var keyValuePair in nodeCounter)
+            //{
+            //    if (keyValuePair.Key.Value.EntType == EntityType.GOAL)
+            //    {
+            //        Console.WriteLine(keyValuePair.Key.ToString() + ": " + keyValuePair.Value);
+            //    }
+            //}
+
+            return nodeCounter;
         }
 
-        private void AddToNodeCounterForShortestPath(GoalNode startNode, GoalNode goalNode, Dictionary<GoalNode, int> nodeCounter)
+        private static void AddToNodeCounterForShortestPath(GoalNode startNode, GoalNode goalNode, Dictionary<GoalNode, int> nodeCounter)
         {
             int minLength = int.MaxValue;
             Queue<GoalNode> frontier = new Queue<GoalNode>();
@@ -82,7 +84,7 @@ namespace BoxProblems.Graphing
                             continue;
                         }
 
-                        Console.WriteLine(pathEnd.ToString());
+                        //Console.WriteLine(pathEnd.ToString());
                         nodeCounter[pathEnd] = nodeCounter[pathEnd] + 1;
                         if (parent == null)
                         {
@@ -94,7 +96,7 @@ namespace BoxProblems.Graphing
                         }
                     }
 
-                    Console.WriteLine();
+                    //Console.WriteLine();
                 }
 
                 foreach (var child in leaf.Edges)

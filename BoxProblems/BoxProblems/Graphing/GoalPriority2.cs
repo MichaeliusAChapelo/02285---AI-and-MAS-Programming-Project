@@ -43,6 +43,7 @@ namespace BoxProblems.Graphing
             Dictionary<GoalNode, List<GoalNode>> childToParent = new Dictionary<GoalNode, List<GoalNode>>();
             HashSet<GoalNode> exploredSet = new HashSet<GoalNode>();
             HashSet<GoalNode> shortestPathsVisitedNodes = new HashSet<GoalNode>();
+            Stack<GoalNode> backtrackPaths = new Stack<GoalNode>();
             int shortestPathsCount = 0;
 
             frontier.Enqueue(startNode);
@@ -55,6 +56,7 @@ namespace BoxProblems.Graphing
 
             while (frontier.Count > 0)
             {
+                //handles
                 if (depthNodeCount == 0)
                 {
                     depthNodeCount = nextDepthNodeCount;
@@ -69,48 +71,40 @@ namespace BoxProblems.Graphing
                 }
 
                 GoalNode leaf = frontier.Dequeue();
-                if ( goalCondition(leaf))
+                if (goalCondition(leaf))
                 {
                     shortestPathsCount++;
                     minLength = depth;
-                    Stack<GoalNode> toSee = new Stack<GoalNode>();
-                    toSee.Push(leaf);
 
-                    while (toSee.Count > 0)
+                    backtrackPaths.Clear();
+                    backtrackPaths.Push(leaf);
+
+                    while (backtrackPaths.Count > 0)
                     {
-                        GoalNode pathEnd = toSee.Pop();
-                        List<GoalNode> parents;
-                        if (!childToParent.TryGetValue(pathEnd, out parents))
-                        {
-                            continue;
-                        }
-
-                        //Console.WriteLine(pathEnd.ToString());
+                        GoalNode pathEnd = backtrackPaths.Pop();
                         if (pathEnd.Value.EntType == EntityType.GOAL)
                         {
                             shortestPathsVisitedNodes.Add(pathEnd);
                         }
-                        if (parents == null)
-                        {
-                            continue;
-                        }
-                        foreach (var node in parents)
-                        {
-                            toSee.Push(node);
-                        }
-                        shortestPathsCount += parents.Count - 1;
-                    }
 
-                    //Console.WriteLine();
+                        if (childToParent.TryGetValue(pathEnd, out List<GoalNode> parents) && parents != null)
+                        {
+                            foreach (var node in parents)
+                            {
+                                backtrackPaths.Push(node);
+                            }
+                            shortestPathsCount += parents.Count - 1;
+                        }
+                    }
+                }
+
+                if (leaf.Value.EntType == EntityType.BOX)
+                {
+                    continue;
                 }
 
                 foreach (var child in leaf.Edges)
                 {
-                    if (leaf.Value.EntType == EntityType.BOX && child.End.Value.EntType == EntityType.BOX)
-                    {
-                        continue;
-                    }
-
                     if (exploredSet.Contains(child.End))
                     {
                         continue;
@@ -119,25 +113,14 @@ namespace BoxProblems.Graphing
                     GoalNode goalChild = (GoalNode)child.End;
                     if (!childToParent.ContainsKey(goalChild))
                     {
-                        childToParent.Add(goalChild, new List<GoalNode>());
+                        childToParent.Add(goalChild, new List<GoalNode>() { leaf });
+                        frontier.Enqueue(goalChild);
+                        nextDepthNodeCount++;
                     }
                     else
                     {
                         childToParent[goalChild].Add(leaf);
-                        continue;
                     }
-
-                    if (childToParent[goalChild] == null)
-                    {
-                        continue;
-                    }
-
-                    frontier.Enqueue(goalChild);
-                    if (!childToParent[goalChild].Contains(leaf))
-                    {
-                        childToParent[goalChild].Add(leaf);
-                    }
-                    nextDepthNodeCount++;
                 }
                 exploredSet.Add(leaf);
             }

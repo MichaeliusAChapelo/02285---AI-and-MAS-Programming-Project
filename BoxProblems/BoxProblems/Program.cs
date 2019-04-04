@@ -92,7 +92,7 @@ namespace BoxProblems
 
             GoalGraph graph = new GoalGraph(level.InitialState, level);
             GraphShower.ShowGraph(graph);
-            //var priority = GoalPriority2.GetGoalPriority(level, graph);
+            var priority = GoalPriority2.GetGoalPriority(level, graph);
             //BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
             //GraphShower.ShowGraph(graph);
             //GraphShower.ShowGraph(conflictGraph);

@@ -22,8 +22,8 @@ namespace BoxTests
 +  DC+ +
 + ++++ +
 +      +
-++++++++
-";
+++++++++";
+
             Point[] priority = new Point[]
             {
                 new Point(5, 1),
@@ -50,8 +50,8 @@ namespace BoxTests
 +++++A+++++
 ++++D D++++
 +++++E+++++
-+++++++++++
-";
++++++++++++";
+
             Point[] priority = new Point[]
             {
                 new Point(5, 2),
@@ -60,6 +60,27 @@ namespace BoxTests
                 new Point(4, 3),
                 new Point(6, 3),
                 new Point(5, 6)
+            };
+
+            VerifyPriority(levelString, priority);
+        }
+
+        [TestMethod]
+        public void TestGoalPriority3()
+        {
+            string levelString = @"
++++++
+++B++
+++ ++
+++ ++
+++ ++
++Aba+
++++++";
+
+            Point[] priority = new Point[]
+            {
+                new Point(3, 5),
+                new Point(2, 5)
             };
 
             VerifyPriority(levelString, priority);

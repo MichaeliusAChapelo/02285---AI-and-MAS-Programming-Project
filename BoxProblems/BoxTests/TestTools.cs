@@ -15,13 +15,9 @@ namespace BoxTests
             return Level.ReadOldFormatLevel(levelLines, levelName);
         }
 
-        internal static Level StringToOldFormatLevel(string levelstring)
+        internal static Level StringToOldFormatLevel(string levelString)
         {
-            return Level.ReadOldFormatLevel(levelstring.Replace("\r", string.Empty)
-                                                       .Split('\n')
-                                                       .ToList()
-                                                       .Where(x => x.Length > 0)
-                                                       .ToArray(), "default test level name");
+            return Level.ReadOldFormatLevel(levelString, "default test level name");
         }
     }
 }

@@ -43,6 +43,15 @@ namespace BoxProblems
             return pos.X + pos.Y * Width;
         }
 
+        public static Level ReadOldFormatLevel(string levelString, string levelName)
+        {
+            return Level.ReadOldFormatLevel(levelString.Replace("\r", string.Empty)
+                                                       .Split('\n')
+                                                       .ToList()
+                                                       .Where(x => x.Length > 0)
+                                                       .ToArray(), levelName);
+        }
+
         public static Level ReadOldFormatLevel(string[] lines, string levelName)
         {
             return ReadLevel(ConvertToNewFormat(lines, levelName));

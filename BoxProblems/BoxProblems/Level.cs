@@ -45,6 +45,11 @@ namespace BoxProblems
 
         public static Level ReadOldFormatLevel(string[] lines, string levelName)
         {
+            return ReadLevel(ConvertToNewFormat(lines, levelName));
+        }
+
+        public static string[] ConvertToNewFormat(string[] lines, string levelName)
+        {
             List<string> colorLines = new List<string>();
             List<string> levelNoColors = new List<string>();
             bool isColor = true;
@@ -120,7 +125,7 @@ namespace BoxProblems
             newFormat.AddRange(levelWithOnlyGoals);
             newFormat.Add("#end");
 
-            return ReadLevel(newFormat.ToArray());
+            return newFormat.ToArray();
         }
 
         internal object ToList()

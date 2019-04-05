@@ -114,7 +114,7 @@ namespace BoxTests
 
             State priorityState = new State(null, priorityEntities.ToArray(), 0);
             string actualPriorityString = level.StateToString(priorityState);
-            Assert.AreEqual(levelPriorityString, actualPriorityString, $"Expected:{Environment.NewLine}{levelPriorityString}{Environment.NewLine}{Environment.NewLine}Actual:{Environment.NewLine}{actualPriorityString}");
+            Assert.IsTrue(levelPriorityString == actualPriorityString, $"{Environment.NewLine}Expected:{Environment.NewLine}{levelPriorityString}{Environment.NewLine}{Environment.NewLine}Actual:{Environment.NewLine}{actualPriorityString}");
         }
     }
 }

@@ -46,8 +46,8 @@ Do for each split level:
 4) Once any agent has reached its destination, repeat from step 1 until solved.
 
 
-## Heuristics
-# Goal priority 
+# Heuristics
+## Goal priority 
 	1. Find all shortest path from a given goal to any given box matching that goal. 
 	2. Find the priority of each goal, G: (1/#ofPathsToGFromAnyBox)*#pathsGoingThroughG
 		- The lower the number the higher the priority (1 have to be solved before 2 and so on)  

@@ -7,7 +7,8 @@ namespace BoxProblems
     internal class ServerCommunicator
     {
         const string strategy = "-astar";
-        const string levelPath = "MAExample.lvl"; // MABahaMAS.lvl
+        //const string levelPath = "MAExample.lvl";
+        const string levelPath = "MAFiveWalls.lvl";
 
         public void Run(string[] args)
         {
@@ -18,15 +19,12 @@ namespace BoxProblems
                 PrintMap();
 
                 // Ideally, you should input a solution here.
-                //Level level = Level.ReadLevel(new string[] { levelPath});
-                // Solve(); // Most convenient function.
+                //NaiveSolver.level = Level.ReadOldFormatLevel(File.ReadAllLines("MABahaMAS.lvl"),"asd");
                 NaiveSolver.level = Level.ReadLevel(File.ReadAllLines(levelPath));
                 var solver = new NaiveSolver();
-                solver.Solve();
+                solver.Solve(); // A most convenient function.
 
-                
-
-                ExampleCommands(); // Should be commented out.
+                //ExampleCommands(); // Should be commented out.
             }
         }
 
@@ -53,7 +51,7 @@ namespace BoxProblems
             Command("NoOp;" + NoOp());
         }
 
-        public string Command(string command)
+        public static string Command(string command)
         {
             Console.WriteLine(command);
             string response = Console.ReadLine();
@@ -61,17 +59,17 @@ namespace BoxProblems
             return response;
         }
 
-        public string Command(string[] commands) { return Command(String.Join(';', commands)); }
-        public string Command(List<string> commands) { return Command(String.Join(';', commands)); }
+        public static string Command(string[] commands) { return Command(String.Join(';', commands)); }
+        public static string Command(List<string> commands) { return Command(String.Join(';', commands)); }
 
-        public string NoOp() { return "NoOp"; }
-        public string Move(Direction agentDirection) { return "Move(" + agentDirection.ToString() + ")"; }
-        public string Push(Direction agentDirection, Direction boxDirection) { return "Push(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
-        public string Pull(Direction agentDirection, Direction boxDirection) { return "Pull(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
+        public static string NoOp() { return "NoOp"; }
+        public static string Move(Direction agentDirection) { return "Move(" + agentDirection.ToString() + ")"; }
+        public static string Push(Direction agentDirection, Direction boxDirection) { return "Push(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
+        public static string Pull(Direction agentDirection, Direction boxDirection) { return "Pull(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
 
-        public string Move(char agentDirection) { return "Move(" + agentDirection + ")"; }
-        public string Push(char agentDirection, char boxDirection) { return "Push(" + agentDirection + "," + boxDirection + ")"; }
-        public string Pull(char agentDirection, char boxDirection) { return "Pull(" + agentDirection + "," + boxDirection + ")"; }
+        public static string Move(char agentDirection) { return "Move(" + agentDirection + ")"; }
+        public static string Push(char agentDirection, char boxDirection) { return "Push(" + agentDirection + "," + boxDirection + ")"; }
+        public static string Pull(char agentDirection, char boxDirection) { return "Pull(" + agentDirection + "," + boxDirection + ")"; }
 
     }
 }

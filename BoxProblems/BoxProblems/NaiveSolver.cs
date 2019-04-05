@@ -1,35 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BoxProblems
 {
     internal class NaiveSolver
     {
-        public static Level level;
+        // Find some way to make the agent deal with boxes.
+        // Preferably by pushing from agent to box to goal in one whole path.
 
+        public static Level level;
+        State currentState;
+        List<AgentBoxGoalPairs?> priorities; // Box/Goal target for agents.
+        List<EntityMapping?> mappings; // Agent paths.
+        int[] waits; // How long each agent with a goal must wait.
+        int g = 0; // Number of turns.
+        Entity[] agents;
 
         internal readonly struct AgentBoxGoalPairs
         {
             public readonly Entity Agent;
             public readonly Entity Box;
             public readonly Entity Goal;
+            public readonly bool AgentIsNextToBox;
 
             public AgentBoxGoalPairs(Entity Agent, Entity Box, Entity Goal)
             {
                 this.Agent = Agent;
                 this.Box = Box;
                 this.Goal = Goal;
+                this.AgentIsNextToBox = (Point.ManhattenDistance(Agent.Pos, Box.Pos) == 1);
             }
         }
 
-        internal readonly struct EntityMapping
+        internal struct EntityMapping
         {
             public readonly Entity Agent;
             public readonly int[,] DistanceMap;
-            public readonly Point[] Solution; // Don't know if needed.
+            public List<Point> Solution; // Don't know if needed.
 
-            public EntityMapping(Entity Agent, int[,] DistanceMap, Point[] Solution)
+            public EntityMapping(Entity Agent, int[,] DistanceMap, List<Point> Solution)
             {
                 this.Agent = Agent;
                 this.DistanceMap = DistanceMap;
@@ -37,74 +48,97 @@ namespace BoxProblems
             }
         }
 
-        //const string levelPath = "MAExample.lvl"; // MABahaMAS.lvl
-        //NaiveSolver.level = Level.ReadLevel(File.ReadAllLines(levelPath));
-        // var solver = new NaiveSolver();
-        //solver.Solve();
-        // return
-
+        // GOD FUNCTION
         public void Solve()
-        { // Do your magic!
-            // Part 1
-            List<AgentBoxGoalPairs> priorities = AssignGoals();
+        {
+            currentState = level.InitialState;
+            agents = level.GetAgents().ToArray();
 
+            while (true)
+            {
+                priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
+                // Do NOT rely on indexing from this list. Agents with nothing to do are not included in list!
 
-            // Part Deux
-            List<EntityMapping> mappings = InitialMappings(priorities);
+                mappings = InitialMappings(); // Parte Deux: Find path to destination
 
-            int x;
-            x = 1;
-            // Part Trois
+                if (IsGoalState()) break; // If no agent has any goals, we at goal state boys.
 
+                waits = new int[agents.Length]; // Parte Trois: Locate agent conflicts. Is currently solved by waiting.
+                // For each pair of agents, calculate how long to wait. Agents last in priority list waits the most.
+                for (int i = 0; i < agents.Length - 1; ++i)
+                    for (int j = i + 1; j < agents.Length; ++j)
+                        waits[i] += LocateConflicts(mappings[i], mappings[j]);
 
+                // Parte Quatre: Write commands:
+                WriteCommands();
+
+                // Parte Cinq: Replace current state, then restart algorithm.
+                currentState = CreateCurrentState();
+            }
+            Console.Error.WriteLine("\n WE SOLVE, WE DONE");
         }
 
-        // Use State.GetAgents and State.GetBoxes to find relevant data.
+        #region Zeroness: General purpose
+        public bool IsNextTo(Entity a, Entity b) { return Point.ManhattenDistance(a.Pos, b.Pos) == 1; }
 
-        #region 1) Assign agent goals
-        // Gives all agents a goal.
-        public List<AgentBoxGoalPairs> AssignGoals()
+        public bool IsNextTo(Point a, Entity b) { return Point.ManhattenDistance(a, b.Pos) == 1; }
+
+        public Direction PointToDirection(Point p1, Point p2)
         {
-            var agents = level.GetAgents();
-            var priorities = new List<AgentBoxGoalPairs>();
+            Point delta = p2 - p1;
 
+            if (delta.X > 0)
+                return Direction.E;
+            if (delta.X < 0)
+                return Direction.W;
+            if (delta.Y < 0)
+                return Direction.N;
+            if (delta.Y > 0)
+                return Direction.S;
+            throw new Exception("Pair of points could not resolve to a direction.");
+        }
+        #endregion
+
+        #region Parte Uno: Assign agent goals
+
+        // Gives all agents a goal.
+        public List<AgentBoxGoalPairs?> AssignGoals()
+        {
+            var priorities = new List<AgentBoxGoalPairs?>();
             foreach (Entity agent in agents)
-            {
-                var pairs = AssignAgentGoal(agent);
-                if (pairs.HasValue)
-                    priorities.Add(pairs.Value);
-            }
-
+                priorities.Add(AssignAgentGoal(agent));
             return priorities;
         }
 
         //For assigning individual agents
         public AgentBoxGoalPairs? AssignAgentGoal(Entity agent)
         {
-            var boxes = level.GetBoxes();
-            var goals = level.Goals;
-            foreach (Entity box in boxes)
+            foreach (Entity box in currentState.GetBoxes(level))
                 if (agent.Color == box.Color)
-                    foreach (Entity goal in goals)
-                        if (box.Type == goal.Type)
+                    foreach (Entity goal in level.Goals)
+                        if (box.Type == goal.Type && box.Pos != goal.Pos)
                             return new AgentBoxGoalPairs(agent, box, goal);
             return null;
         }
 
         #endregion
 
-        #region 2) BFS to destination + distance maps
+        #region Parte Deux: BFS to solution.
 
-        public List<EntityMapping> InitialMappings(List<AgentBoxGoalPairs> priorities)
+        public List<EntityMapping?> InitialMappings()
         {
-            List<EntityMapping> mappings = new List<EntityMapping>();
-            foreach (AgentBoxGoalPairs priority in priorities)
-            {
-                if (Point.ManhattenDistance(priority.Agent.Pos, priority.Box.Pos) > 1)
-                    mappings.Add(CreateEntityMap(priority.Agent, priority.Box.Pos)); // Head to box
+            var mappings = new List<EntityMapping?>();
+            foreach (AgentBoxGoalPairs? priority in priorities)
+                if (!priority.HasValue)
+                    mappings.Add(null);
+                else if (!priority.Value.AgentIsNextToBox)
+                    mappings.Add(CreateEntityMap(priority.Value.Agent, priority.Value.Box.Pos)); // Agent move to box
                 else
-                    mappings.Add(CreateEntityMap(priority.Box, priority.Goal.Pos));
-            }
+                {
+                    mappings.Add(CreateEntityMap(priority.Value.Box, priority.Value.Goal.Pos)); // Push box to goal
+                    mappings.Last().Value.Solution.Insert(0, priority.Value.Agent.Pos); // Add agent as first index.
+                    mappings.Last().Value.Solution.Add(priority.Value.Goal.Pos);
+                }
             return mappings;
         }
 
@@ -121,8 +155,8 @@ namespace BoxProblems
             var frontier = new Queue<Point>();
             frontier.Enqueue(start);
 
-            //int currentDistance = 0;
-            while (frontier.Count != 0)
+            while (frontier.Count != 0) // Explores the entire map. Suboptimal but safer.
+            //while (distanceMap[destination.X, destination.Y] != 0) // Stops once goal is found.
             {
                 Point p = frontier.Dequeue();
 
@@ -142,7 +176,6 @@ namespace BoxProblems
 
                 // Set distance at point.
                 distanceMap[p.X, p.Y] = (p == start) ? 0 : dist + 1;
-                //currentDistance++;
             }
             return distanceMap;
         }
@@ -152,10 +185,10 @@ namespace BoxProblems
             if (distanceMap[next.X, next.Y] == 0 && !next.Equals(start))
                 frontier.Enqueue(next);
             else if (distanceMap[next.X, next.Y] < dist)
-                dist = distanceMap[next.X, next.Y];
+                dist = distanceMap[next.X, next.Y]; // TODO: Add breakpoint here because this case never happens due to BFS properties.
         }
 
-        private Point[] BacktrackSolution(Point destination, int[,] distanceMap)
+        private List<Point> BacktrackSolution(Point destination, int[,] distanceMap)
         {
             var solutionPath = new List<Point>() { destination };
 
@@ -166,9 +199,9 @@ namespace BoxProblems
                 solutionPath.Add(next);
                 current = next;
             }
-
+            solutionPath.RemoveAt(0);
             solutionPath.Reverse();
-            return solutionPath.ToArray();
+            return solutionPath;
         }
 
         private Point CheckNeighbours(Point p, int[,] DistanceMap)
@@ -190,12 +223,131 @@ namespace BoxProblems
 
         #endregion
 
-        #region 3) Locate Conflicts
+        #region Parte Trois: Locate Conflicts
 
+        // Strategy: Locate overlapping (corridor) positions
+        public int LocateConflicts(EntityMapping? map1, EntityMapping? map2)
+        {
+            if (!map1.HasValue || !map2.HasValue) return 0;
+
+            // Possible optimization: Give agents a path around a conflict zone.
+            // You can make a solution in which an agent simply takes a path around the conflict.
+
+            List<Point> overlaps = new List<Point>();
+            foreach (Point p in map1.Value.Solution)
+                //if (!overlaps.Contains(p) || IsCorridor(p))
+                if (map2.Value.Solution.Contains(p))
+                    overlaps.Add(p);
+
+            // Current simple solution is to make an agent take no actions
+            // for the number of conflicts in his path.
+            return overlaps.Count;
+        }
+
+        public bool IsCorridor(Point p)
+        {
+            if (level.Walls[p.X + 1, p.Y] && level.Walls[p.X - 1, p.Y])
+                return true; // Vertical corridor
+            if (level.Walls[p.X, p.Y + 1] && level.Walls[p.X, p.Y - 1])
+                return true; // Horizontal corridor
+            return false; // No corridor
+        }
 
         #endregion
 
+        #region Parte Quatre: Command until agent needs new goals
 
+        public void WriteCommands()
+        {
+            while (!AgentReachedDestination())
+            {
+                g++; // Add turn count.
+                string[] commands = new string[agents.Length];
+
+                // Iterates through every agent and adds a command
+                for (int i = 0; i < agents.Length; ++i)
+                {
+                    if (!priorities[i].HasValue) // Agent has no goal.
+                    {
+                        commands[i] = ServerCommunicator.NoOp();
+                    }
+                    else if (waits[i] != 0) // Agent should wait.
+                    {
+                        commands[i] = ServerCommunicator.NoOp();
+                        waits[i]--;
+                    }
+                    else if (!priorities[i].Value.AgentIsNextToBox) // Agent moves to box
+                    {
+                        var solution = mappings[i].Value.Solution;
+                        Direction d = PointToDirection(solution[0], solution[1]);
+                        solution.RemoveAt(0);
+                        commands[i] = ServerCommunicator.Move(d);
+                    }
+                    else // Push box to goal.
+                    {
+                        var solution = mappings[i].Value.Solution;
+                        Direction d1 = PointToDirection(solution[0], solution[1]);
+                        Direction d2 = PointToDirection(solution[1], solution[2]);
+                        solution.RemoveAt(0);
+                        commands[i] = ServerCommunicator.Push(d1, d2);
+                    }
+                }
+
+                string response = ServerCommunicator.Command(commands); // Sends commands to server
+                if (response.Contains("false"))
+                    throw new Exception("Attempted illegal move.");
+            }
+        }
+
+        public bool AgentReachedDestination()
+        {
+            for (int i = 0; i < priorities.Count; ++i)
+                if (!priorities[i].HasValue)
+                    continue;
+                else if (priorities[i].Value.AgentIsNextToBox && mappings[i].Value.Solution.Count == 2)
+                    return true;
+                else if (!priorities[i].Value.AgentIsNextToBox && mappings[i].Value.Solution.Count == 1)
+                    return true;
+            return false;
+        }
+
+        public State CreateCurrentState()
+        {
+            // Set agents positions.
+            for (int i = 0; i < agents.Length; ++i)
+                if (mappings[i].HasValue)
+                    agents[i] = new Entity(mappings[i].Value.Solution[0], agents[i].Color, agents[i].Type);
+
+            // Set box positions.
+            var boxes = currentState.GetBoxes(level);
+            // The only boxes that can possibly have changed are those by our agents.
+            for (int i = 0; i < agents.Length; ++i)
+            {
+                if (!priorities[i].HasValue || !priorities[i].Value.AgentIsNextToBox) continue;
+                int boxIndex = MatchBox(i, boxes);
+                boxes[boxIndex] = new Entity(mappings[i].Value.Solution[1], boxes[boxIndex].Color, boxes[boxIndex].Type);
+            }
+
+            return new State(currentState, agents.Concat(boxes.ToArray()).ToArray(), g);
+        }
+
+        public int MatchBox(int index, Span<Entity> boxes)
+        {
+            for (int i = 0; i < boxes.Length; ++i)
+                if (priorities[index].Value.Box.Equals(boxes[i]))
+                    return i;
+            throw new Exception("Box search failed.");
+        }
+
+        public bool IsGoalState()
+        {
+            foreach (AgentBoxGoalPairs? pairs in priorities)
+                if (pairs.HasValue)
+                    return false;
+            return true;
+        }
+
+        #endregion
     }
 
     #region Old A* algorithm, 02148

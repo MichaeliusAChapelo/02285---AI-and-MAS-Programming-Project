@@ -55,7 +55,6 @@ namespace BoxTests
 
             string levelPriorityString = @"
 +++++++++++
-+++++++++++
 +++++1+++++
 +  3 2 3  +
 +++ +1+ +++
@@ -117,7 +116,10 @@ namespace BoxTests
 
             State priorityState = new State(null, priorityEntities.ToArray(), 0);
             string actualPriorityString = level.StateToString(priorityState);
-            Assert.IsTrue(levelPriorityString == actualPriorityString, $"{Environment.NewLine}Expected:{Environment.NewLine}{levelPriorityString}{Environment.NewLine}{Environment.NewLine}Actual:{Environment.NewLine}{actualPriorityString}");
+
+            string expectedLevel = TestTools.RemoveInvisibleCharacters(levelPriorityString);
+            string actualLevel = TestTools.RemoveInvisibleCharacters(actualPriorityString);
+            Assert.IsTrue(expectedLevel == actualLevel, $"{Environment.NewLine}Expected:{Environment.NewLine}{levelPriorityString}{Environment.NewLine}{Environment.NewLine}Actual:{Environment.NewLine}{actualPriorityString}");
         }
     }
 }

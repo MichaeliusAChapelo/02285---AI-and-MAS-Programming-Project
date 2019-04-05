@@ -79,11 +79,18 @@ namespace BoxProblems
             +++++++++++";
 
             ////Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
-            Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
-
+            //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
+            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/comp_levels_2017/MABoxBunny.lvl"), "asdas");
             GoalGraph graph = new GoalGraph(level.InitialState, level);
             GraphShower.ShowGraph(graph);
             var priority = GoalPriority2.GetGoalPriority(level, graph);
+            foreach (var p in priority)
+            {
+                for (int i = 0; i < p.Length; i++) {
+                    Console.Write(p[i]+" ");
+                }
+                Console.WriteLine();
+            }
             //BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
             //GraphShower.ShowGraph(graph);
             //GraphShower.ShowGraph(conflictGraph);

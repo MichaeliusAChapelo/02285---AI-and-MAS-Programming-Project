@@ -48,6 +48,7 @@ namespace BoxProblems.Graphing
                     {
                         nodeCounter[pathNode.Key] += (1f / (pathsCount)) * pathNode.Value;
                     }
+                    
                 }
 
                 GoalNode[] newPriorityGroup = nodeCounter.GroupBy(x => x.Value).OrderBy(x => x.First().Value).First().Select(x => x.Key).ToArray();
@@ -98,7 +99,16 @@ namespace BoxProblems.Graphing
                 }
 
                 GoalNode leaf = frontier.Dequeue();
-                if (leaf.Value.Ent == goal)
+
+                bool foundGoal = false;
+                foreach (var edge in leaf.Edges)
+                {
+                    if (edge.End.Value.Ent == goal)
+                    {
+                        foundGoal = true;
+                    }
+                }
+                if (foundGoal)
                 {
                     shortestPathsCount++;
                     minLength = depth;
@@ -109,7 +119,7 @@ namespace BoxProblems.Graphing
                     while (backtrackPaths.Count > 0)
                     {
                         GoalNode pathEnd = backtrackPaths.Pop();
-                        Console.WriteLine(pathEnd);
+                        //Console.WriteLine(pathEnd);
 
                         if (childToParent.TryGetValue(pathEnd, out List<GoalNode> parents))
                         {
@@ -140,8 +150,8 @@ namespace BoxProblems.Graphing
                             }
                         }
                     }
-
-                    Console.WriteLine();
+                    continue;
+                    //Console.WriteLine();
                 }
 
                 if (leaf.Value.EntType == EntityType.BOX)

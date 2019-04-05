@@ -10,17 +10,19 @@ namespace BoxProblems.Graphing
         public static Dictionary<GoalNode, float> GetGoalPriority(Level level, GoalGraph goalGraph)
         {
             Dictionary<GoalNode, float> nodeCounter = new Dictionary<GoalNode, float>();
-            goalGraph.Nodes.Where(x => x.Value.EntType == EntityType.GOAL)
-                           .ToList()
-                           .ForEach(x => nodeCounter.Add((GoalNode)x, 0));
+            foreach (var node in goalGraph.Nodes)
+            {
+                if (node.Value.EntType == EntityType.GOAL)
+                {
+                    nodeCounter.Add((GoalNode)node, 0);
+                }
+            }
 
-            HashSet<GoalNode> allowedNodes = new HashSet<GoalNode>();
             List<Entity> correctBoxes = new List<Entity>();
             foreach (Entity goal in level.Goals)
             {
-                GoalNode start = (GoalNode)goalGraph.Nodes.Single(x => x.Value.Ent.Pos == goal.Pos);
+                GoalNode start = (GoalNode)goalGraph.GetNodeFromPosition(goal.Pos);
 
-                allowedNodes.Clear();
                 correctBoxes.Clear();
                 foreach (Entity box in level.GetBoxes())
                 {
@@ -56,7 +58,7 @@ namespace BoxProblems.Graphing
 
             while (frontier.Count > 0)
             {
-                //handles
+                //Handles setting the depth of the bfs search.
                 if (depthNodeCount == 0)
                 {
                     depthNodeCount = nextDepthNodeCount;
@@ -65,6 +67,9 @@ namespace BoxProblems.Graphing
                 }
                 depthNodeCount--;
 
+                //Only the shortests paths are allowed
+                //If the depth is higher than the shortest path then
+                //all shortest paths has been found
                 if (depth > minLength)
                 {
                     break;

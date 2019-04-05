@@ -7,7 +7,7 @@ using BoxProblems;
 namespace BoxTests
 {
     [TestClass]
-    class TestLoadingLevels
+    public class TestLoadingLevels
     {
         [TestMethod]
         public void TestLoadingSACrunch()

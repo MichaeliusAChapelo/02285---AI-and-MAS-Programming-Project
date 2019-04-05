@@ -42,7 +42,6 @@ namespace BoxTests
         {
             string levelString = @"
 +++++++++++
-+++++++++++
 +++++a+++++
 +B c e b C+
 +++ +d+ +++
@@ -103,12 +102,16 @@ namespace BoxTests
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
             var actualGoalPriority = GoalPriority2.GetGoalPriority(level, goalGraph);
 
+            //foreach (var item in actualGoalPriority)
+            //{
+            //    Console.WriteLine(item.Key.ToString() + "  " + item.Value);
+            //}
+
             List<Entity> priorityEntities = new List<Entity>();
-            var orderedPriorities = actualGoalPriority.GroupBy(x => x.Value).OrderBy(x => x.First().Value).ToList();
             int priority = 1;
-            foreach (var priorityGroup in orderedPriorities)
+            for (int i = 0; i < actualGoalPriority.Count; i++)
             {
-                priorityEntities.AddRange(priorityGroup.Select(x => new Entity(x.Key.Value.Ent.Pos, 0, (char)(priority + '0'))));
+                priorityEntities.AddRange(actualGoalPriority[i].Select(x => new Entity(x.Value.Ent.Pos, 0, (char)(priority + '0'))));
                 priority++;
             }
 

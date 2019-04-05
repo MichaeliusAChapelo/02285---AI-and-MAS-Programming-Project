@@ -16,6 +16,19 @@ namespace BoxProblems
         public readonly int Height;
         public readonly int AgentCount;
         public readonly int BoxCount;
+        public static readonly string[] VALID_COLORS = new string[]
+        {
+            "blue",
+            "red",
+            "cyan",
+            "purple",
+            "green",
+            "orange",
+            "pink",
+            "grey",
+            "lightblue",
+            "brown"
+        };
 
         public Level(bool[,] walls, Entity[] goals, State initial, int width, int height, int agentCount, int boxCount)
         {
@@ -75,6 +88,7 @@ namespace BoxProblems
                 }
             }
 
+            List<string> remainingColors = VALID_COLORS.Select(x => x).ToList();
             //New format requres colors for all boxes and agents.
             //If no colors have been specified then give them all
             //a red color.
@@ -82,6 +96,28 @@ namespace BoxProblems
             {
                 var entities = levelNoColors.SelectMany(x => x.Where(y => char.IsDigit(y) || (char.IsLetter(y) && char.IsUpper(y)))).ToList();
                 colorLines.Add($"red: {string.Join(", ", entities)}");
+            }
+
+            for (int i = 0; i < colorLines.Count; i++)
+            {
+                string[] splitted = colorLines[i].Split(':');
+                string color = splitted[0].Trim().ToLower();
+                string afterColor = splitted[1];
+                if (remainingColors.Contains(color))
+                {
+                    remainingColors.Remove(color);
+                }
+                else
+                {
+                    if (remainingColors.Count == 0)
+                    {
+                        throw new Exception("No more colors available.");
+                    }
+
+                    string newColor = remainingColors.First();
+                    remainingColors.Remove(newColor);
+                    colorLines[i] = $"{newColor}: {afterColor}";
+                }
             }
 
             List<string> levelWithoutGoals = new List<string>();

@@ -24,15 +24,17 @@ namespace BoxTests
 +      +
 ++++++++";
 
-            Point[] priority = new Point[]
-            {
-                new Point(5, 1),
-                new Point(6, 1),
-                new Point(5, 2),
-                new Point(6, 2)
-            };
+            string levelPriorityString = @"
+++++++++
++ +  11+
++  + 22+
++ + +  +
++    + +
++ ++++ +
++      +
+++++++++";
 
-            VerifyPriority(levelString, priority);
+            VerifyPriority(levelString, levelPriorityString);
         }
 
         [TestMethod]
@@ -52,17 +54,21 @@ namespace BoxTests
 +++++E+++++
 +++++++++++";
 
-            Point[] priority = new Point[]
-            {
-                new Point(5, 2),
-                new Point(5, 4),
-                new Point(5, 3),
-                new Point(4, 3),
-                new Point(6, 3),
-                new Point(5, 6)
-            };
+            string levelPriorityString = @"
++++++++++++
++++++++++++
++++++1+++++
++  3 2 3  +
++++ +1+ +++
++++  +  +++
+++++ 4 ++++
++++++ +++++
++++++ +++++
+++++   ++++
++++++ +++++
++++++++++++";
 
-            VerifyPriority(levelString, priority);
+            VerifyPriority(levelString, levelPriorityString);
         }
 
         [TestMethod]
@@ -77,36 +83,38 @@ namespace BoxTests
 +Aba+
 +++++";
 
-            Point[] priority = new Point[]
-            {
-                new Point(3, 5),
-                new Point(2, 5)
-            };
+            string levelPriorityString = @"
++++++
+++ ++
+++ ++
+++ ++
+++ ++
++ 21+
++++++";
 
-            VerifyPriority(levelString, priority);
+            VerifyPriority(levelString, levelPriorityString);
         }
 
-        private static void VerifyPriority(string levelString, Point[] expectedGoalPriority)
+        private static void VerifyPriority(string levelString, string levelPriorityString)
         {
+            levelPriorityString = levelPriorityString.Substring(2, levelPriorityString.Length - 2);
+
             Level level = TestTools.StringToOldFormatLevel(levelString);
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
             var actualGoalPriority = GoalPriority2.GetGoalPriority(level, goalGraph);
 
-            for (int i = 0; i < expectedGoalPriority.Length - 1; i++)
+            List<Entity> priorityEntities = new List<Entity>();
+            var orderedPriorities = actualGoalPriority.GroupBy(x => x.Value).OrderBy(x => x.First().Value).ToList();
+            int priority = 1;
+            foreach (var priorityGroup in orderedPriorities)
             {
-                Point higher = expectedGoalPriority[i + 1];
-                Point lessOrEqual = expectedGoalPriority[i];
-
-                GoalNode higherNode = (GoalNode)goalGraph.Nodes.Single(x => x.Value.Ent.Pos == higher);
-                GoalNode lessOrEqualNode = (GoalNode)goalGraph.Nodes.Single(x => x.Value.Ent.Pos == lessOrEqual);
-
-                var higherPriority = actualGoalPriority[higherNode];
-                var lessOrEqualPriority = actualGoalPriority[lessOrEqualNode];
-
-                Assert.IsTrue(higherPriority >= lessOrEqualPriority, $"Expected goal AZ to have a higher priority than Goal BZ{Environment.NewLine}" +
-                    $"AZ: Goal: {higherNode}, Position: {higher}, Priority: {higherPriority}{Environment.NewLine}" +
-                    $"BZ: Goal: {lessOrEqualNode}, Position: {lessOrEqual}, Priority: {lessOrEqualPriority}");
+                priorityEntities.AddRange(priorityGroup.Select(x => new Entity(x.Key.Value.Ent.Pos, 0, (char)(priority + '0'))));
+                priority++;
             }
+
+            State priorityState = new State(null, priorityEntities.ToArray(), 0);
+            string actualPriorityString = level.StateToString(priorityState);
+            Assert.AreEqual(levelPriorityString, actualPriorityString, $"Expected:{Environment.NewLine}{levelPriorityString}{Environment.NewLine}{Environment.NewLine}Actual:{Environment.NewLine}{actualPriorityString}");
         }
     }
 }

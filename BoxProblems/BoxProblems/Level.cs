@@ -216,32 +216,12 @@ namespace BoxProblems
                 world[y][x] = char.ToLower(type);
             }
 
-            foreach (var agent in state.GetAgents(this))
+            foreach (var entity in state.Entities)
             {
-                int x = agent.Pos.X;
-                int y = agent.Pos.Y;
-                char type = agent.Type;
-
-                world[y][x] = type;
+                world[entity.Pos.Y][entity.Pos.X] = entity.Type;
             }
 
-            foreach (var box in state.GetBoxes(this))
-            {
-                int x = box.Pos.X;
-                int y = box.Pos.Y;
-                char type = box.Type;
-
-                world[y][x] = type;
-            }
-
-            StringBuilder sBuilder = new StringBuilder();
-            foreach (var worldRow in world)
-            {
-                sBuilder.Append(worldRow);
-                sBuilder.Append(Environment.NewLine);
-            }
-
-            return sBuilder.ToString();
+            return string.Join(Environment.NewLine, world.Select(x => new string(x)));
         }
 
         public char[][] GetWallsAsWorld()
@@ -258,7 +238,7 @@ namespace BoxProblems
                 {
                     if (Walls[x, y])
                     {
-                        world[y][x] = '#';
+                        world[y][x] = '+';
                     }
                     else
                     {

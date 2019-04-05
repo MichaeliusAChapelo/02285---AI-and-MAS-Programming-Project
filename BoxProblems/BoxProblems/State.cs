@@ -7,7 +7,7 @@ namespace BoxProblems
     internal class State
     {
         State Parent;
-        Entity[] Entities;
+        public Entity[] Entities;
         //Command CMD;
         int G;
 

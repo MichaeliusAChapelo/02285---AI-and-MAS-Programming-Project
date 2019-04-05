@@ -36,20 +36,33 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal class BoxConflictGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
+    internal sealed class BoxConflictGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
     {
+        private readonly Dictionary<Point, BoxConflictNode> PositionToNode = new Dictionary<Point, BoxConflictNode>();
+
         public BoxConflictGraph(State state, Level level)
         {
             foreach (var box in state.GetBoxes(level))
             {
-                Nodes.Add(new BoxConflictNode(new EntityNodeInfo(box, EntityType.BOX)));
+                AddNode(new BoxConflictNode(new EntityNodeInfo(box, EntityType.BOX)));
             }
             foreach (var goal in level.Goals)
             {
-                Nodes.Add(new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL)));
+                AddNode(new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL)));
             }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
+        }
+
+        public void AddNode(BoxConflictNode node)
+        {
+            base.AddNode(node);
+            PositionToNode.Add(node.Value.Ent.Pos, node);
+        }
+
+        public BoxConflictNode GetNodeFromPosition(Point pos)
+        {
+            return PositionToNode[pos];
         }
     }
 }

@@ -53,20 +53,33 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal class GoalGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
+    internal sealed class GoalGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
     {
+        private readonly Dictionary<Point, GoalNode> PositionToNode = new Dictionary<Point, GoalNode>();
+
         public GoalGraph(State state, Level level)
         {
             foreach (var box in state.GetBoxes(level))
             {
-                Nodes.Add(new GoalNode(new EntityNodeInfo(box, EntityType.BOX)));
+                AddNode(new GoalNode(new EntityNodeInfo(box, EntityType.BOX)));
             }
             foreach (var goal in level.Goals)
             {
-                Nodes.Add(new GoalNode(new EntityNodeInfo(goal, EntityType.GOAL)));
+                AddNode(new GoalNode(new EntityNodeInfo(goal, EntityType.GOAL)));
             }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.BOX);
+        }
+
+        public void AddNode(GoalNode node)
+        {
+            base.AddNode(node);
+            PositionToNode.Add(node.Value.Ent.Pos, node);
+        }
+
+        public GoalNode GetNodeFromPosition(Point pos)
+        {
+            return PositionToNode[pos];
         }
     }
 }

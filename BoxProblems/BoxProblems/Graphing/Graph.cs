@@ -7,16 +7,10 @@ namespace BoxProblems.Graphing
     internal class Graph<N, E>
     {
         public readonly List<Node<N, E>> Nodes = new List<Node<N, E>>();
-        private readonly Dictionary<Point, Node<N, E>> PositionToNode = new Dictionary<Point, Node<N, E>>();
 
-        public void AddNode(Node<N, E> node)
+        protected void AddNode(Node<N, E> node)
         {
             Nodes.Add(node);
-        }
-
-        public Node<N, E> GetNodeFromPosition(Point pos)
-        {
-            return PositionToNode[pos];
         }
 
         public (string nodes, string edges) ToCytoscapeString()

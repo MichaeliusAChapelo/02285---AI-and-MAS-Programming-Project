@@ -44,6 +44,10 @@ namespace BoxProblems.Graphing
             {
                 Nodes.Add(new BoxConflictNode(new EntityNodeInfo(box, EntityType.BOX)));
             }
+            foreach (var box in state.GetAgents(level))
+            {
+                Nodes.Add(new BoxConflictNode(new EntityNodeInfo(box, EntityType.AGENT)));
+            }
             foreach (var goal in level.Goals)
             {
                 Nodes.Add(new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL)));

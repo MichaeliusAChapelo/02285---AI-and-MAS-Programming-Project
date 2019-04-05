@@ -44,3 +44,11 @@ Do for each split level:
 3) Use distance maps to locate conflicts. Calculate which agent has to wait the least.
 
 4) Once any agent has reached its destination, repeat from step 1 until solved.
+
+
+## Heuristics
+# Goal priority 
+	1. Find all shortest path from a given goal to any given box matching that goal. 
+	2. Find the priority of each goal, G: (1/#ofPathsToGFromAnyBox)*#pathsGoingThroughG
+		- The lower the number the higher the priority (1 have to be solved before 2 and so on)  
+For each goal, G, the priority is 1 over the total amount of shortest path to G, from any box matching G. That is multiplied with the amount of shortest paths going through G for all goals. 

@@ -19,5 +19,10 @@ namespace BoxTests
         {
             return Level.ReadOldFormatLevel(levelString, "default test level name");
         }
+
+        internal static string RemoveInvisibleCharacters(string text)
+        {
+            return text.Replace("\r", string.Empty).Replace("\n", string.Empty);
+        }
     }
 }

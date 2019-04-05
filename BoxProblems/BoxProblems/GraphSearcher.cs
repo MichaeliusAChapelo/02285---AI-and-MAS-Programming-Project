@@ -6,13 +6,26 @@ namespace BoxProblems
 {
     internal static class GraphSearcher
     {
-        public static List<Point> GetReachedGoalsBFS(Level level, Point start, List<Point> goals)
+        public readonly struct GoalFound<T>
+        {
+            public readonly T Value;
+            public readonly bool IsGoal;
+
+            public GoalFound(T value, bool isGoal)
+            {
+                this.Value = value;
+                this.IsGoal = isGoal;
+            }
+
+        }
+
+        public static List<T> GetReachedGoalsBFS<T>(Level level, Point start, Func<Point, GoalFound<T>> goalCondition)
         {
             Direction[] world = new Direction[level.Width * level.Height];
             Array.Fill(world, Direction.NONE);
             Queue<Point> frontier = new Queue<Point>();
             frontier.Enqueue(start);
-            List<Point> reachedGoals = new List<Point>();
+            List<T> reachedGoals = new List<T>();
 
             int depthNodeCount = 1;
             int nextDepthNodeCount = 0;
@@ -30,13 +43,10 @@ namespace BoxProblems
                 }
                 depthNodeCount--;
 
-                for (int i = 0; i < goals.Count; i++)
+                var foundGoalInfo = goalCondition(leafNode);
+                if (foundGoalInfo.IsGoal)
                 {
-                    if (leafNode == goals[i])
-                    {
-                        reachedGoals.Add(leafNode);
-                        break;
-                    }
+                    reachedGoals.Add(foundGoalInfo.Value);
                 }
 
                 if (level.Walls[leafNode.X, leafNode.Y])

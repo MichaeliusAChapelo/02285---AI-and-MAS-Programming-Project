@@ -17,32 +17,36 @@ namespace BoxProblems.Graphing
                 }
             }
 
-            List<Point> potentialGoals = new List<Point>();
+            Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>> potentialGoals = new Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>>();
             foreach (var node in graph.Nodes)
             {
-                potentialGoals.Add(node.Value.Ent.Pos);
+                potentialGoals.Add(node.Value.Ent.Pos, node);
             }
+            Func<Point, GraphSearcher.GoalFound<Node<EntityNodeInfo, EmptyEdgeInfo>>> goalCondition = new Func<Point, GraphSearcher.GoalFound<Node<EntityNodeInfo, EmptyEdgeInfo>>>(x =>
+                {
+                    bool isGoal = potentialGoals.TryGetValue(x, out Node<EntityNodeInfo, EmptyEdgeInfo> value);
+                    return new GraphSearcher.GoalFound<Node<EntityNodeInfo, EmptyEdgeInfo>>(value, isGoal);
+                });
+
             for (int i = 0; i < graph.Nodes.Count; i++)
             {
                 var node = graph.Nodes[i];
                 level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
                 potentialGoals.Remove(node.Value.Ent.Pos);
 
-                var reachedGoals = GraphSearcher.GetReachedGoalsBFS(level, node.Value.Ent.Pos, potentialGoals);
+                var reachedGoals = GraphSearcher.GetReachedGoalsBFS(level, node.Value.Ent.Pos, goalCondition);
 
-                var edges = new List<Node<EntityNodeInfo, EmptyEdgeInfo>>();
-                foreach (Point reached in reachedGoals)
+                foreach (var reached in reachedGoals)
                 {
-                    var target = graph.Nodes.Single(x => x.Value.Ent.Pos == reached);
                     if (node.Value.EntType == notAHindrance &&
-                        target.Value.EntType == notAHindrance)
+                        reached.Value.EntType == notAHindrance)
                     {
                         continue;
                     }
-                    node.AddEdge(new Edge<EntityNodeInfo, EmptyEdgeInfo>(target, new EmptyEdgeInfo()));
+                    node.AddEdge(new Edge<EntityNodeInfo, EmptyEdgeInfo>(reached, new EmptyEdgeInfo()));
                 }
 
-                potentialGoals.Add(node.Value.Ent.Pos);
+                potentialGoals.Add(node.Value.Ent.Pos, node);
                 if (node.Value.EntType != notAHindrance)
                 {
                     level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;

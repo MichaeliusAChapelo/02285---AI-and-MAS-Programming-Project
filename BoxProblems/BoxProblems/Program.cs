@@ -65,56 +65,33 @@ namespace BoxProblems
             //    System.Diagnostics.Process.Start("cmd.exe", asd);
             //}
 
-            string levelString = @"+++++++++++
-            +++++++++++
-            +++++a+++++
-            +B c e b C+
-            +++ +d+ +++
-            +++  +  +++
-            ++++ d ++++
-            +++++0+++++
-            +++++A+++++
-            ++++D D++++
-            +++++E+++++
-            +++++++++++";
+            //string levelString = @"+++++++++++
+            //+++++++++++
+            //+++++a+++++
+            //+B c e b C+
+            //+++ +d+ +++
+            //+++  +  +++
+            //++++ d ++++
+            //+++++0+++++
+            //+++++A+++++
+            //++++D D++++
+            //+++++E+++++
+            //+++++++++++";
 
             ////Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
             //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
-            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/comp_levels_2017/MABoxBunny.lvl"), "asdas");
-            GoalGraph graph = new GoalGraph(level.InitialState, level);
-            GraphShower.ShowGraph(graph);
-            var priority = GoalPriority2.GetGoalPriority(level, graph);
-            foreach (var p in priority)
+            Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAKarlMarx.lvl"), "asdas");
+            List<Level> levels = LevelSplitter.SplitLevel(wholeLevel);
+            foreach (var level in levels)
             {
-                for (int i = 0; i < p.Length; i++) {
-                    Console.Write(p[i]+" ");
-                }
+                Console.WriteLine(level);
+                GoalGraph graph = new GoalGraph(level.InitialState, level);
+                //GraphShower.ShowGraph(graph);
+                var priority = new GoalPriority(level, graph);
+                Console.WriteLine(priority);
+                Console.WriteLine();
                 Console.WriteLine();
             }
-            //BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
-            //GraphShower.ShowGraph(graph);
-            //GraphShower.ShowGraph(conflictGraph);
-
-
-
-            //////Level leavel = Level.ReadLevel(File.ReadAllLines("SplitExample2.lvl"));
-            ////Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfHoChiMinh26.lvl"), "asdas");
-
-            ////GoalGraph graph = new GoalGraph(level.InitialState, level);
-            ////GoalPriority goalPriority = new GoalPriority();
-            ////var goalPriorities = goalPriority.GetGoalPrioity(graph);
-            ////foreach (GoalPriority.PriorityGoal gp in goalPriorities)
-            ////{
-            ////    Console.WriteLine(gp.Type + " " + gp.ThroughGoalPriority);
-            ////}
-
-            //////GraphShower.ShowGraph(graph);
-
-
-            //Console.WriteLine(leavel);
-            ////Console.WriteLine("Hello World!");
-            //var levels = LevelSplitter.SplitLevel(leavel);
-            //levels.ForEach(x => Console.WriteLine(x));
             Console.Read();
         }
 

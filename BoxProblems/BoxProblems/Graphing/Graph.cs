@@ -49,7 +49,7 @@ namespace BoxProblems.Graphing
 
         public static Graph<NodeGroup<N, E>, E> CreateSimplifiedGraph<N, E>(Graph<N, E> graph) where E : new()
         {
-            var groupedGraph = new Graph<NodeGroup<N, E>, E>();
+            Graph<NodeGroup<N, E>, E> groupedGraph = new Graph<NodeGroup<N, E>, E>();
             Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>> nodeToGroupNode = new Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>>(); 
             foreach (var node in graph.Nodes)
             {
@@ -59,7 +59,7 @@ namespace BoxProblems.Graphing
                     equalGroup = new Node<NodeGroup<N, E>, E>(new NodeGroup<N, E>(true));
                     groupedGraph.AddNode(equalGroup);
 
-                    equalGroup.Value.EdgesTo.AddRange(node.Edges.Select(x => x.End));
+                    equalGroup.Value.EdgesTo.UnionWith(node.Edges.Select(x => x.End));
                     equalGroup.Value.EdgesTo.Add(node);
                 }
 
@@ -89,12 +89,12 @@ namespace BoxProblems.Graphing
     internal readonly struct NodeGroup<N, E>
     {
         public readonly List<Node<N, E>> Nodes;
-        public readonly List<Node<N, E>> EdgesTo;
+        public readonly HashSet<Node<N, E>> EdgesTo;
 
         public NodeGroup(bool _)
         {
             this.Nodes = new List<Node<N, E>>();
-            this.EdgesTo = new List<Node<N, E>>();
+            this.EdgesTo = new HashSet<Node<N, E>>();
         }
 
         public override string ToString()

@@ -50,34 +50,25 @@ namespace BoxProblems.Graphing
         public static Graph<NodeGroup<N, E>, E> CreateSimplifiedGraph<N, E>(Graph<N, E> graph) where E : new()
         {
             var groupedGraph = new Graph<NodeGroup<N, E>, E>();
-            List<NodeGroup<N, E>> groups = new List<NodeGroup<N, E>>();
-            Dictionary<Node<N, E>, NodeGroup<N, E>> nodeToGroup = new Dictionary<Node<N, E>, NodeGroup<N, E>>(); 
+            Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>> nodeToGroupNode = new Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>>(); 
             foreach (var node in graph.Nodes)
             {
-                var equalGroups = groups.Where(x => node.Edges.Count == x.EdgesTo.Count - 1 && node.Edges.All(y => x.EdgesTo.Contains(y.End)));
+                var equalGroups = groupedGraph.Nodes.Where(x => node.Edges.Count == x.Value.EdgesTo.Count - 1 && node.Edges.All(y => x.Value.EdgesTo.Contains(y.End)));
                 if (equalGroups.Count() == 0)
                 {
-                    var newGroup = new NodeGroup<N, E>(true);
-                    groups.Add(newGroup);
+                    var newGroup = new Node<NodeGroup<N, E>, E>(new NodeGroup<N, E>(true));
+                    groupedGraph.AddNode(newGroup);
 
-                    newGroup.Nodes.Add(node);
-                    newGroup.EdgesTo.AddRange(node.Edges.Select(x => x.End));
-                    newGroup.EdgesTo.Add(node);
-                    nodeToGroup.Add(node, newGroup);
+                    newGroup.Value.Nodes.Add(node);
+                    newGroup.Value.EdgesTo.AddRange(node.Edges.Select(x => x.End));
+                    newGroup.Value.EdgesTo.Add(node);
+                    nodeToGroupNode.Add(node, newGroup);
                 }
                 else
                 {
-                    equalGroups.First().Nodes.Add(node);
-                    nodeToGroup.Add(node, equalGroups.First());
+                    equalGroups.First().Value.Nodes.Add(node);
+                    nodeToGroupNode.Add(node, equalGroups.First());
                 }
-            }
-
-            Dictionary<NodeGroup<N, E>, Node<NodeGroup<N, E>, E>> groupToNode = new Dictionary<NodeGroup<N, E>, Node<NodeGroup<N, E>, E>>();
-            foreach (var group in groups)
-            {
-                var newNode = new Node<NodeGroup<N, E>, E>(group);
-                groupedGraph.AddNode(newNode);
-                groupToNode.Add(group, newNode);
             }
 
             foreach (var groupNode in groupedGraph.Nodes)
@@ -85,7 +76,7 @@ namespace BoxProblems.Graphing
                 HashSet<Node<NodeGroup<N, E>, E>> alreadyCreatedEdges = new HashSet<Node<NodeGroup<N, E>, E>>();
                 foreach (var edgeNode in groupNode.Value.EdgesTo)
                 {
-                    var edgeGroupNode = groupToNode[nodeToGroup[edgeNode]];
+                    var edgeGroupNode = nodeToGroupNode[edgeNode];
                     if (!alreadyCreatedEdges.Contains(edgeGroupNode) && groupNode != edgeGroupNode)
                     {
                         groupNode.AddEdge(new Edge<NodeGroup<N, E>, E>(edgeGroupNode, new E()));

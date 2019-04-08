@@ -80,18 +80,26 @@ namespace BoxProblems
 
             ////Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
             //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
+
             Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAKarlMarx.lvl"), "asdas");
-            List<Level> levels = LevelSplitter.SplitLevel(wholeLevel);
-            foreach (var level in levels)
-            {
-                Console.WriteLine(level);
-                GoalGraph graph = new GoalGraph(level.InitialState, level);
-                //GraphShower.ShowGraph(graph);
-                var priority = new GoalPriority(level, graph);
-                Console.WriteLine(priority);
-                Console.WriteLine();
-                Console.WriteLine();
-            }
+            //Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
+            //Level wholeLevel = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample1.lvl"));
+            var goalGraphs = LevelSplitter.SplitLevel(wholeLevel).Select(x => new GoalGraph(x.InitialState, x))
+                                                                 .Select(x => Graph<GoalNode, GoalEdge>.CreateSimplifiedGraph(x))
+                                                                 .ToArray();
+            GraphShower.ShowGraphs(goalGraphs);
+
+            //List<Level> levels = LevelSplitter.SplitLevel(wholeLevel);
+            //foreach (var level in levels)
+            //{
+            //    Console.WriteLine(level);
+            //    GoalGraph graph = new GoalGraph(level.InitialState, level);
+            //    //GraphShower.ShowGraph(graph);
+            //    var priority = new GoalPriority(level, graph);
+            //    Console.WriteLine(priority);
+            //    Console.WriteLine();
+            //    Console.WriteLine();
+            //}
             Console.Read();
         }
 

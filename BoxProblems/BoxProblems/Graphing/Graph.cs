@@ -53,27 +53,24 @@ namespace BoxProblems.Graphing
             Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>> nodeToGroupNode = new Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>>(); 
             foreach (var node in graph.Nodes)
             {
-                var equalGroups = groupedGraph.Nodes.Where(x => node.Edges.Count == x.Value.EdgesTo.Count - 1 && node.Edges.All(y => x.Value.EdgesTo.Contains(y.End)));
-                if (equalGroups.Count() == 0)
+                var equalGroup = groupedGraph.Nodes.SingleOrDefault(x => node.Edges.Count == x.Value.EdgesTo.Count - 1 && node.Edges.All(y => x.Value.EdgesTo.Contains(y.End)));
+                if (equalGroup == default(Node<NodeGroup<N, E>, E>))
                 {
-                    var newGroup = new Node<NodeGroup<N, E>, E>(new NodeGroup<N, E>(true));
-                    groupedGraph.AddNode(newGroup);
+                    equalGroup = new Node<NodeGroup<N, E>, E>(new NodeGroup<N, E>(true));
+                    groupedGraph.AddNode(equalGroup);
 
-                    newGroup.Value.Nodes.Add(node);
-                    newGroup.Value.EdgesTo.AddRange(node.Edges.Select(x => x.End));
-                    newGroup.Value.EdgesTo.Add(node);
-                    nodeToGroupNode.Add(node, newGroup);
+                    equalGroup.Value.EdgesTo.AddRange(node.Edges.Select(x => x.End));
+                    equalGroup.Value.EdgesTo.Add(node);
                 }
-                else
-                {
-                    equalGroups.First().Value.Nodes.Add(node);
-                    nodeToGroupNode.Add(node, equalGroups.First());
-                }
+
+                equalGroup.Value.Nodes.Add(node);
+                nodeToGroupNode.Add(node, equalGroup);
             }
 
+            HashSet<Node<NodeGroup<N, E>, E>> alreadyCreatedEdges = new HashSet<Node<NodeGroup<N, E>, E>>();
             foreach (var groupNode in groupedGraph.Nodes)
             {
-                HashSet<Node<NodeGroup<N, E>, E>> alreadyCreatedEdges = new HashSet<Node<NodeGroup<N, E>, E>>();
+                alreadyCreatedEdges.Clear();
                 foreach (var edgeNode in groupNode.Value.EdgesTo)
                 {
                     var edgeGroupNode = nodeToGroupNode[edgeNode];

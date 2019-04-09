@@ -55,3 +55,4 @@ For each goal, G, the priority is 1 over the total amount of shortest path to G,
 
 Further implementations for goal prioirty: 
 	- Ensure that every robot have something to do 
+	- Agent goals is a thing

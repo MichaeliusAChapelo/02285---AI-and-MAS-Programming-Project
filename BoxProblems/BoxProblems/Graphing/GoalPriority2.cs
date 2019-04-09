@@ -21,8 +21,9 @@ namespace BoxProblems.Graphing
             while (toIgnore.Count < level.Goals.Length)
             {
                 Dictionary<GoalNode, float> nodeCounter = new Dictionary<GoalNode, float>();
-                foreach (var node in goalGraph.Nodes)
+                foreach (var inode in goalGraph.Nodes)
                 {
+                    var node = (GoalNode)inode;
                     if (node.Value.EntType == EntityType.GOAL && !toIgnore.Contains(node.Value.Ent))
                     {
                         nodeCounter.Add((GoalNode)node, 0);
@@ -107,7 +108,7 @@ namespace BoxProblems.Graphing
                 bool foundGoal = false;
                 foreach (var edge in leaf.Edges)
                 {
-                    if (edge.End.Value.Ent == goal)
+                    if (((GoalNode)edge.End).Value.Ent == goal)
                     {
                         foundGoal = true;
                     }
@@ -165,7 +166,7 @@ namespace BoxProblems.Graphing
 
                 foreach (var child in leaf.Edges)
                 {
-                    if (exploredSet.Contains(child.End) || toIgnore.Contains(child.End.Value.Ent))
+                    if (exploredSet.Contains(child.End) || toIgnore.Contains(((GoalNode)child.End).Value.Ent))
                     {
                         continue;
                     }

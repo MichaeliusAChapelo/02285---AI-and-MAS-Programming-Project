@@ -102,10 +102,11 @@ namespace BoxProblems
             {
                 string[] splitted = colorLines[i].Split(':');
                 string color = splitted[0].Trim().ToLower();
-                string afterColor = splitted[1];
+                string afterColor = string.Join(", ", splitted[1].Replace(" ", string.Empty).Split(',').ToHashSet());
                 if (remainingColors.Contains(color))
                 {
                     remainingColors.Remove(color);
+                    colorLines[i] = $"{color}: {afterColor}";
                 }
                 else
                 {

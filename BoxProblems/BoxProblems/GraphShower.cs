@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace BoxProblems
 {
@@ -21,14 +22,23 @@ namespace BoxProblems
 
         public static void ShowGraph<N, E>(Graph<N, E> graph)
         {
+            ShowGraphs(new Graph<N, E>[] { graph });
+        }
+
+        public static void ShowGraphs<N, E>(Graph<N, E>[] graphs)
+        {
             if (Browser == null)
             {
                 Initialize();
             }
 
-            var graphInfo = graph.ToCytoscapeString();
+            var graphsInfo = graphs.Select(x => x.ToCytoscapeString()).ToArray();
+            string nodesString = string.Join(string.Empty, graphsInfo.Select(x => x.nodes));
+            string edgesString = string.Join(string.Empty, graphsInfo.Select(x => x.edges));
+
             IJavaScriptExecutor jsExe = (IJavaScriptExecutor)Browser;
-            jsExe.ExecuteScript($"setGraph({graphInfo.nodes}, {graphInfo.edges});");
+            string js = $"setGraph([{nodesString}], [{edgesString}]);";
+            jsExe.ExecuteScript(js);
         }
 
         public static void Shutdown()

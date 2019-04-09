@@ -237,7 +237,7 @@ namespace BoxTests
 
             Level level = TestTools.StringToOldFormatLevel(levelString);
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
-            var actualGoalPriority = GoalPriority2.GetGoalPriority(level, goalGraph);
+            var actualGoalPriority = new GoalPriority(level, goalGraph);
 
             //foreach (var item in actualGoalPriority)
             //{
@@ -246,9 +246,9 @@ namespace BoxTests
 
             List<Entity> priorityEntities = new List<Entity>();
             int priority = 1;
-            for (int i = 0; i < actualGoalPriority.Count; i++)
+            for (int i = 0; i < actualGoalPriority.PriorityLayers.Count; i++)
             {
-                priorityEntities.AddRange(actualGoalPriority[i].Select(x => new Entity(x.Value.Ent.Pos, 0, (char)(priority + '0'))));
+                priorityEntities.AddRange(actualGoalPriority.PriorityLayers[i].Select(x => new Entity(x.Value.Ent.Pos, 0, (char)(priority + '0'))));
                 priority++;
             }
 

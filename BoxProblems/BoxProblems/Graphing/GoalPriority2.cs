@@ -2,15 +2,21 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Collections;
 
 namespace BoxProblems.Graphing
 {
-    internal static class GoalPriority2
+    internal class GoalPriority
     {
-        public static List<GoalNode[]> GetGoalPriority(Level level, GoalGraph goalGraph)
-        {
-            List<GoalNode[]> goalPriority = new List<GoalNode[]>();
+        public readonly List<GoalNode[]> PriorityLayers = new List<GoalNode[]>();
 
+        public GoalPriority(Level level, GoalGraph goalGraph)
+        {
+            CreateGoalPriority(level, goalGraph);
+        }
+
+        private void CreateGoalPriority(Level level, GoalGraph goalGraph)
+        {
             HashSet<Entity> toIgnore = new HashSet<Entity>();
             while (toIgnore.Count < level.Goals.Length)
             {
@@ -52,17 +58,15 @@ namespace BoxProblems.Graphing
                 }
 
                 GoalNode[] newPriorityGroup = nodeCounter.GroupBy(x => x.Value).OrderBy(x => x.First().Value).First().Select(x => x.Key).ToArray();
-                goalPriority.Add(newPriorityGroup);
+                PriorityLayers.Add(newPriorityGroup);
                 foreach (var priorityNode in newPriorityGroup)
                 {
                     toIgnore.Add(priorityNode.Value.Ent);
                 }
             }
-
-            return goalPriority;
         }
 
-        private static int AddToNodeCounterForShortestPath(GoalNode startNode, Entity goal, Dictionary<GoalNode, float> nodeCounter, Dictionary<GoalNode, int> shortestPathsVisitedNodes, HashSet<Entity> toIgnore)
+        private int AddToNodeCounterForShortestPath(GoalNode startNode, Entity goal, Dictionary<GoalNode, float> nodeCounter, Dictionary<GoalNode, int> shortestPathsVisitedNodes, HashSet<Entity> toIgnore)
         {
             int minLength = int.MaxValue;
             Queue<GoalNode> frontier = new Queue<GoalNode>();
@@ -182,6 +186,11 @@ namespace BoxProblems.Graphing
             }
 
             return shortestPathsCount;
+        }
+
+        public override string ToString()
+        {
+            return string.Join(Environment.NewLine, PriorityLayers.Select(x => string.Join(' ', (object[])x)));
         }
     }
 }

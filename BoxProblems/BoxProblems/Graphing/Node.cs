@@ -18,5 +18,10 @@ namespace BoxProblems.Graphing
         {
             Edges.Add(edge);
         }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 }

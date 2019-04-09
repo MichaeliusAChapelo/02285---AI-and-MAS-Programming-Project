@@ -16,44 +16,96 @@ namespace BoxProblems
 {
     class Program
     {
+        public static void ConvertFiles(string startPath, string path, string savePath)
+        {
+            string[] files = Directory.GetFiles(Path.Combine(startPath, path));
+            string[] directories = Directory.GetDirectories(Path.Combine(startPath, path));
+
+            if (!Directory.Exists(Path.Combine(savePath, path)))
+            {
+                Directory.CreateDirectory(Path.Combine(savePath, path));
+            }
+
+            foreach (var file in files)
+            {
+                string[] oldFormat = File.ReadAllLines(file);
+                string[] newFormat = Level.ConvertToNewFormat(oldFormat, Path.GetFileNameWithoutExtension(file));
+                string fileSavePath = Path.Combine(savePath, path, Path.GetFileName(file));
+                File.WriteAllLines(fileSavePath, newFormat);
+                Console.WriteLine($"Converted {Path.GetFileName(file)}");
+            }
+
+            foreach (var directory in directories)
+            {
+                string directoryName = Path.GetFileName(directory);
+                ConvertFiles(startPath, Path.Combine(path, directoryName), savePath);
+            }
+        }
+
         static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += (_, __) => ReleaseResources();
+
+            //string oldFormatPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Levels", "Old_Format");
+            //string savePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Levels", "Old_To_New_Format");
+
+            //if (!Directory.Exists(savePath))
+            //{
+            //    Directory.CreateDirectory(savePath);
+            //}
+
+            //ConvertFiles(oldFormatPath, "", savePath);
+            //Console.WriteLine("Converting done");
+
             //if (args.Length == 0)
             //{
             //    string strategy = "-astar";
-            //    string level = "MAExample.lvl";
-            //    System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {level} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
+            //    string level = @"Levels\Old_Format\real_levels\MAKarlMarx.lvl";
+            //    string asd = $"/c start powershell.exe java -jar server.jar -l {level} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300";
+            //    System.Diagnostics.Process.Start("cmd.exe", asd);
             //}
 
+            //string levelString = @"+++++++++++
+            //+++++++++++
+            //+++++a+++++
+            //+B c e b C+
+            //+++ +d+ +++
+            //+++  +  +++
+            //++++ d ++++
+            //+++++0+++++
+            //+++++A+++++
+            //++++D D++++
+            //+++++E+++++
+            //+++++++++++";
+
             ////Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
-            //Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
+            //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
 
-            //GoalGraph graph = new GoalGraph(level.InitialState, level);
-            //BoxConflictGraph conflictGraph = new BoxConflictGraph(level.InitialState, level);
-            ////GraphShower.ShowGraph(graph);
-            //GraphShower.ShowGraph(conflictGraph);
+            Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAKarlMarx.lvl"), "asdas");
+            //Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
+            //Level wholeLevel = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample1.lvl"));
+            var goalGraphs = LevelSplitter.SplitLevel(wholeLevel).Select(x => new GoalGraph(x.InitialState, x))
+                                                                 .Select(x => Graph<GoalNode, GoalEdge>.CreateSimplifiedGraph(x))
+                                                                 .ToArray();
+            GraphShower.ShowGraphs(goalGraphs);
 
-
-
-            //Level leavel = Level.ReadLevel(File.ReadAllLines("SplitExample2.lvl"));
-            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfHoChiMinh26.lvl"), "asdas");
-
-            GoalGraph graph = new GoalGraph(level.InitialState, level);
-            GoalPriority goalPriority = new GoalPriority();
-            var goalPriorities = goalPriority.GetGoalPrioity(graph);
-            foreach (GoalPriority.PriorityGoal gp in goalPriorities)
-            {
-                Console.WriteLine(gp.Type + " " + gp.ThroughGoalPriority);
-            }
-
-            //GraphShower.ShowGraph(graph);
-
-
-            //Console.WriteLine(leavel);
-            ////Console.WriteLine("Hello World!");
-            //var levels = LevelSplitter.SplitLevel(leavel);
-            //levels.ForEach(x => Console.WriteLine(x));
+            //List<Level> levels = LevelSplitter.SplitLevel(wholeLevel);
+            //foreach (var level in levels)
+            //{
+            //    Console.WriteLine(level);
+            //    GoalGraph graph = new GoalGraph(level.InitialState, level);
+            //    //GraphShower.ShowGraph(graph);
+            //    var priority = new GoalPriority(level, graph);
+            //    Console.WriteLine(priority);
+            //    Console.WriteLine();
+            //    Console.WriteLine();
+            //}
             Console.Read();
+        }
+
+        private static void ReleaseResources()
+        {
+            GraphShower.Shutdown();
         }
     }
 }

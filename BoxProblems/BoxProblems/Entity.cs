@@ -24,6 +24,16 @@ namespace BoxProblems
             this.Type = type;
         }
 
+        public static bool operator==(Entity a, Entity b)
+        {
+            return a.Pos == b.Pos && a.Color == b.Color && a.Type == b.Type;
+        }
+
+        public static bool operator !=(Entity a, Entity b)
+        {
+            return !(a == b);
+        }
+
         public override string ToString()
         {
             return $"[{Pos.X}, {Pos.Y}] Color: {Color}, Type: {Type}";

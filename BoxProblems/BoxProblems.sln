@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.489
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxProblems", "BoxProblems\BoxProblems.csproj", "{8691ECC5-A220-441A-A2B1-C50D9002837F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxProblems", "BoxProblems\BoxProblems.csproj", "{8691ECC5-A220-441A-A2B1-C50D9002837F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxTests", "BoxTests\BoxTests.csproj", "{D0365E5C-2C25-4477-A01F-45D334613C74}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxTests", "BoxTests\BoxTests.csproj", "{D0365E5C-2C25-4477-A01F-45D334613C74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

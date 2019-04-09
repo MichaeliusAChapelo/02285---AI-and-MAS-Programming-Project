@@ -16,6 +16,19 @@ namespace BoxProblems
         public readonly int Height;
         public readonly int AgentCount;
         public readonly int BoxCount;
+        public static readonly string[] VALID_COLORS = new string[]
+        {
+            "blue",
+            "red",
+            "cyan",
+            "purple",
+            "green",
+            "orange",
+            "pink",
+            "grey",
+            "lightblue",
+            "brown"
+        };
 
         public Level(bool[,] walls, Entity[] goals, State initial, int width, int height, int agentCount, int boxCount)
         {
@@ -43,7 +56,21 @@ namespace BoxProblems
             return pos.X + pos.Y * Width;
         }
 
+        public static Level ReadOldFormatLevel(string levelString, string levelName)
+        {
+            return Level.ReadOldFormatLevel(levelString.Replace("\r", string.Empty)
+                                                       .Split('\n')
+                                                       .ToList()
+                                                       .Where(x => x.Length > 0)
+                                                       .ToArray(), levelName);
+        }
+
         public static Level ReadOldFormatLevel(string[] lines, string levelName)
+        {
+            return ReadLevel(ConvertToNewFormat(lines, levelName));
+        }
+
+        public static string[] ConvertToNewFormat(string[] lines, string levelName)
         {
             List<string> colorLines = new List<string>();
             List<string> levelNoColors = new List<string>();
@@ -61,6 +88,7 @@ namespace BoxProblems
                 }
             }
 
+            List<string> remainingColors = VALID_COLORS.Select(x => x).ToList();
             //New format requres colors for all boxes and agents.
             //If no colors have been specified then give them all
             //a red color.
@@ -68,6 +96,28 @@ namespace BoxProblems
             {
                 var entities = levelNoColors.SelectMany(x => x.Where(y => char.IsDigit(y) || (char.IsLetter(y) && char.IsUpper(y)))).ToList();
                 colorLines.Add($"red: {string.Join(", ", entities)}");
+            }
+
+            for (int i = 0; i < colorLines.Count; i++)
+            {
+                string[] splitted = colorLines[i].Split(':');
+                string color = splitted[0].Trim().ToLower();
+                string afterColor = splitted[1];
+                if (remainingColors.Contains(color))
+                {
+                    remainingColors.Remove(color);
+                }
+                else
+                {
+                    if (remainingColors.Count == 0)
+                    {
+                        throw new Exception("No more colors available.");
+                    }
+
+                    string newColor = remainingColors.First();
+                    remainingColors.Remove(newColor);
+                    colorLines[i] = $"{newColor}: {afterColor}";
+                }
             }
 
             List<string> levelWithoutGoals = new List<string>();
@@ -120,7 +170,12 @@ namespace BoxProblems
             newFormat.AddRange(levelWithOnlyGoals);
             newFormat.Add("#end");
 
-            return ReadLevel(newFormat.ToArray());
+            return newFormat.ToArray();
+        }
+
+        internal object ToList()
+        {
+            throw new NotImplementedException();
         }
 
         public static Level ReadLevel(string[] lines)
@@ -197,32 +252,12 @@ namespace BoxProblems
                 world[y][x] = char.ToLower(type);
             }
 
-            foreach (var agent in state.GetAgents(this))
+            foreach (var entity in state.Entities)
             {
-                int x = agent.Pos.X;
-                int y = agent.Pos.Y;
-                char type = agent.Type;
-
-                world[y][x] = type;
+                world[entity.Pos.Y][entity.Pos.X] = entity.Type;
             }
 
-            foreach (var box in state.GetBoxes(this))
-            {
-                int x = box.Pos.X;
-                int y = box.Pos.Y;
-                char type = box.Type;
-
-                world[y][x] = type;
-            }
-
-            StringBuilder sBuilder = new StringBuilder();
-            foreach (var worldRow in world)
-            {
-                sBuilder.Append(worldRow);
-                sBuilder.Append(Environment.NewLine);
-            }
-
-            return sBuilder.ToString();
+            return string.Join(Environment.NewLine, world.Select(x => new string(x)));
         }
 
         public char[][] GetWallsAsWorld()
@@ -239,7 +274,7 @@ namespace BoxProblems
                 {
                     if (Walls[x, y])
                     {
-                        world[y][x] = '#';
+                        world[y][x] = '+';
                     }
                     else
                     {

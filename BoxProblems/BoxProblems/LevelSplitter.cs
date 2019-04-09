@@ -23,7 +23,7 @@ namespace BoxProblems
                 bool foundNewBox = false;
                 foreach (Entity agent in level.GetAgents())
                 {
-                    List<Point> goals = new List<Point>();
+                    HashSet<Point> goals = new HashSet<Point>();
                     foreach (Entity box in goalEntities)
                     {
                         if (agent.Color == box.Color)
@@ -31,7 +31,7 @@ namespace BoxProblems
                             goals.Add(box.Pos);
                         }
                     }
-                    List<Point> newBoxesFound = GraphSearcher.GetReachedGoalsBFS(level, agent.Pos, goals);
+                    List<Point> newBoxesFound = GraphSearcher.GetReachedGoalsBFS(level, agent.Pos, x => new GraphSearcher.GoalFound<Point>(x, goals.Contains(x)));
                     if (newBoxesFound.Count > 0)
                     {
                         foundNewBox = true;
@@ -50,7 +50,7 @@ namespace BoxProblems
                 }
             }
 
-            List<Point> airGoals = new List<Point>();
+            HashSet<Point> airGoals = new HashSet<Point>();
             for (int y = 0; y < level.Height; y++)
             {
                 for (int x = 0; x < level.Width; x++)
@@ -65,7 +65,7 @@ namespace BoxProblems
             List<HashSet<Point>> levelParts = new List<HashSet<Point>>();
             foreach (Entity agent in level.GetAgents())
             {
-                List<Point> foundAir = GraphSearcher.GetReachedGoalsBFS(level, agent.Pos, airGoals);
+                List<Point> foundAir = GraphSearcher.GetReachedGoalsBFS(level, agent.Pos, x => new GraphSearcher.GoalFound<Point>(x, airGoals.Contains(x)));
                 bool levelPartAlreadyFound = false;
                 foreach (HashSet<Point> levelPart in levelParts)
                 {

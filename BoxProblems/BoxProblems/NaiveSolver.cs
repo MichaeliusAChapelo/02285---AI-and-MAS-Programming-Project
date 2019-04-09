@@ -10,13 +10,16 @@ namespace BoxProblems
         // Find some way to make the agent deal with boxes.
         // Preferably by pushing from agent to box to goal in one whole path.
 
-        public static Level level;
+        public static int totalAgentCount;
+        Level level;
         State currentState;
         List<AgentBoxGoalPairs?> priorities; // Box/Goal target for agents.
         List<EntityMapping?> mappings; // Agent paths.
         int[] waits; // How long each agent with a goal must wait.
         int g = 0; // Number of turns.
         Entity[] agents;
+
+        public NaiveSolver(Level level) { this.level = level; }
 
         internal readonly struct AgentBoxGoalPairs
         {
@@ -76,6 +79,39 @@ namespace BoxProblems
                 currentState = CreateCurrentState();
             }
             Console.Error.WriteLine("\n WE SOLVE, WE DONE");
+        }
+
+        // MULTI GOD FUNCTION
+        public List<string[]> AsyncSolve()
+        {
+            currentState = level.InitialState;
+            agents = level.GetAgents().ToArray();
+
+            List<string[]> commands = new List<string[]>() { };
+
+            while (true)
+            {
+                priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
+                // Do NOT rely on indexing from this list. Agents with nothing to do are not included in list!
+
+                mappings = InitialMappings(); // Parte Deux: Find path to destination
+
+                if (IsGoalState()) break; // If no agent has any goals, we at goal state boys.
+
+                waits = new int[agents.Length]; // Parte Trois: Locate agent conflicts. Is currently solved by waiting.
+                // For each pair of agents, calculate how long to wait. Agents last in priority list waits the most.
+                for (int i = 0; i < agents.Length - 1; ++i)
+                    for (int j = i + 1; j < agents.Length; ++j)
+                        waits[i] += LocateConflicts(mappings[i], mappings[j]);
+
+                // Parte Quatre: Write commands:
+                commands.AddRange(ReturnCommands());
+
+                // Parte Cinq: Replace current state, then restart algorithm.
+                currentState = CreateCurrentState();
+            }
+
+            return commands;
         }
 
         #region Zeroness: General purpose
@@ -257,6 +293,7 @@ namespace BoxProblems
 
         #region Parte Quatre: Command until agent needs new goals
 
+        // Continually writes commands until any agent needs a new goal.
         public void WriteCommands()
         {
             while (!AgentReachedDestination())
@@ -297,6 +334,51 @@ namespace BoxProblems
                 if (response.Contains("false"))
                     throw new Exception("Attempted illegal move.");
             }
+        }
+
+        // This is an asynchronous version of WriteCommands().
+        public List<string[]> ReturnCommands()
+        {
+            var allCommands = new List<string[]>();
+            while (!AgentReachedDestination())
+            {
+                g++; // Add turn count.
+                string[] commands = new string[totalAgentCount];
+
+                // Iterates through every agent and adds a command
+                for (int i = 0; i < agents.Length; ++i)
+                {
+                    int agentIndex = (int)Char.GetNumericValue(agents[i].Type);
+
+                    if (!priorities[i].HasValue) // Agent has no goal.
+                    {
+                        commands[agentIndex] = ServerCommunicator.NoOp();
+                    }
+                    else if (waits[i] != 0) // Agent should wait.
+                    {
+                        commands[agentIndex] = ServerCommunicator.NoOp();
+                        waits[i]--;
+                    }
+                    else if (!priorities[i].Value.AgentIsNextToBox) // Agent moves to box
+                    {
+
+                        var solution = mappings[i].Value.Solution;
+                        Direction d = PointToDirection(solution[0], solution[1]);
+                        solution.RemoveAt(0);
+                        commands[agentIndex] = ServerCommunicator.Move(d);
+                    }
+                    else // Push box to goal.
+                    {
+                        var solution = mappings[i].Value.Solution;
+                        Direction d1 = PointToDirection(solution[0], solution[1]);
+                        Direction d2 = PointToDirection(solution[1], solution[2]);
+                        solution.RemoveAt(0);
+                        commands[agentIndex] = ServerCommunicator.Push(d1, d2);
+                    }
+                }
+                allCommands.Add(commands);
+            }
+            return allCommands;
         }
 
         public bool AgentReachedDestination()

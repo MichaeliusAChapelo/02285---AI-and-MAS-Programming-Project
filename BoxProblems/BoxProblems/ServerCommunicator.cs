@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BoxProblems
 {
     internal class ServerCommunicator
     {
         const string strategy = "-astar";
-        //const string levelPath = "MAExample.lvl";
         const string levelPath = "MAFiveWalls.lvl";
+        //const string levelPath = "Levels\\MABahaMAS.lvl";
 
         public void Run(string[] args)
         {
@@ -16,15 +20,64 @@ namespace BoxProblems
                 System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
             else
             {
-                PrintMap();
+                PrintMap(); // Definitely not necessary.
 
-                // Ideally, you should input a solution here.
-                //NaiveSolver.level = Level.ReadOldFormatLevel(File.ReadAllLines("MABahaMAS.lvl"),"asd");
-                NaiveSolver.level = Level.ReadLevel(File.ReadAllLines(levelPath));
-                var solver = new NaiveSolver();
-                solver.Solve(); // A most convenient function.
+                // Pick one!
+                //NonAsyncSolve();
+                AsyncSolve();
+            }
+        }
 
-                //ExampleCommands(); // Should be commented out.
+        public void NonAsyncSolve()
+        {
+            // Ideally, you should input a solution here.
+            var solver = new NaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)));
+            solver.Solve(); // A most convenient function.
+        }
+
+        public void AsyncSolve()
+        {
+            Level level = Level.ReadLevel(File.ReadAllLines(levelPath));
+            List<Level> levels = LevelSplitter.SplitLevel(level);
+            NaiveSolver.totalAgentCount = level.AgentCount;
+
+            // This is the most disgusting data structure I've ever had the honour of writing.
+            var allResults = new ConcurrentBag<List<string[]>>();
+
+            Parallel.ForEach(levels, (currentLevel) =>
+            {
+                var solver = new NaiveSolver(currentLevel);
+                allResults.Add(solver.AsyncSolve());
+            });
+
+            AssembleCommands(level.AgentCount, allResults.ToList());
+        }
+
+        // Iterates over each solved level, picks out first command, assembles those commands and sends to server. Repeat until fully solved.
+        public void AssembleCommands(int agentCount, List<List<string[]>> results)
+        {
+            var commands = new string[agentCount];
+            while (results.Count != 0)
+            {
+                for (int i = 0; i < commands.Length; ++i) commands[i] = NoOp(); // Default
+                for (int i = 0; i < results.Count; ++i)
+                {
+                    var result = results[i];
+                    if (result.Count == 0)
+                    {
+                        results.Remove(result);
+                        i--;
+                    }
+                    else
+                    {
+                        for (int j = 0; j < agentCount; ++j)
+                            if (result[0][j] != null)
+                                commands[j] = result[0][j];
+                        result.RemoveAt(0);
+                    }
+                }
+                if (results.Count != 0)
+                    Command(commands);
             }
         }
 

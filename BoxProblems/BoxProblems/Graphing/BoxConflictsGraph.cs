@@ -68,5 +68,44 @@ namespace BoxProblems.Graphing
         {
             return PositionToNode[pos];
         }
+
+        public void AddAirNodes(Level level, Point start, Point end, List<Entity> filledGoals)
+        {
+            foreach (var goal in filledGoals)
+            {
+                level.Walls[goal.Pos.X, goal.Pos.Y] = true;
+            }
+            foreach (var inode in Nodes)
+            {
+                if (inode is BoxConflictNode boxNode)
+                {
+                    if (boxNode.Value.EntType == EntityType.AGENT || boxNode.Value.EntType == EntityType.BOX)
+                    {
+                        level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
+                    }
+                }
+            }
+
+            level.Walls[start.X, start.Y] = false;
+            level.Walls[end.X, end.Y] = false;
+            var pathsMap = Precomputer.GetPathMap(level.Walls, start, false);
+
+
+
+            foreach (var goal in filledGoals)
+            {
+                level.Walls[goal.Pos.X, goal.Pos.Y] = false;
+            }
+            foreach (var inode in Nodes)
+            {
+                if (inode is BoxConflictNode boxNode)
+                {
+                    if (boxNode.Value.EntType == EntityType.AGENT || boxNode.Value.EntType == EntityType.BOX)
+                    {
+                        level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = false;
+                    }
+                }
+            }
+        }
     }
 }

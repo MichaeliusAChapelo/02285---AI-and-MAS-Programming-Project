@@ -6,10 +6,10 @@ namespace BoxProblems.Graphing
 {
     internal class Edge<N, E>
     {
-        public readonly Node<N, E> End;
+        public readonly INode End;
         public readonly E Value;
 
-        public Edge(Node<N, E> end, E value)
+        public Edge(INode end, E value)
         {
             this.End = end;
             this.Value = value;

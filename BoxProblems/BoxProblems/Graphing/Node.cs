@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BoxProblems.Graphing
 {
-    internal class Node<N, E>
+    internal class Node<N, E> : INode
     {
         public readonly N Value;
         public readonly List<Edge<N, E>> Edges = new List<Edge<N, E>>();

@@ -9,8 +9,9 @@ namespace BoxProblems.Graphing
     {
         public static void CreateGraphIgnoreEntityType(Graph<EntityNodeInfo, EmptyEdgeInfo> graph, Level level, EntityType notAHindrance)
         {
-            foreach (var node in graph.Nodes)
+            foreach (var inode in graph.Nodes)
             {
+                var node = (Node<EntityNodeInfo, EmptyEdgeInfo>)inode;
                 if (node.Value.EntType != notAHindrance)
                 {
                     level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;
@@ -18,8 +19,9 @@ namespace BoxProblems.Graphing
             }
 
             Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>> potentialGoals = new Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>>();
-            foreach (var node in graph.Nodes)
+            foreach (var inode in graph.Nodes)
             {
+                var node = (Node<EntityNodeInfo, EmptyEdgeInfo>)inode;
                 potentialGoals.Add(node.Value.Ent.Pos, node);
             }
             Func<Point, GraphSearcher.GoalFound<Node<EntityNodeInfo, EmptyEdgeInfo>>> goalCondition = new Func<Point, GraphSearcher.GoalFound<Node<EntityNodeInfo, EmptyEdgeInfo>>>(x =>
@@ -30,7 +32,7 @@ namespace BoxProblems.Graphing
 
             for (int i = 0; i < graph.Nodes.Count; i++)
             {
-                var node = graph.Nodes[i];
+                var node = (Node<EntityNodeInfo, EmptyEdgeInfo>)graph.Nodes[i];
                 level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
                 potentialGoals.Remove(node.Value.Ent.Pos);
 
@@ -53,8 +55,9 @@ namespace BoxProblems.Graphing
                 }
             }
 
-            foreach (var node in graph.Nodes)
+            foreach (var inode in graph.Nodes)
             {
+                var node = (Node<EntityNodeInfo, EmptyEdgeInfo>)inode;
                 if (node.Value.EntType != notAHindrance)
                 {
                     level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;

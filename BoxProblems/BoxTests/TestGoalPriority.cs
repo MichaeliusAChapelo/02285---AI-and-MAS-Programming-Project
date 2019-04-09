@@ -96,13 +96,13 @@ namespace BoxTests
         [TestMethod]
         public void TestGoalPriority4()
         {
-            string levelString = @" 
+            string levelString = @"
 +++++++++++
 +a   c   b+
 +         +
 +A   C   B+
 +++++++++++";
-            string levelPriorityString = @" 
+            string levelPriorityString = @"
 +++++++++++
 +1   1   1+
 +         +

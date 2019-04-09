@@ -69,12 +69,8 @@ namespace BoxProblems.Graphing
             return PositionToNode[pos];
         }
 
-        public void AddAirNodes(Level level, Point start, Point end, List<Entity> filledGoals)
+        public void AddFreeNodes(Level level, Point start, Point end)
         {
-            foreach (var goal in filledGoals)
-            {
-                level.Walls[goal.Pos.X, goal.Pos.Y] = true;
-            }
             foreach (var inode in Nodes)
             {
                 if (inode is BoxConflictNode boxNode)
@@ -89,13 +85,25 @@ namespace BoxProblems.Graphing
             level.Walls[start.X, start.Y] = false;
             level.Walls[end.X, end.Y] = false;
             var pathsMap = Precomputer.GetPathMap(level.Walls, start, false);
-
-
-
-            foreach (var goal in filledGoals)
+            Point currentPos = start;
+            while (pathsMap[currentPos.X, currentPos.Y] != Direction.NONE)
             {
-                level.Walls[goal.Pos.X, goal.Pos.Y] = false;
+                level.Walls[currentPos.X, currentPos.Y] = true;
+                currentPos += pathsMap[currentPos.X, currentPos.Y].DirectionDelta();
             }
+
+
+            HashSet<Point> alreadySeenSpaces = new HashSet<Point>();
+
+
+
+            currentPos = start;
+            while (pathsMap[currentPos.X, currentPos.Y] != Direction.NONE)
+            {
+                level.Walls[currentPos.X, currentPos.Y] = false;
+                currentPos += pathsMap[currentPos.X, currentPos.Y].DirectionDelta();
+            }
+
             foreach (var inode in Nodes)
             {
                 if (inode is BoxConflictNode boxNode)

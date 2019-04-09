@@ -93,6 +93,144 @@ namespace BoxTests
             VerifyPriority(levelString, levelPriorityString);
         }
 
+        [TestMethod]
+        public void TestGoalPriority4()
+        {
+            string levelString = @" 
++++++++++++
++a   c   b+
++         +
++A   C   B+
++++++++++++";
+            string levelPriorityString = @" 
++++++++++++
++1   1   1+
++         +
++         +
++++++++++++";
+
+            VerifyPriority(levelString, levelPriorityString);
+        }
+
+        [TestMethod]
+        public void TestGoalPriorty5()
+        {
+            string levelString = @"
+++++
++a++
++b++
++c++
++ ++
++ A+
++ B+
++ C+
+++++";
+            string levelPriorityString = @"
+++++
++1++
++2++
++3++
++ ++
++  +
++  +
++  +
+++++";
+            VerifyPriority(levelString, levelPriorityString);
+        }
+
+        [TestMethod]
+        public void TestGoalPriority6()
+        {
+            string levelString = @"
++++++++++
+++++A++++
+++++b++++
++Ba e cD+
+++++d++++
+++++C++++
+++++E++++
++++++++++";
+            string levelPriorityString = @"
++++++++++
+++++ ++++
+++++1++++
++ 1 2 1 +
+++++2++++
+++++ ++++
+++++ ++++
++++++++++";
+            VerifyPriority(levelString, levelPriorityString);
+
+        }
+
+        [TestMethod]
+        public void TestGoalPriority7()
+        {
+            string levelString = @"
++++++++++++++
++ABCDEFGHIJK+
++           +
++abcdefghijk+
++++++++++++++";
+
+            string levelPriorityString = @"
++++++++++++++
++           +
++           +
++11111111111+
++++++++++++++";
+            VerifyPriority(levelString, levelPriorityString);
+        }
+
+        [TestMethod]
+        public void TestGoalPriority8()
+        {
+            string levelString = @"
++++++
++E+++
++CBD+
+++e++
+++d++
+++c++
++Aba+
++++++";
+
+            string levelPriorityString = @"
++++++
++ +++
++   +
+++5++
+++4++
+++3++
++ 21+
++++++";
+
+            VerifyPriority(levelString, levelPriorityString);
+        }
+
+        [TestMethod]
+        public void TestGoalPriority9()
+        {
+            string levelString = @"
+++++++++++
++AAAAAAAA+
++  AAAA  +
++   aa   +
++  aaaa  +
++ aaaaaa +
+++++++++++";
+
+            string levelPriorityString = @"
+++++++++++
++        +
++        +
++   33   +
++  3223  +
++ 321123 +
+++++++++++";
+            VerifyPriority(levelString, levelPriorityString);
+        }
+
         private static void VerifyPriority(string levelString, string levelPriorityString)
         {
             levelPriorityString = levelPriorityString.Substring(2, levelPriorityString.Length - 2);

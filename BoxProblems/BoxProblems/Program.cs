@@ -80,9 +80,9 @@ namespace BoxProblems
 
             ////Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
             //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
-            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/comp_levels_2017/MABoxBunny.lvl"), "asdas");
+            Level level = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
             GoalGraph graph = new GoalGraph(level.InitialState, level);
-            GraphShower.ShowGraph(graph);
+            //GraphShower.ShowGraph(graph);
             var priority = GoalPriority2.GetGoalPriority(level, graph);
             foreach (var p in priority)
             {

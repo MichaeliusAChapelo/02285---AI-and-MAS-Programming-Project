@@ -55,14 +55,7 @@ namespace BoxProblems.Graphing
                 }
             }
 
-            foreach (var inode in graph.Nodes)
-            {
-                var node = (Node<EntityNodeInfo, EmptyEdgeInfo>)inode;
-                if (node.Value.EntType != notAHindrance)
-                {
-                    level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
-                }
-            }
+            level.ResetWalls();
         }
     }
 }

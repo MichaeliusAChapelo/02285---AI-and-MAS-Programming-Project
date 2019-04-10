@@ -130,11 +130,7 @@ namespace BoxProblems
                 levels.Add(new Level(walls, goals.ToArray(), initial, level.Width, level.Height, agents.Count, boxes.Count));
             }
 
-            foreach (Entity box in level.GetBoxes())
-            {
-                level.Walls[box.Pos.X, box.Pos.Y] = false;
-            }
-
+            level.ResetWalls();
             return levels;
         }
     }

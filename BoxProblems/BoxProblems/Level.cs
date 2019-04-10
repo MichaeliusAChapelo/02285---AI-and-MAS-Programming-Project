@@ -10,6 +10,7 @@ namespace BoxProblems
     internal class Level
     {
         public readonly bool[,] Walls;
+        private readonly bool[,] OriginalWalls;
         public readonly Entity[] Goals;
         public readonly State InitialState;
         public readonly int Width;
@@ -39,6 +40,9 @@ namespace BoxProblems
             this.Height = height;
             this.AgentCount = agentCount;
             this.BoxCount = boxCount;
+
+            this.OriginalWalls = new bool[walls.GetLength(0), walls.GetLength(1)];
+            Array.Copy(Walls, 0, OriginalWalls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
         public Span<Entity> GetAgents()
@@ -54,6 +58,11 @@ namespace BoxProblems
         public int PosToIndex(Point pos)
         {
             return pos.X + pos.Y * Width;
+        }
+
+        public void ResetWalls()
+        {
+            Array.Copy(OriginalWalls, 0, Walls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
         public static Level ReadOldFormatLevel(string levelString, string levelName)
@@ -172,11 +181,6 @@ namespace BoxProblems
             newFormat.Add("#end");
 
             return newFormat.ToArray();
-        }
-
-        internal object ToList()
-        {
-            throw new NotImplementedException();
         }
 
         public static Level ReadLevel(string[] lines)

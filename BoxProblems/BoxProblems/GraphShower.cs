@@ -41,6 +41,16 @@ namespace BoxProblems
             jsExe.ExecuteScript(js);
         }
 
+        public static void ShowSimplifiedGraph<N, E>(Graph<N, E> graph) where E : new()
+        {
+            ShowSimplifiedGraphs(new Graph<N, E>[] { graph });
+        }
+
+        public static void ShowSimplifiedGraphs<N, E>(Graph<N, E>[] graphs) where E : new()
+        {
+            ShowGraphs(graphs.Select(x => Graph<N, E>.CreateSimplifiedGraph(x)).ToArray());
+        }
+
         public static void Shutdown()
         {
             Browser?.Quit();

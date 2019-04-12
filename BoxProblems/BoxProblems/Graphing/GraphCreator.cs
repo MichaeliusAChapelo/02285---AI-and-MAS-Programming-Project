@@ -18,6 +18,7 @@ namespace BoxProblems.Graphing
                 }
             }
 
+     
             Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>> potentialGoals = new Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>>();
             foreach (var inode in graph.Nodes)
             {

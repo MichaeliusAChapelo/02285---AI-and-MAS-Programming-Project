@@ -207,6 +207,7 @@ namespace BoxProblems.Graphing
                     }
                 }
             }
+            level.ResetWalls();
         }
     }
 }

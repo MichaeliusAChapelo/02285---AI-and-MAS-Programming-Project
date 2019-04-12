@@ -61,21 +61,25 @@ namespace BoxProblems
                     Entity box = GetBoxToSolveProblem(currentConflicts, goalToSolve);
                     if (currentConflicts.PositionHasNode(goalToSolve.Pos))
                     {
-                        Point freespace = GetFreeSpaceToMoveConflictTo(goalToSolve, currentConflicts, freePath);
-                        BoxConflictNode boxongoal = (BoxConflictNode)currentConflicts.GetNodeFromPosition(goalToSolve.Pos);
-                        List<HighlevelMove> boxongoalSolution;
-                        if (!TrySolveSubProblem(box, goalToSolve, boxongoal.Value.Ent, freespace, boxongoal.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out boxongoalSolution, freePath))
+                        INode nodeongoal = currentConflicts.GetNodeFromPosition(goalToSolve.Pos);
+                        if (nodeongoal is BoxConflictNode boxongoal)
                         {
-                            throw new Exception("Could not move wrong box from goal.");
+                            Point freespace = GetFreeSpaceToMoveConflictTo(goalToSolve, currentConflicts, freePath);
+                            List<HighlevelMove> boxongoalSolution;
+                            if (!TrySolveSubProblem(box, goalToSolve, boxongoal.Value.Ent, freespace, boxongoal.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out boxongoalSolution, freePath))
+                            {
+                                throw new Exception("Could not move wrong box from goal.");
+                            }
+                            solution.AddRange(boxongoalSolution);
                         }
-                        solution.AddRange(boxongoalSolution);
+
 
                     }
                     currentConflicts = new BoxConflictGraph(currentState, level, goalToSolve);
                     currentConflicts.AddFreeNodes(level, box.Pos, goalToSolve.Pos);
                     solutionGraphs.Add(currentConflicts);
-                    GraphShower.ShowSimplifiedGraph(currentConflicts);
-                    Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+                    //GraphShower.ShowSimplifiedGraph(currentConflicts);
+                    //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
 
                     var storeConflicts = currentConflicts;
                     var storeState = currentState;
@@ -143,8 +147,8 @@ namespace BoxProblems
                 currentConflicts = new BoxConflictGraph(currentState, level, topLevelGoal);
                 currentConflicts.AddFreeNodes(level, topLevelToMove.Pos, topLevelGoal.Pos);
                 solutionGraphs.Add(currentConflicts);
-                Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
-                GraphShower.ShowSimplifiedGraph(currentConflicts);
+                //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+                //GraphShower.ShowSimplifiedGraph(currentConflicts);
             }
 
             solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));

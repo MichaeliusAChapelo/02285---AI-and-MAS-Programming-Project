@@ -48,8 +48,8 @@ namespace BoxProblems
 
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph);
-
-            BoxConflictGraph currentConflicts = new BoxConflictGraph(level.InitialState, level, null);
+            HashSet<Entity> removedEntities = new HashSet<Entity>();
+            BoxConflictGraph currentConflicts = new BoxConflictGraph(level.InitialState, level, null, removedEntities);
             State currentState = level.InitialState;
             HashSet<Point> freePath = new HashSet<Point>();
             HashSet<Entity> solvedGoals = new HashSet<Entity>();
@@ -57,6 +57,7 @@ namespace BoxProblems
             {
                 for (int i = 0; i < goalPriorityLayer.Length; i++)
                 {
+                    currentConflicts = new BoxConflictGraph(level.InitialState, level, null, removedEntities);
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, currentConflicts, solvedGoals);
                     Entity box = GetBoxToSolveProblem(currentConflicts, goalToSolve);
                     if (currentConflicts.PositionHasNode(goalToSolve.Pos))
@@ -66,7 +67,7 @@ namespace BoxProblems
                         {
                             Point freespace = GetFreeSpaceToMoveConflictTo(goalToSolve, currentConflicts, freePath);
                             List<HighlevelMove> boxongoalSolution;
-                            if (!TrySolveSubProblem(box, goalToSolve, boxongoal.Value.Ent, freespace, boxongoal.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out boxongoalSolution, freePath))
+                            if (!TrySolveSubProblem(box, goalToSolve, boxongoal.Value.Ent, freespace, boxongoal.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out boxongoalSolution, freePath, removedEntities))
                             {
                                 throw new Exception("Could not move wrong box from goal.");
                             }
@@ -75,16 +76,16 @@ namespace BoxProblems
 
 
                     }
-                    currentConflicts = new BoxConflictGraph(currentState, level, goalToSolve);
+                    currentConflicts = new BoxConflictGraph(currentState, level, goalToSolve, removedEntities);
                     currentConflicts.AddFreeNodes(level, box.Pos, goalToSolve.Pos);
                     solutionGraphs.Add(currentConflicts);
                     //GraphShower.ShowSimplifiedGraph(currentConflicts);
-                    Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+                    //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
 
                     var storeConflicts = currentConflicts;
                     var storeState = currentState;
                     List<HighlevelMove> solutionMoves;
-                    if (!TrySolveSubProblem(box, goalToSolve, box, goalToSolve.Pos, false, level, solutionGraphs, ref currentConflicts, ref currentState, out solutionMoves, freePath))
+                    if (!TrySolveSubProblem(box, goalToSolve, box, goalToSolve.Pos, false, level, solutionGraphs, ref currentConflicts, ref currentState, out solutionMoves, freePath, removedEntities))
                     {
                         currentConflicts = storeConflicts;
                         currentState = storeState;
@@ -96,13 +97,14 @@ namespace BoxProblems
                     solvedGoals.Add(goalToSolve);
 
                     level.AddPermanentWalll(goalToSolve.Pos);
+                    removedEntities.Add(box);
                 }
             }
 
             return (solution, solutionGraphs);
         }
 
-        private static bool TrySolveSubProblem(Entity topLevelToMove, Entity topLevelGoal, Entity toMove, Point goal, bool toMoveIsAgent, Level level, List<BoxConflictGraph> solutionGraphs, ref BoxConflictGraph currentConflicts, ref State currentState, out List<HighlevelMove> solutionToSubProblem, HashSet<Point> freePath)
+        private static bool TrySolveSubProblem(Entity topLevelToMove, Entity topLevelGoal, Entity toMove, Point goal, bool toMoveIsAgent, Level level, List<BoxConflictGraph> solutionGraphs, ref BoxConflictGraph currentConflicts, ref State currentState, out List<HighlevelMove> solutionToSubProblem, HashSet<Point> freePath, HashSet<Entity> removedEntities)
         {
             solutionToSubProblem = new List<HighlevelMove>();
             Entity? agentToUse = null;
@@ -111,7 +113,7 @@ namespace BoxProblems
                 agentToUse = GetAgentToSolveProblem(currentConflicts, toMove);
             }
             List<HighlevelMove> solveConflictMoves;
-            if (!TrySolveConflicts(topLevelToMove, topLevelGoal, toMove, goal, level, solutionGraphs, ref currentConflicts, ref currentState, out solveConflictMoves, freePath, agentToUse))
+            if (!TrySolveConflicts(topLevelToMove, topLevelGoal, toMove, goal, level, solutionGraphs, ref currentConflicts, ref currentState, out solveConflictMoves, freePath, agentToUse, removedEntities))
             {
                 return false;
             }
@@ -126,7 +128,7 @@ namespace BoxProblems
                 agentToUse = GetAgentToSolveProblem(currentConflicts, toMove);
 
                 List<HighlevelMove> solveAgentConflictMoves;
-                if (!TrySolveConflicts(topLevelToMove, topLevelGoal, agentToUse.Value, toMove.Pos, level, solutionGraphs, ref currentConflicts, ref currentState, out solveAgentConflictMoves, freePath, agentToUse))
+                if (!TrySolveConflicts(topLevelToMove, topLevelGoal, agentToUse.Value, toMove.Pos, level, solutionGraphs, ref currentConflicts, ref currentState, out solveAgentConflictMoves, freePath, agentToUse, removedEntities))
                 {
                     return false;
                 }
@@ -148,18 +150,18 @@ namespace BoxProblems
 
             if (topLevelToMove != toMove || topLevelGoal.Pos != goal)
             {
-                currentConflicts = new BoxConflictGraph(currentState, level, topLevelGoal);
+                currentConflicts = new BoxConflictGraph(currentState, level, topLevelGoal, removedEntities);
                 currentConflicts.AddFreeNodes(level, topLevelToMove.Pos, topLevelGoal.Pos);
                 solutionGraphs.Add(currentConflicts);
-                Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
-                //GraphShower.ShowSimplifiedGraph(currentConflicts);
+                //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+               // GraphShower.ShowSimplifiedGraph(currentConflicts);
             }
 
             solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
             return true;
         }
 
-        private static bool TrySolveConflicts(Entity topLevelToMove, Entity topLevelGoal, Entity toMove, Point goal, Level level, List<BoxConflictGraph> solutionGraphs, ref BoxConflictGraph currentConflicts, ref State currentState, out List<HighlevelMove> solutionToSubProblem, HashSet<Point> freePath, Entity? agentNotConflict)
+        private static bool TrySolveConflicts(Entity topLevelToMove, Entity topLevelGoal, Entity toMove, Point goal, Level level, List<BoxConflictGraph> solutionGraphs, ref BoxConflictGraph currentConflicts, ref State currentState, out List<HighlevelMove> solutionToSubProblem, HashSet<Point> freePath, Entity? agentNotConflict, HashSet<Entity> removedEntities)
         {
             solutionToSubProblem = null;
             List<BoxConflictNode> conflicts = GetConflicts(toMove, goal, currentConflicts);
@@ -181,7 +183,7 @@ namespace BoxProblems
                         continue;
                     }
                     Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, currentConflicts, freePath);
-                    if (TrySolveSubProblem(topLevelToMove, topLevelGoal, conflict.Value.Ent, freeSpace, conflict.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out List<HighlevelMove> solutionMoves, freePath))
+                    if (TrySolveSubProblem(topLevelToMove, topLevelGoal, conflict.Value.Ent, freeSpace, conflict.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out List<HighlevelMove> solutionMoves, freePath, removedEntities))
                     {
                         solutionToSubProblem.AddRange(solutionMoves);
                     }

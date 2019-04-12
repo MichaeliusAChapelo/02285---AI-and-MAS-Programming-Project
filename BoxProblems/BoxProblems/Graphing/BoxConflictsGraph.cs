@@ -19,7 +19,7 @@ namespace BoxProblems.Graphing
             }
             else
             {
-                return Value.Ent.Type.ToString();
+                return Value.Ent.Pos.ToString() + " " + Value.Ent.Type.ToString();
             }
         }
     }
@@ -51,17 +51,25 @@ namespace BoxProblems.Graphing
         private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
         public readonly State CreatedFromThisState;
 
-        public BoxConflictGraph(State state, Level level, Entity? goal)
+        public BoxConflictGraph(State state, Level level, Entity? goal,HashSet<Entity> removedEntities)
         {
             CreatedFromThisState = state;
 
             foreach (var box in state.GetBoxes(level))
             {
+                if (removedEntities.Contains(box))
+                {
+                    continue;
+                }
                 AddNode(new BoxConflictNode(new EntityNodeInfo(box, EntityType.BOX)));
             }
-            foreach (var box in state.GetAgents(level))
+            foreach (var agent in state.GetAgents(level))
             {
-                AddNode(new BoxConflictNode(new EntityNodeInfo(box, EntityType.AGENT)));
+                if (removedEntities.Contains(agent))
+                {
+                    continue;
+                }
+                AddNode(new BoxConflictNode(new EntityNodeInfo(agent, EntityType.AGENT)));
             }
             if (goal.HasValue)
             {

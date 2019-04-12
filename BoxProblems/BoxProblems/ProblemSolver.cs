@@ -57,7 +57,7 @@ namespace BoxProblems
             {
                 for (int i = 0; i < goalPriorityLayer.Length; i++)
                 {
-                    currentConflicts = new BoxConflictGraph(level.InitialState, level, null, removedEntities);
+                    currentConflicts = new BoxConflictGraph(currentState, level, null, removedEntities);
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, currentConflicts, solvedGoals);
                     Entity box = GetBoxToSolveProblem(currentConflicts, goalToSolve);
                     if (currentConflicts.PositionHasNode(goalToSolve.Pos))
@@ -97,7 +97,7 @@ namespace BoxProblems
                     solvedGoals.Add(goalToSolve);
 
                     level.AddPermanentWalll(goalToSolve.Pos);
-                    removedEntities.Add(box);
+                    removedEntities.Add(new Entity(solutionMoves.Last().ToHere,box.Color,box.Type));
                 }
             }
 

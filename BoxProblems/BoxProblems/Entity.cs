@@ -38,6 +38,24 @@ namespace BoxProblems
         {
             return $"[{Pos.X}, {Pos.Y}] Color: {Color}, Type: {Type}";
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is Entity))
+            {
+                return false;
+            }
+
+            var entity = (Entity)obj;
+            return Pos == entity.Pos &&
+                   Color == entity.Color &&
+                   Type == entity.Type;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Pos, Color, Type);
+        }
     }
 
     internal class EntityComparar : IComparer<Entity>

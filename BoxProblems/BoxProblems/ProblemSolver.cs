@@ -59,11 +59,23 @@ namespace BoxProblems
                 {
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, currentConflicts, solvedGoals);
                     Entity box = GetBoxToSolveProblem(currentConflicts, goalToSolve);
+                    if (currentConflicts.PositionHasNode(goalToSolve.Pos))
+                    {
+                        Point freespace = GetFreeSpaceToMoveConflictTo(goalToSolve, currentConflicts, freePath);
+                        BoxConflictNode boxongoal = (BoxConflictNode)currentConflicts.GetNodeFromPosition(goalToSolve.Pos);
+                        List<HighlevelMove> boxongoalSolution;
+                        if (!TrySolveSubProblem(box, goalToSolve, boxongoal.Value.Ent, freespace, boxongoal.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out boxongoalSolution, freePath))
+                        {
+                            throw new Exception("Could not move wrong box from goal.");
+                        }
+                        solution.AddRange(boxongoalSolution);
 
+                    }
                     currentConflicts = new BoxConflictGraph(currentState, level, goalToSolve);
                     currentConflicts.AddFreeNodes(level, box.Pos, goalToSolve.Pos);
                     solutionGraphs.Add(currentConflicts);
-                    //GraphShower.ShowGraph(currentConflicts);
+                    GraphShower.ShowSimplifiedGraph(currentConflicts);
+                    Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
 
                     var storeConflicts = currentConflicts;
                     var storeState = currentState;
@@ -78,6 +90,8 @@ namespace BoxProblems
 
                     solution.AddRange(solutionMoves);
                     solvedGoals.Add(goalToSolve);
+
+                    level.AddPermanentWalll(goalToSolve.Pos);
                 }
             }
 
@@ -103,15 +117,15 @@ namespace BoxProblems
             {
                 agentToUse = GetAgentToSolveProblem(currentConflicts, toMove);
 
-                //List<HighlevelMove> solveAgentConflictMoves;
-                //if (!TrySolveConflicts(topLevelToMove, topLevelGoal, agentToUse.Value, goal, level, solutionGraphs, ref currentConflicts, ref currentState, out solveAgentConflictMoves, freePath))
-                //{
-                //    return false;
-                //}
-                //if (solveAgentConflictMoves != null)
-                //{
-                //    solutionToSubProblem.AddRange(solveAgentConflictMoves);
-                //}
+                List<HighlevelMove> solveAgentConflictMoves;
+                if (!TrySolveConflicts(topLevelToMove, topLevelGoal, agentToUse.Value, toMove.Pos, level, solutionGraphs, ref currentConflicts, ref currentState, out solveAgentConflictMoves, freePath))
+                {
+                    return false;
+                }
+                if (solveAgentConflictMoves != null)
+                {
+                    solutionToSubProblem.AddRange(solveAgentConflictMoves);
+                }
             }
 
             currentState = currentState.GetCopy();
@@ -129,7 +143,8 @@ namespace BoxProblems
                 currentConflicts = new BoxConflictGraph(currentState, level, topLevelGoal);
                 currentConflicts.AddFreeNodes(level, topLevelToMove.Pos, topLevelGoal.Pos);
                 solutionGraphs.Add(currentConflicts);
-                //GraphShower.ShowGraph(currentConflicts);
+                Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+                GraphShower.ShowSimplifiedGraph(currentConflicts);
             }
 
             solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
@@ -238,7 +253,11 @@ namespace BoxProblems
                     while (childToParent.ContainsKey(current))
                     {
                         current = childToParent[current];
-                        conflicts.Add((BoxConflictNode)current);
+                        if (current is BoxConflictNode boxconNode)
+                        {
+                            conflicts.Add(boxconNode);
+                        }
+                        
                     }
                     //The last conflict is toMove itself which isn't a conflict
                     conflicts.RemoveAt(conflicts.Count - 1);

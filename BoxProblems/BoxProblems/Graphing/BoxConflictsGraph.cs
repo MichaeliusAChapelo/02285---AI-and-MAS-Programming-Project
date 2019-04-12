@@ -90,6 +90,10 @@ namespace BoxProblems.Graphing
         {
             return PositionToNode[pos];
         }
+        public bool PositionHasNode(Point pos)
+        {
+            return PositionToNode.ContainsKey(pos);
+        } 
 
         public void AddFreeNodes(Level level, Point start, Point end)
         {

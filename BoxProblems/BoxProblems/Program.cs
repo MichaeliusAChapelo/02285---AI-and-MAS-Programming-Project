@@ -84,7 +84,7 @@ namespace BoxProblems
             //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
 
             //Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAKarlMarx.lvl"), "asdas");
-            Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
+            Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAOptimal.lvl"), "asdas");
             //Level wholeLevel = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample1.lvl"));
 
             var solution = ProblemSolver.SolveLevel(wholeLevel);

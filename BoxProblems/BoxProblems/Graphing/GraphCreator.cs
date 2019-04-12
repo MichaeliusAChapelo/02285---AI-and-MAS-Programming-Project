@@ -17,7 +17,7 @@ namespace BoxProblems.Graphing
                     level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;
                 }
             }
-
+            //Console.WriteLine(level.WorldToString(level.GetWallsAsWorld()));
      
             Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>> potentialGoals = new Dictionary<Point, Node<EntityNodeInfo, EmptyEdgeInfo>>();
             foreach (var inode in graph.Nodes)

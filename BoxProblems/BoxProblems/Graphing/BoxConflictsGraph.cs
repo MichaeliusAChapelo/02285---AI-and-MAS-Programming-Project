@@ -24,21 +24,31 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal class BoxConflictEdge : Edge<EntityNodeInfo, EmptyEdgeInfo>
+    internal readonly struct FreeSpaceNodeInfo
     {
-        public BoxConflictEdge(BoxConflictNode end, EmptyEdgeInfo value) : base(end, value)
+        public readonly HashSet<Point> FreeSpaces;
+
+        public FreeSpaceNodeInfo(List<Point> freeSpaces)
+        {
+            this.FreeSpaces = new HashSet<Point>(freeSpaces);
+        }
+    }
+
+    internal class FreeSpaceNode : Node<FreeSpaceNodeInfo, EmptyEdgeInfo>
+    {
+        public FreeSpaceNode(FreeSpaceNodeInfo value) : base(value)
         {
         }
 
         public override string ToString()
         {
-            return string.Empty;
+            return $"Free spaces: {Value.FreeSpaces.Count}";
         }
     }
 
     internal sealed class BoxConflictGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
     {
-        private readonly Dictionary<Point, BoxConflictNode> PositionToNode = new Dictionary<Point, BoxConflictNode>();
+        private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
 
         public BoxConflictGraph(State state, Level level)
         {
@@ -50,10 +60,6 @@ namespace BoxProblems.Graphing
             {
                 AddNode(new BoxConflictNode(new EntityNodeInfo(box, EntityType.AGENT)));
             }
-            foreach (var goal in level.Goals)
-            {
-                AddNode(new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL)));
-            }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
         }
@@ -64,53 +70,129 @@ namespace BoxProblems.Graphing
             PositionToNode.Add(node.Value.Ent.Pos, node);
         }
 
-        public BoxConflictNode GetNodeFromPosition(Point pos)
+        public void AddNode(FreeSpaceNode node)
+        {
+            base.AddNode(node);
+            foreach (var nodePos in node.Value.FreeSpaces)
+            {
+                PositionToNode.Add(nodePos, node);
+            }
+        }
+
+        public INode GetNodeFromPosition(Point pos)
         {
             return PositionToNode[pos];
         }
 
         public void AddFreeNodes(Level level, Point start, Point end)
         {
+            var pathsMap = Precomputer.GetPathMap(level.Walls, end, false);
+            var distancesMap = Precomputer.GetDistanceMap(level.Walls, end, false);
+
+            //
+            //First of all the path from start to end and all entities need to be made into
+            //walls so the only freepsace is space that won't block the path or be on
+            //top of other entities.
+            //
+
             foreach (var inode in Nodes)
             {
                 if (inode is BoxConflictNode boxNode)
                 {
-                    if (boxNode.Value.EntType == EntityType.AGENT || boxNode.Value.EntType == EntityType.BOX)
+                    level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
+                }
+            }
+
+            Point currentPos = start;
+            for (int i = 0; i < distancesMap[start.X, start.Y]; i++)
+            {
+                level.Walls[currentPos.X, currentPos.Y] = true;
+                currentPos = currentPos + pathsMap[currentPos.X, currentPos.Y].DirectionDelta();
+            }
+            level.Walls[currentPos.X, currentPos.Y] = true;
+
+
+            //
+            //Now go through the map and and find all empty spaces. When an empty space is found, bfs is used to
+            //find all connecting spaces which makes up the free space node.
+            //
+
+            Func<Point, GraphSearcher.GoalFound<Point>> foundFreeSpace = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
+            {
+                return new GraphSearcher.GoalFound<Point>(x, !level.Walls[x.X, x.Y]);
+            });
+            HashSet<Point> alreadySeenSpaces = new HashSet<Point>();
+            List<FreeSpaceNode> freeSpaceNodes = new List<FreeSpaceNode>();
+            for (int y = 0; y < level.Height; y++)
+            {
+                for (int x = 0; x < level.Width; x++)
+                {
+                    if (!level.Walls[x, y] && !alreadySeenSpaces.Contains(new Point(x, y)))
                     {
-                        level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
+                        //There is an issue here.
+                        //The list has a duplicate in it.
+                        //It's currently handled by inserting it
+                        //into a hashset.
+                        var freeSpacesFound = GraphSearcher.GetReachedGoalsBFS(level, new Point(x, y), foundFreeSpace);
+
+                        //A single free space can't be part of multiple nodes
+                        alreadySeenSpaces.UnionWith(freeSpacesFound);
+
+                        //Create node and add it to the graph.
+                        //keep a list of the freespace nodes so edges can be added later
+                        var newFreeSpaceNode = new FreeSpaceNode(new FreeSpaceNodeInfo(freeSpacesFound));
+                        AddNode(newFreeSpaceNode);
+                        freeSpaceNodes.Add(newFreeSpaceNode);
                     }
                 }
             }
 
-            level.Walls[start.X, start.Y] = false;
-            level.Walls[end.X, end.Y] = false;
-            var pathsMap = Precomputer.GetPathMap(level.Walls, start, false);
-            Point currentPos = start;
-            while (pathsMap[currentPos.X, currentPos.Y] != Direction.NONE)
-            {
-                level.Walls[currentPos.X, currentPos.Y] = true;
-                currentPos += pathsMap[currentPos.X, currentPos.Y].DirectionDelta();
-            }
 
+            //
+            //Now it's time to add edges between the free spaces nodes and the rest of the graph.
+            //To do that the original map has to be restored as the path may block pathways from 
+            //a freespace to any other node on the map. Agents and boxes still have to be walls
+            //as there is no direct path through them. This excludes goals as only goals with
+            //boxes on them should be walls and the boxes on top of them will makes them walls.
+            //Go through all free space nodes and use bfs to check which other nodes it can reach,
+            //then add edges to those nodes.
+            //
 
-            HashSet<Point> alreadySeenSpaces = new HashSet<Point>();
-
-
-
-            currentPos = start;
-            while (pathsMap[currentPos.X, currentPos.Y] != Direction.NONE)
-            {
-                level.Walls[currentPos.X, currentPos.Y] = false;
-                currentPos += pathsMap[currentPos.X, currentPos.Y].DirectionDelta();
-            }
-
+            level.ResetWalls();
             foreach (var inode in Nodes)
             {
-                if (inode is BoxConflictNode boxNode)
+                if (inode is BoxConflictNode boxNode && boxNode.Value.EntType != EntityType.GOAL)
                 {
-                    if (boxNode.Value.EntType == EntityType.AGENT || boxNode.Value.EntType == EntityType.BOX)
+                    level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
+                }
+            }
+
+            Func<Point, GraphSearcher.GoalFound<INode>> foundNode = new Func<Point, GraphSearcher.GoalFound<INode>>(x =>
+            {
+                if (PositionToNode.TryGetValue(x, out INode node))
+                {
+                    return new GraphSearcher.GoalFound<INode>(node, true);
+                }
+                return new GraphSearcher.GoalFound<INode>(null, false);
+            });
+            foreach (var freeSpaceNode in freeSpaceNodes)
+            {
+                var nodesFound = GraphSearcher.GetReachedGoalsBFS(level, freeSpaceNode.Value.FreeSpaces.First(), foundNode);
+                foreach (var neighbour in nodesFound.ToHashSet())
+                {
+                    //The search may find itself and such edges are not necessary
+                    if (neighbour != freeSpaceNode)
                     {
-                        level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = false;
+                        //Bidirectional edges
+                        freeSpaceNode.AddEdge(new Edge<FreeSpaceNodeInfo, EmptyEdgeInfo>(neighbour, new EmptyEdgeInfo()));
+                        if (neighbour is BoxConflictNode boxNode)
+                        {
+                            boxNode.AddEdge(new Edge<EntityNodeInfo, EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                        }
+                        else if (neighbour is FreeSpaceNode freeNode)
+                        {
+                            freeNode.AddEdge(new Edge<FreeSpaceNodeInfo, EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                        }
                     }
                 }
             }

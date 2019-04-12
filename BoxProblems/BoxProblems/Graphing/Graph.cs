@@ -10,7 +10,7 @@ namespace BoxProblems.Graphing
         public readonly List<INode> Nodes = new List<INode>();
         private static int asdsa = 0;
 
-        protected void AddNode(Node<N, E> node)
+        protected void AddNode(INode node)
         {
             Nodes.Add(node);
         }
@@ -22,7 +22,7 @@ namespace BoxProblems.Graphing
             int nodes = 0;
             int edges = 0;
 
-            HashSet<Node<N, E>> foundNodes = new HashSet<Node<N, E>>();
+            HashSet<INode> foundNodes = new HashSet<INode>();
             for (int i = 0; i < Nodes.Count; i++)
             {
                 nodesBuilder.Append($"{{ data: {{ id: '{asdsa + i}', label: '{Nodes[i]}' }} }},");
@@ -30,15 +30,14 @@ namespace BoxProblems.Graphing
             }
             for (int i = 0; i < Nodes.Count; i++)
             {
-                var node = (Node<N, E>)Nodes[i];
-                foreach (var edge in node.Edges)
+                foreach (var edge in Nodes[i].GetNodeEnds())
                 {
-                    if (foundNodes.Contains(edge.End))
+                    if (foundNodes.Contains(edge))
                     {
                         continue;
                     }
-                    foundNodes.Add(node);
-                    edgesBuilder.Append($"{{ data: {{ source: '{asdsa + i}', target: '{asdsa + Nodes.IndexOf(edge.End)}' }} }},");
+                    foundNodes.Add(Nodes[i]);
+                    edgesBuilder.Append($"{{ data: {{ source: '{asdsa + i}', target: '{asdsa + Nodes.IndexOf(edge)}' }} }},");
                     edges++;
                 }
             }

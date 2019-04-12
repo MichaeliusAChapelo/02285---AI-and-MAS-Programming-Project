@@ -16,7 +16,10 @@ namespace BoxProblems
             }
 
             var newData = GraphSearcher.GetDistanceBFS(walls, start);
-            PrecomputedDistancesAndPaths.Add(start, newData.Value);
+            if (getFromCache)
+            {
+                PrecomputedDistancesAndPaths.Add(start, newData.Value);
+            }
 
             return newData.Value.distanceMap;
         }
@@ -29,7 +32,10 @@ namespace BoxProblems
             }
 
             var newData = GraphSearcher.GetDistanceBFS(walls, start);
-            PrecomputedDistancesAndPaths.Add(start, newData.Value);
+            if (getFromCache)
+            {
+                PrecomputedDistancesAndPaths.Add(start, newData.Value);
+            }
 
             return newData.Value.pathMap;
         }

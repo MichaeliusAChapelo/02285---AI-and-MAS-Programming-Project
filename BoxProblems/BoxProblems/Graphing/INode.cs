@@ -4,7 +4,8 @@ using System.Text;
 
 namespace BoxProblems.Graphing
 {
-    interface INode
+    internal interface INode
     {
+        IEnumerable<INode> GetNodeEnds();
     }
 }

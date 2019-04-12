@@ -19,6 +19,14 @@ namespace BoxProblems.Graphing
             Edges.Add(edge);
         }
 
+        public IEnumerable<INode> GetNodeEnds()
+        {
+            foreach (var edge in Edges)
+            {
+                yield return edge.End;
+            }
+        }
+
         public override string ToString()
         {
             return Value.ToString();

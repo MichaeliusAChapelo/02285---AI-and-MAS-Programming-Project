@@ -49,9 +49,12 @@ namespace BoxProblems.Graphing
     internal sealed class BoxConflictGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
     {
         private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
+        public readonly State CreatedFromThisState;
 
-        public BoxConflictGraph(State state, Level level)
+        public BoxConflictGraph(State state, Level level, Entity? goal)
         {
+            CreatedFromThisState = state;
+
             foreach (var box in state.GetBoxes(level))
             {
                 AddNode(new BoxConflictNode(new EntityNodeInfo(box, EntityType.BOX)));
@@ -59,6 +62,10 @@ namespace BoxProblems.Graphing
             foreach (var box in state.GetAgents(level))
             {
                 AddNode(new BoxConflictNode(new EntityNodeInfo(box, EntityType.AGENT)));
+            }
+            if (goal.HasValue)
+            {
+                AddNode(new BoxConflictNode(new EntityNodeInfo(goal.Value, EntityType.GOAL)));
             }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);

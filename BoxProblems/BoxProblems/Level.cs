@@ -65,6 +65,18 @@ namespace BoxProblems
             Array.Copy(OriginalWalls, 0, Walls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
+        public void AddPermanentWalll(Point pos)
+        {
+            OriginalWalls[pos.X, pos.Y] = true;
+            Walls[pos.X, pos.Y] = true;
+        }
+
+        public void RemovePermanentWall(Point pos)
+        {
+            OriginalWalls[pos.X, pos.Y] = false;
+            Walls[pos.X, pos.Y] = false;
+        }
+
         public static Level ReadOldFormatLevel(string levelString, string levelName)
         {
             return Level.ReadOldFormatLevel(levelString.Replace("\r", string.Empty)

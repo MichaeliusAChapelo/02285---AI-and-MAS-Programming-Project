@@ -39,5 +39,25 @@ namespace BoxProblems
 
             return newData.Value.pathMap;
         }
+
+        public static Point[] GetPath(Level level, Point start, Point end, bool getFromCache = true)
+        {
+
+            var pathsMap = Precomputer.GetPathMap(level.Walls, end, getFromCache);
+            var distancesMap = Precomputer.GetDistanceMap(level.Walls, end, getFromCache);
+
+            int distance = distancesMap[start.X, start.Y];
+            Point[] path = new Point[distance + 1];
+            Point currentPos = start;
+            for (int i = 0; i < distance; i++)
+            {
+                path[i] = currentPos;
+                Direction dir = pathsMap[currentPos.X, currentPos.Y];
+                currentPos = currentPos + dir.DirectionDelta();
+            }
+            path[path.Length - 1] = currentPos;
+
+            return path;
+        }
     }
 }

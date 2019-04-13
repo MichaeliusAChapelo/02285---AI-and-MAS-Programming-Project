@@ -10,6 +10,7 @@ namespace BoxProblems
     internal class Level
     {
         public readonly bool[,] Walls;
+        private readonly bool[,] OriginalWalls;
         public readonly Entity[] Goals;
         public readonly State InitialState;
         public readonly int Width;
@@ -39,6 +40,9 @@ namespace BoxProblems
             this.Height = height;
             this.AgentCount = agentCount;
             this.BoxCount = boxCount;
+
+            this.OriginalWalls = new bool[walls.GetLength(0), walls.GetLength(1)];
+            Array.Copy(Walls, 0, OriginalWalls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
         public Span<Entity> GetAgents()
@@ -54,6 +58,23 @@ namespace BoxProblems
         public int PosToIndex(Point pos)
         {
             return pos.X + pos.Y * Width;
+        }
+
+        public void ResetWalls()
+        {
+            Array.Copy(OriginalWalls, 0, Walls, 0, Walls.GetLength(0) * Walls.GetLength(1));
+        }
+
+        public void AddPermanentWalll(Point pos)
+        {
+            OriginalWalls[pos.X, pos.Y] = true;
+            Walls[pos.X, pos.Y] = true;
+        }
+
+        public void RemovePermanentWall(Point pos)
+        {
+            OriginalWalls[pos.X, pos.Y] = false;
+            Walls[pos.X, pos.Y] = false;
         }
 
         public static Level ReadOldFormatLevel(string levelString, string levelName)
@@ -102,10 +123,11 @@ namespace BoxProblems
             {
                 string[] splitted = colorLines[i].Split(':');
                 string color = splitted[0].Trim().ToLower();
-                string afterColor = splitted[1];
+                string afterColor = string.Join(", ", splitted[1].Replace(" ", string.Empty).Split(',').ToHashSet());
                 if (remainingColors.Contains(color))
                 {
                     remainingColors.Remove(color);
+                    colorLines[i] = $"{color}: {afterColor}";
                 }
                 else
                 {
@@ -173,11 +195,6 @@ namespace BoxProblems
             return newFormat.ToArray();
         }
 
-        internal object ToList()
-        {
-            throw new NotImplementedException();
-        }
-
         public static Level ReadLevel(string[] lines)
         {
             int colorIndex = Array.IndexOf(lines, "#colors") + 1;
@@ -215,7 +232,7 @@ namespace BoxProblems
                     char c = initialLevel[y][x];
 
                     if (char.IsLetter(goalLevel[y][x]))
-                        goals.Add(new Entity(new Point(x, y), 0, (goalLevel[y])[x]));
+                        goals.Add(new Entity(new Point(x, y), 0, goalLevel[y][x]));
 
                     if (c == '+')
                         walls[x, y] = true;

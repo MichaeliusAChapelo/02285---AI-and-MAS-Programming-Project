@@ -27,5 +27,16 @@ namespace BoxProblems
         {
             return new Span<Entity>(Entities, level.AgentCount, level.BoxCount);
         }
+
+        public State GetCopy()
+        {
+            Entity[] copyEntities = new Entity[Entities.Length];
+            for (int i = 0; i < Entities.Length; i++)
+            {
+                copyEntities[i] = Entities[i];
+            }
+
+            return new State(null, copyEntities, G);
+        }
     }
 }

@@ -56,6 +56,8 @@ namespace BoxProblems
 
             //ConvertFiles(oldFormatPath, "", savePath);
             //Console.WriteLine("Converting done");
+            //Console.Read();
+            //return;
 
             //if (args.Length == 0)
             //{
@@ -81,13 +83,30 @@ namespace BoxProblems
             ////Level level = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample2.lvl"));
             //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
 
-            Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAKarlMarx.lvl"), "asdas");
-            //Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SACrunch.lvl"), "asdas");
+            //Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAKarlMarx.lvl"), "asdas");
+            Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAsoko3_64.lvl"), "asdas");
             //Level wholeLevel = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample1.lvl"));
-            var goalGraphs = LevelSplitter.SplitLevel(wholeLevel).Select(x => new GoalGraph(x.InitialState, x))
-                                                                 .Select(x => Graph<GoalNode, GoalEdge>.CreateSimplifiedGraph(x))
-                                                                 .ToArray();
-            GraphShower.ShowGraphs(goalGraphs);
+
+            var solution = ProblemSolver.SolveLevel(wholeLevel);
+
+            for (int i = 0; i < solution.First().solutionGraphs.Count; i++)
+            {
+                State state = solution.First().solutionGraphs[i].CreatedFromThisState;
+                Console.WriteLine(wholeLevel.StateToString(state));
+                Console.WriteLine();
+                //GraphShower.ShowGraph(solution.First().solutionGraphs[i]);
+                //Thread.Sleep(5000);
+            }
+
+
+
+
+            //var goalGraphs = LevelSplitter.SplitLevel(wholeLevel).Select(x => new GoalGraph(x.InitialState, x))
+            //                                                     .ToArray();
+            //BoxConflictGraph sdf = new BoxConflictGraph(wholeLevel.InitialState, wholeLevel);
+            //sdf.AddFreeNodes(wholeLevel, wholeLevel.InitialState.Entities.Single(x => x.Type == 'B').Pos, wholeLevel.Goals.Single(x => x.Type == 'B').Pos);
+            //GraphShower.ShowGraph(sdf);
+            //GraphShower.ShowSimplifiedGraphs(sdf);
 
             //List<Level> levels = LevelSplitter.SplitLevel(wholeLevel);
             //foreach (var level in levels)

@@ -57,5 +57,10 @@ namespace BoxProblems
         {
             return $"[{X}, {Y}]";
         }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(X, Y);
+        }
     }
 }

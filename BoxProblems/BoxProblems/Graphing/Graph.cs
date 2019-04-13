@@ -7,10 +7,10 @@ namespace BoxProblems.Graphing
 {
     internal class Graph<N, E>
     {
-        public readonly List<Node<N, E>> Nodes = new List<Node<N, E>>();
+        public readonly List<INode> Nodes = new List<INode>();
         private static int asdsa = 0;
 
-        protected void AddNode(Node<N, E> node)
+        protected void AddNode(INode node)
         {
             Nodes.Add(node);
         }
@@ -22,7 +22,7 @@ namespace BoxProblems.Graphing
             int nodes = 0;
             int edges = 0;
 
-            HashSet<Node<N, E>> foundNodes = new HashSet<Node<N, E>>();
+            HashSet<INode> foundNodes = new HashSet<INode>();
             for (int i = 0; i < Nodes.Count; i++)
             {
                 nodesBuilder.Append($"{{ data: {{ id: '{asdsa + i}', label: '{Nodes[i]}' }} }},");
@@ -30,14 +30,14 @@ namespace BoxProblems.Graphing
             }
             for (int i = 0; i < Nodes.Count; i++)
             {
-                foreach (var edge in Nodes[i].Edges)
+                foreach (var edge in Nodes[i].GetNodeEnds())
                 {
-                    if (foundNodes.Contains(edge.End))
+                    if (foundNodes.Contains(edge))
                     {
                         continue;
                     }
                     foundNodes.Add(Nodes[i]);
-                    edgesBuilder.Append($"{{ data: {{ source: '{asdsa + i}', target: '{asdsa + Nodes.IndexOf(edge.End)}' }} }},");
+                    edgesBuilder.Append($"{{ data: {{ source: '{asdsa + i}', target: '{asdsa + Nodes.IndexOf(edge)}' }} }},");
                     edges++;
                 }
             }
@@ -47,19 +47,20 @@ namespace BoxProblems.Graphing
             return (nodesBuilder.ToString(), edgesBuilder.ToString());
         }
 
-        public static Graph<NodeGroup<N, E>, E> CreateSimplifiedGraph<N, E>(Graph<N, E> graph) where E : new()
+        public static Graph<NodeGroup, E> CreateSimplifiedGraph<N, E>(Graph<N, E> graph) where E : new()
         {
-            Graph<NodeGroup<N, E>, E> groupedGraph = new Graph<NodeGroup<N, E>, E>();
-            Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>> nodeToGroupNode = new Dictionary<Node<N, E>, Node<NodeGroup<N, E>, E>>(); 
-            foreach (var node in graph.Nodes)
+            Graph<NodeGroup, E> groupedGraph = new Graph<NodeGroup, E>();
+            Dictionary<INode, Node<NodeGroup, E>> nodeToGroupNode = new Dictionary<INode, Node<NodeGroup, E>>(); 
+            foreach (var inode in graph.Nodes)
             {
-                var equalGroup = groupedGraph.Nodes.SingleOrDefault(x => node.Edges.Count == x.Value.EdgesTo.Count - 1 && node.Edges.All(y => x.Value.EdgesTo.Contains(y.End)));
-                if (equalGroup == default(Node<NodeGroup<N, E>, E>))
+                var node = inode;
+                var equalGroup = groupedGraph.Nodes.Cast<Node<NodeGroup, E>>().SingleOrDefault(x => node.GetNodeEnds().Count() == x.Value.EdgesTo.Count - 1 && node.GetNodeEnds().All(y => x.Value.EdgesTo.Contains(y)));
+                if (equalGroup == default(Node<NodeGroup, E>))
                 {
-                    equalGroup = new Node<NodeGroup<N, E>, E>(new NodeGroup<N, E>(true));
+                    equalGroup = new Node<NodeGroup, E>(new NodeGroup(true));
                     groupedGraph.AddNode(equalGroup);
 
-                    equalGroup.Value.EdgesTo.UnionWith(node.Edges.Select(x => x.End));
+                    equalGroup.Value.EdgesTo.UnionWith(node.GetNodeEnds());
                     equalGroup.Value.EdgesTo.Add(node);
                 }
 
@@ -67,16 +68,17 @@ namespace BoxProblems.Graphing
                 nodeToGroupNode.Add(node, equalGroup);
             }
 
-            HashSet<Node<NodeGroup<N, E>, E>> alreadyCreatedEdges = new HashSet<Node<NodeGroup<N, E>, E>>();
-            foreach (var groupNode in groupedGraph.Nodes)
+            HashSet<Node<NodeGroup, E>> alreadyCreatedEdges = new HashSet<Node<NodeGroup, E>>();
+            foreach (var igroupNode in groupedGraph.Nodes)
             {
+                var groupNode = (Node<NodeGroup, E>)igroupNode;
                 alreadyCreatedEdges.Clear();
                 foreach (var edgeNode in groupNode.Value.EdgesTo)
                 {
                     var edgeGroupNode = nodeToGroupNode[edgeNode];
                     if (!alreadyCreatedEdges.Contains(edgeGroupNode) && groupNode != edgeGroupNode)
                     {
-                        groupNode.AddEdge(new Edge<NodeGroup<N, E>, E>(edgeGroupNode, new E()));
+                        groupNode.AddEdge(new Edge<NodeGroup, E>(edgeGroupNode, new E()));
                         alreadyCreatedEdges.Add(edgeGroupNode);
                     }
                 }
@@ -86,15 +88,15 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal readonly struct NodeGroup<N, E>
+    internal readonly struct NodeGroup
     {
-        public readonly List<Node<N, E>> Nodes;
-        public readonly HashSet<Node<N, E>> EdgesTo;
+        public readonly List<INode> Nodes;
+        public readonly HashSet<INode> EdgesTo;
 
         public NodeGroup(bool _)
         {
-            this.Nodes = new List<Node<N, E>>();
-            this.EdgesTo = new HashSet<Node<N, E>>();
+            this.Nodes = new List<INode>();
+            this.EdgesTo = new HashSet<INode>();
         }
 
         public override string ToString()

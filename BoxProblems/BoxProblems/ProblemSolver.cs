@@ -209,7 +209,7 @@ namespace BoxProblems
         {
             foreach (var iNode in currentConflicts.Nodes)
             {
-                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Color == goal.Color && boxNode.Value.Ent.Type == goal.Type)
+                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Type)
                 {
                     return boxNode.Value.Ent;
                 }

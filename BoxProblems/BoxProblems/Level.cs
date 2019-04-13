@@ -232,7 +232,7 @@ namespace BoxProblems
                     char c = initialLevel[y][x];
 
                     if (char.IsLetter(goalLevel[y][x]))
-                        goals.Add(new Entity(new Point(x, y), 0, (goalLevel[y])[x]));
+                        goals.Add(new Entity(new Point(x, y), entityColors[goalLevel[y][x]], goalLevel[y][x]));
 
                     if (c == '+')
                         walls[x, y] = true;

@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace BoxProblems
 {
-    internal class HighlevelMove
+    public class HighlevelMove
     {
-        public State CurrentState;
-        public Entity MoveThis;
-        public Point ToHere;
-        public Entity? UsingThisAgent;
+        internal State CurrentState;
+        internal Entity MoveThis;
+        internal Point ToHere;
+        internal Entity? UsingThisAgent;
 
-        public HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent)
+        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent)
         {
             this.CurrentState = state;
             this.MoveThis = moveThis;
@@ -83,6 +83,18 @@ namespace BoxProblems
             timer.Stop();
 
             return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath));
+        }
+
+        public static List<(List<HighlevelMove> solutionMovesParts, List<BoxConflictGraph> solutionGraphs)> SolveLevel(string levelPath, TimeSpan timeoutTime, bool parallelize)
+        {
+            if (!File.Exists(levelPath))
+            {
+                throw new Exception($"No level exists with the path: {levelPath}");
+            }
+
+            Level level = Level.ReadLevel(File.ReadAllLines(levelPath));
+
+            return SolveLevel(level, timeoutTime, parallelize);
         }
 
         internal static List<(List<HighlevelMove> solutionMovesParts, List<BoxConflictGraph> solutionGraphs)> SolveLevel(Level level, TimeSpan timeoutTime, bool parallelize)

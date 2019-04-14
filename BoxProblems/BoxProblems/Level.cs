@@ -19,8 +19,8 @@ namespace BoxProblems
         public readonly int BoxCount;
         public static readonly string[] VALID_COLORS = new string[]
         {
-            "blue",
             "red",
+            "blue",
             "cyan",
             "purple",
             "green",
@@ -77,18 +77,40 @@ namespace BoxProblems
             Walls[pos.X, pos.Y] = false;
         }
 
-        public static Level ReadOldFormatLevel(string levelString, string levelName)
+        public static Level ReadLevel(string levelString)
         {
-            return Level.ReadOldFormatLevel(levelString.Replace("\r", string.Empty)
-                                                       .Split('\n')
-                                                       .ToList()
-                                                       .Where(x => x.Length > 0)
-                                                       .ToArray(), levelName);
+            return Level.ReadLevel(levelString, "default level name");
         }
 
-        public static Level ReadOldFormatLevel(string[] lines, string levelName)
+        public static Level ReadLevel(string levelString, string levelName)
         {
-            return ReadLevel(ConvertToNewFormat(lines, levelName));
+            return Level.ReadLevel(levelString.Replace("\r", string.Empty)
+                                   .Split('\n')
+                                   .ToList()
+                                   .Where(x => x.Length > 0)
+                                   .ToArray(), levelName);
+        }
+
+        public static Level ReadLevel(string[] lines)
+        {
+            return ReadLevel(lines, "default level name");
+        }
+
+        public static Level ReadLevel(string[] lines, string levelName)
+        {
+            if (lines[0].Trim() == "#domain")
+            {
+                return ReadNewFormatLevel(lines);
+            }
+            else
+            {
+                return ReadOldFormatLevel(lines, levelName);
+            }
+        }
+
+        private static Level ReadOldFormatLevel(string[] lines, string levelName)
+        {
+            return ReadNewFormatLevel(ConvertToNewFormat(lines, levelName));
         }
 
         public static string[] ConvertToNewFormat(string[] lines, string levelName)
@@ -110,20 +132,24 @@ namespace BoxProblems
             }
 
             List<string> remainingColors = VALID_COLORS.Select(x => x).ToList();
-            //New format requres colors for all boxes and agents.
-            //If no colors have been specified then give them all
-            //a red color.
-            if (colorLines.Count == 0)
-            {
-                var entities = levelNoColors.SelectMany(x => x.Where(y => char.IsDigit(y) || (char.IsLetter(y) && char.IsUpper(y)))).ToList();
-                colorLines.Add($"red: {string.Join(", ", entities)}");
-            }
+            ////////New format requres colors for all boxes and agents.
+            ////////If no colors have been specified then give them all
+            ////////a red color.
+            //////if (colorLines.Count == 0)
+            //////{
+            //////    var entities = levelNoColors.SelectMany(x => x.Where(y => char.IsDigit(y) || (char.IsLetter(y) && char.IsUpper(y)))).ToList();
+            //////    colorLines.Add($"red: {string.Join(", ", entities)}");
+            //////}
 
+            HashSet<char> coloredEntities = new HashSet<char>();
             for (int i = 0; i < colorLines.Count; i++)
             {
                 string[] splitted = colorLines[i].Split(':');
                 string color = splitted[0].Trim().ToLower();
-                string afterColor = string.Join(", ", splitted[1].Replace(" ", string.Empty).Split(',').ToHashSet());
+                string[] colors = splitted[1].Replace(" ", string.Empty).Split(',').ToHashSet().ToArray();
+                string afterColor = string.Join(", ", colors);
+
+                coloredEntities.UnionWith(colors.Select(x => x.First()));
                 if (remainingColors.Contains(color))
                 {
                     remainingColors.Remove(color);
@@ -140,6 +166,29 @@ namespace BoxProblems
                     remainingColors.Remove(newColor);
                     colorLines[i] = $"{newColor}: {afterColor}";
                 }
+            }
+
+            HashSet<char> entities = new HashSet<char>();
+            foreach (var line in levelNoColors)
+            {
+                foreach (var potentialEntity in line)
+                {
+                    if ((char.IsLetter(potentialEntity) && char.IsUpper(potentialEntity)) || char.IsDigit(potentialEntity))
+                    {
+                        entities.Add(potentialEntity);
+                    }
+                }
+            }
+
+            HashSet<char> entitiesWithNoColor = entities.Except(coloredEntities).ToHashSet();
+            if (entitiesWithNoColor.Count > 0)
+            {
+                if (remainingColors.Count == 0)
+                {
+                    throw new Exception("No more colors available.");
+                }
+
+                colorLines.Add($"{remainingColors.First()}: {string.Join(", ", entitiesWithNoColor)}");
             }
 
             List<string> levelWithoutGoals = new List<string>();
@@ -195,7 +244,7 @@ namespace BoxProblems
             return newFormat.ToArray();
         }
 
-        public static Level ReadLevel(string[] lines)
+        private static Level ReadNewFormatLevel(string[] lines)
         {
             int colorIndex = Array.IndexOf(lines, "#colors") + 1;
             int initialLevelIndex = Array.IndexOf(lines, "#initial") + 1;

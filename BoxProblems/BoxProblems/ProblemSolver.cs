@@ -39,12 +39,14 @@ namespace BoxProblems
         public readonly long RunTimeInMiliseconds;
         public readonly Exception ErrorThrown;
         public SolverStatus Status;
+        public string LevelName;
 
-        public SolveStatistic(long runTimeInMiliseconds, Exception error, SolverStatus status)
+        public SolveStatistic(long runTimeInMiliseconds, Exception error, SolverStatus status, string levelName)
         {
             this.RunTimeInMiliseconds = runTimeInMiliseconds;
             this.ErrorThrown = error;
             this.Status = status;
+            this.LevelName = levelName;
         }
     }
 
@@ -80,7 +82,7 @@ namespace BoxProblems
 
             timer.Stop();
 
-            return new SolveStatistic(timer.ElapsedMilliseconds, error, status);
+            return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath));
         }
 
         internal static List<(List<HighlevelMove> solutionMovesParts, List<BoxConflictGraph> solutionGraphs)> SolveLevel(Level level, TimeSpan timeoutTime, bool parallelize)

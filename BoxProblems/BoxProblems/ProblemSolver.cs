@@ -233,7 +233,7 @@ namespace BoxProblems
             {
                 if (currentState.Entities[i] == toMove)
                 {
-                    currentState.Entities[i] = new Entity(goal, toMove.Color, toMove.Type);
+                    currentState.Entities[i] = currentState.Entities[i].Move(goal);
                     break;
                 }
             }
@@ -244,7 +244,7 @@ namespace BoxProblems
                 currentConflicts.AddFreeNodes(level, topLevelToMove.Pos, topLevelGoal.Pos);
                 solutionGraphs.Add(currentConflicts);
                 //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
-               // GraphShower.ShowSimplifiedGraph(currentConflicts);
+                //GraphShower.ShowSimplifiedGraph(currentConflicts);
             }
 
             solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));

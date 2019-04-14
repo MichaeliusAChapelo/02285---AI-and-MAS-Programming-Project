@@ -12,12 +12,12 @@ namespace BoxTests
         internal static Level LoadOldFormatLevel(string folder, string levelName)
         {
             string[] levelLines = File.ReadAllLines(Path.Combine("Levels/Old_Format", folder, levelName));
-            return Level.ReadOldFormatLevel(levelLines, levelName);
+            return Level.ReadLevel(levelLines, levelName);
         }
 
         internal static Level StringToOldFormatLevel(string levelString)
         {
-            return Level.ReadOldFormatLevel(levelString, "default test level name");
+            return Level.ReadLevel(levelString);
         }
 
         internal static string RemoveInvisibleCharacters(string text)

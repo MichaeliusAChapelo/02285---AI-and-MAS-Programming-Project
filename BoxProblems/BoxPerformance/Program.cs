@@ -28,12 +28,6 @@ namespace BoxPerformance
             List<string> filePaths = GetFilePathsFromFolderRecursively("Levels");
             ConcurrentBag<SolveStatistic> statisticsBag = new ConcurrentBag<SolveStatistic>();
 
-            //foreach (var filepath in filePaths)
-            //{
-            //    Console.WriteLine($"Running {Path.GetFileName(filepath)}");
-            //    statistics.Add(ProblemSolver.GetSolveStatistics(filepath, TimeSpan.FromSeconds(5), false));
-            //}
-
             Parallel.ForEach(filePaths, x =>
             {
                 Console.WriteLine($"Running {Path.GetFileName(x)}");
@@ -48,6 +42,26 @@ namespace BoxPerformance
             Console.WriteLine($"Success: {statistics.Sum(x => x.Status == SolverStatus.SUCCESS ? 1 : 0)}");
             Console.WriteLine($"Timeout: {statistics.Sum(x => x.Status == SolverStatus.TIMEOUT ? 1 : 0)}");
             Console.WriteLine($"Error  : {statistics.Sum(x => x.Status == SolverStatus.ERROR ? 1 : 0)}");
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+
+            var errorGroups = statistics.Where(x => x.Status == SolverStatus.ERROR)
+                                        .GroupBy(x => string.Join(Environment.NewLine, x.ErrorThrown.StackTrace.Split(Environment.NewLine).Take(2))).OrderByDescending(x => x.Count()).ToList();
+
+            foreach (var errorGroup in errorGroups.Take(Math.Min(3, errorGroups.Count)))
+            {
+                Console.WriteLine("Levels with this error:");
+                Console.WriteLine(string.Join(Environment.NewLine, errorGroup.Select(x => x.LevelName)));
+                Console.WriteLine();
+                Console.WriteLine("Error: ");
+                Console.WriteLine(errorGroup.First().ErrorThrown.Message + Environment.NewLine + errorGroup.First().ErrorThrown.StackTrace);
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine();
+            }
+
 
             Console.Read();
         }

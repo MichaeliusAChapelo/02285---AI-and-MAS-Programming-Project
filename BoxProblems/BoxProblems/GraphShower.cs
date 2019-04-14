@@ -43,12 +43,12 @@ namespace BoxProblems
             }
         }
 
-        public static void ShowGraph<N, E>(Graph<N, E> graph)
+        public static void ShowGraph(Graph graph)
         {
-            ShowGraphs(new Graph<N, E>[] { graph });
+            ShowGraphs(new Graph[] { graph });
         }
 
-        public static void ShowGraphs<N, E>(Graph<N, E>[] graphs)
+        public static void ShowGraphs(Graph[] graphs)
         {
             if (Browser == null)
             {
@@ -64,14 +64,14 @@ namespace BoxProblems
             jsExe.ExecuteScript(js);
         }
 
-        public static void ShowSimplifiedGraph<N, E>(Graph<N, E> graph) where E : new()
+        public static void ShowSimplifiedGraph<N, E>(Graph graph) where E : new()
         {
-            ShowSimplifiedGraphs(new Graph<N, E>[] { graph });
+            ShowSimplifiedGraphs<N, E>(new Graph[] { graph });
         }
 
-        public static void ShowSimplifiedGraphs<N, E>(Graph<N, E>[] graphs) where E : new()
+        public static void ShowSimplifiedGraphs<N, E>(Graph[] graphs) where E : new()
         {
-            ShowGraphs(graphs.Select(x => Graph<N, E>.CreateSimplifiedGraph(x)).ToArray());
+            ShowGraphs(graphs.Select(x => Graph.CreateSimplifiedGraph<N, E>(x)).ToArray());
         }
 
         public static void Shutdown()

@@ -46,12 +46,12 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal sealed class BoxConflictGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
+    public sealed class BoxConflictGraph : Graph
     {
         private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
-        public readonly State CreatedFromThisState;
+        internal readonly State CreatedFromThisState;
 
-        public BoxConflictGraph(State state, Level level, Entity? goal,HashSet<Entity> removedEntities)
+        internal BoxConflictGraph(State state, Level level, Entity? goal,HashSet<Entity> removedEntities)
         {
             CreatedFromThisState = state;
 
@@ -79,13 +79,13 @@ namespace BoxProblems.Graphing
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
         }
 
-        public void AddNode(BoxConflictNode node)
+        internal void AddNode(BoxConflictNode node)
         {
             base.AddNode(node);
             PositionToNode.Add(node.Value.Ent.Pos, node);
         }
 
-        public void AddNode(FreeSpaceNode node)
+        internal void AddNode(FreeSpaceNode node)
         {
             base.AddNode(node);
             foreach (var nodePos in node.Value.FreeSpaces)
@@ -94,16 +94,16 @@ namespace BoxProblems.Graphing
             }
         }
 
-        public INode GetNodeFromPosition(Point pos)
+        internal INode GetNodeFromPosition(Point pos)
         {
             return PositionToNode[pos];
         }
-        public bool PositionHasNode(Point pos)
+        internal bool PositionHasNode(Point pos)
         {
             return PositionToNode.ContainsKey(pos);
-        } 
+        }
 
-        public void AddFreeNodes(Level level, Point start, Point end)
+        internal void AddFreeNodes(Level level, Point start, Point end)
         {
             var pathsMap = Precomputer.GetPathMap(level.Walls, end, false);
             var distancesMap = Precomputer.GetDistanceMap(level.Walls, end, false);

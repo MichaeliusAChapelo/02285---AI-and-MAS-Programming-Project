@@ -153,7 +153,7 @@ namespace BoxProblems
                     if (currentConflicts.PositionHasNode(goalToSolve.Pos))
                     {
                         INode nodeongoal = currentConflicts.GetNodeFromPosition(goalToSolve.Pos);
-                        if (nodeongoal is BoxConflictNode boxongoal)
+                        if (nodeongoal is BoxConflictNode boxongoal && boxongoal.Value.EntType != EntityType.GOAL)
                         {
                             Point freespace = GetFreeSpaceToMoveConflictTo(goalToSolve, currentConflicts, freePath);
                             List<HighlevelMove> boxongoalSolution;

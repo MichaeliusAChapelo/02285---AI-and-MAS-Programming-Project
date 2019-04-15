@@ -52,11 +52,12 @@ namespace BoxPerformance
 
             foreach (var errorGroup in errorGroups.Take(Math.Min(3, errorGroups.Count)))
             {
+                var orderedErrors = errorGroup.OrderBy(x => x.ErrorThrown.StackTrace.Split(Environment.NewLine).Length);
                 Console.WriteLine("Levels with this error:");
-                Console.WriteLine(string.Join(Environment.NewLine, errorGroup.Select(x => x.LevelName)));
+                Console.WriteLine(string.Join(Environment.NewLine, orderedErrors.Select(x => x.LevelName)));
                 Console.WriteLine();
                 Console.WriteLine("Error: ");
-                Console.WriteLine(errorGroup.First().ErrorThrown.Message + Environment.NewLine + errorGroup.First().ErrorThrown.StackTrace);
+                Console.WriteLine(errorGroup.First().ErrorThrown.Message + Environment.NewLine + orderedErrors.First().ErrorThrown.StackTrace);
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine();

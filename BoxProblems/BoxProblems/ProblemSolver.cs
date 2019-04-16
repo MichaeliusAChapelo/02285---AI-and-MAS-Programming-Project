@@ -246,9 +246,9 @@ namespace BoxProblems
                 //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
                 //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
                 //Console.Read();
-            }
 
-            solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
+                solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
+            }
             return true;
         }
 

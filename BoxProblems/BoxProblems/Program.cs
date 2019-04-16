@@ -84,19 +84,19 @@ namespace BoxProblems
             //Level level = Level.ReadOldFormatLevel(levelString.Replace("\r", "").Split('\n'), "asdas");// File.ReadAllLines("Levels/Old_Format/initial_levels/SAtowersOfSaigon10.lvl"), "asdas");
 
             //Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/real_levels/MAKarlMarx.lvl"), "asdas");
-            Level wholeLevel = Level.ReadOldFormatLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAsoko3_64.lvl"), "asdas");
-            //Level wholeLevel = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample1.lvl"));
+            //Level wholeLevel = Level.ReadLevel(File.ReadAllLines("Levels/Old_Format/initial_levels/SAsoko3_64.lvl"));
+            ////Level wholeLevel = Level.ReadLevel(File.ReadAllLines("Levels/New_Format/SplitExample1.lvl"));
 
-            var solution = ProblemSolver.SolveLevel(wholeLevel);
+            //var solution = ProblemSolver.SolveLevel(wholeLevel);
 
-            for (int i = 0; i < solution.First().solutionGraphs.Count; i++)
-            {
-                State state = solution.First().solutionGraphs[i].CreatedFromThisState;
-                Console.WriteLine(wholeLevel.StateToString(state));
-                Console.WriteLine();
-                //GraphShower.ShowGraph(solution.First().solutionGraphs[i]);
-                //Thread.Sleep(5000);
-            }
+            //for (int i = 0; i < solution.First().solutionGraphs.Count; i++)
+            //{
+            //    State state = solution.First().solutionGraphs[i].CreatedFromThisState;
+            //    Console.WriteLine(wholeLevel.StateToString(state));
+            //    Console.WriteLine();
+            //    //GraphShower.ShowGraph(solution.First().solutionGraphs[i]);
+            //    //Thread.Sleep(5000);
+            //}
 
 
 

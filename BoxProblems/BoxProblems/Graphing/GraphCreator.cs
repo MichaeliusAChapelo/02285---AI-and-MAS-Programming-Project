@@ -7,7 +7,7 @@ namespace BoxProblems.Graphing
 {
     internal static class GraphCreator
     {
-        public static void CreateGraphIgnoreEntityType(Graph<EntityNodeInfo, EmptyEdgeInfo> graph, Level level, EntityType notAHindrance)
+        public static void CreateGraphIgnoreEntityType(Graph graph, Level level, EntityType notAHindrance)
         {
             foreach (var inode in graph.Nodes)
             {

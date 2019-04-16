@@ -43,7 +43,7 @@ green: C
 
         private static void VerifyLevelSplittedCorrectly(string levelToSplit, string[] expectedLevelStrings)
         {
-            Level level = Level.ReadOldFormatLevel(levelToSplit, "default test level name");
+            Level level = Level.ReadLevel(levelToSplit);
             Level[] actualLevels = LevelSplitter.SplitLevel(level).ToArray();
             string[] actuallevelStrings = actualLevels.Select(x => TestTools.RemoveInvisibleCharacters(x.ToString())).ToArray();
 

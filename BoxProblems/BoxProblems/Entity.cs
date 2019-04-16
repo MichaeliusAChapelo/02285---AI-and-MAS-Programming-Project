@@ -24,6 +24,11 @@ namespace BoxProblems
             this.Type = type;
         }
 
+        public Entity Move(Point pos)
+        {
+            return new Entity(pos, Color, Type);
+        }
+
         public static bool operator==(Entity a, Entity b)
         {
             return a.Pos == b.Pos && a.Color == b.Color && a.Type == b.Type;

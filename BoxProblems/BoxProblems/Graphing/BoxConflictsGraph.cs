@@ -46,12 +46,12 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal sealed class BoxConflictGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
+    public sealed class BoxConflictGraph : Graph
     {
         private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
-        public readonly State CreatedFromThisState;
+        internal readonly State CreatedFromThisState;
 
-        public BoxConflictGraph(State state, Level level, Entity? goal,HashSet<Entity> removedEntities)
+        internal BoxConflictGraph(State state, Level level, HashSet<Entity> removedEntities)
         {
             CreatedFromThisState = state;
 
@@ -71,21 +71,17 @@ namespace BoxProblems.Graphing
                 }
                 AddNode(new BoxConflictNode(new EntityNodeInfo(agent, EntityType.AGENT)));
             }
-            if (goal.HasValue)
-            {
-                AddNode(new BoxConflictNode(new EntityNodeInfo(goal.Value, EntityType.GOAL)));
-            }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
         }
 
-        public void AddNode(BoxConflictNode node)
+        internal void AddNode(BoxConflictNode node)
         {
             base.AddNode(node);
             PositionToNode.Add(node.Value.Ent.Pos, node);
         }
 
-        public void AddNode(FreeSpaceNode node)
+        internal void AddNode(FreeSpaceNode node)
         {
             base.AddNode(node);
             foreach (var nodePos in node.Value.FreeSpaces)
@@ -94,20 +90,17 @@ namespace BoxProblems.Graphing
             }
         }
 
-        public INode GetNodeFromPosition(Point pos)
+        internal INode GetNodeFromPosition(Point pos)
         {
             return PositionToNode[pos];
         }
-        public bool PositionHasNode(Point pos)
+        internal bool PositionHasNode(Point pos)
         {
             return PositionToNode.ContainsKey(pos);
-        } 
+        }
 
-        public void AddFreeNodes(Level level, Point start, Point end)
+        internal void AddFreeNodes(Level level)
         {
-            var pathsMap = Precomputer.GetPathMap(level.Walls, end, false);
-            var distancesMap = Precomputer.GetDistanceMap(level.Walls, end, false);
-
             //
             //First of all the path from start to end and all entities need to be made into
             //walls so the only freepsace is space that won't block the path or be on
@@ -121,14 +114,6 @@ namespace BoxProblems.Graphing
                     level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
                 }
             }
-
-            Point currentPos = start;
-            for (int i = 0; i < distancesMap[start.X, start.Y]; i++)
-            {
-                level.Walls[currentPos.X, currentPos.Y] = true;
-                currentPos = currentPos + pathsMap[currentPos.X, currentPos.Y].DirectionDelta();
-            }
-            level.Walls[currentPos.X, currentPos.Y] = true;
 
 
             //

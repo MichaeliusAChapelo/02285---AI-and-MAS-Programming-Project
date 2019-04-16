@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace BoxProblems.Graphing
 {
-    internal class Graph<N, E>
+    public class Graph
     {
-        public readonly List<INode> Nodes = new List<INode>();
+        internal readonly List<INode> Nodes = new List<INode>();
         private static int asdsa = 0;
 
-        protected void AddNode(INode node)
+        internal void AddNode(INode node)
         {
             Nodes.Add(node);
         }
@@ -42,14 +42,14 @@ namespace BoxProblems.Graphing
                 }
             }
             asdsa += Nodes.Count;
-            Console.WriteLine($"Nodes: {nodes}");
-            Console.WriteLine($"Edges: {edges}");
+            //Console.WriteLine($"Nodes: {nodes}");
+            //Console.WriteLine($"Edges: {edges}");
             return (nodesBuilder.ToString(), edgesBuilder.ToString());
         }
 
-        public static Graph<NodeGroup, E> CreateSimplifiedGraph<N, E>(Graph<N, E> graph) where E : new()
+        public static Graph CreateSimplifiedGraph<E>(Graph graph) where E : new()
         {
-            Graph<NodeGroup, E> groupedGraph = new Graph<NodeGroup, E>();
+            Graph groupedGraph = new Graph();
             Dictionary<INode, Node<NodeGroup, E>> nodeToGroupNode = new Dictionary<INode, Node<NodeGroup, E>>(); 
             foreach (var inode in graph.Nodes)
             {

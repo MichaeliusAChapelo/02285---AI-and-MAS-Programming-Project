@@ -7,10 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxProblems", "BoxProblems\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxTests", "BoxTests\BoxTests.csproj", "{D0365E5C-2C25-4477-A01F-45D334613C74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxPerformance", "BoxPerformance\BoxPerformance.csproj", "{77DE5E3F-4126-4310-9143-C0B60D1093E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxRunner", "BoxRunner\BoxRunner.csproj", "{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -24,11 +25,22 @@ Global
 		{D0365E5C-2C25-4477-A01F-45D334613C74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0365E5C-2C25-4477-A01F-45D334613C74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0365E5C-2C25-4477-A01F-45D334613C74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77DE5E3F-4126-4310-9143-C0B60D1093E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77DE5E3F-4126-4310-9143-C0B60D1093E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77DE5E3F-4126-4310-9143-C0B60D1093E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77DE5E3F-4126-4310-9143-C0B60D1093E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0E3333F0-13FD-4143-9120-67347746AD41}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

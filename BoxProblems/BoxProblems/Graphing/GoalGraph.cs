@@ -53,7 +53,7 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal sealed class GoalGraph : Graph<EntityNodeInfo, EmptyEdgeInfo>
+    internal sealed class GoalGraph : Graph
     {
         private readonly Dictionary<Point, GoalNode> PositionToNode = new Dictionary<Point, GoalNode>();
 

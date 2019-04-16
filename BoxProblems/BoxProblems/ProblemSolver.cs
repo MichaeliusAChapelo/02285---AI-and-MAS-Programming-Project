@@ -289,6 +289,11 @@ namespace BoxProblems
                         //Do astar graph searching thing
                         throw new Exception("Can't handle that there is no high level solution yet.");
                     }
+                    if (!currentState.Entities.Contains(toMove))
+                    {
+                        throw new Exception("toMove moved.");
+                    }
+
                     conflicts = GetConflicts(toMove, goal, currentConflicts);
                 } while (conflicts != null && conflicts.Count > 0);
             }

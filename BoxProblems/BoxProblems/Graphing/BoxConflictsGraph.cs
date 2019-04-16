@@ -51,7 +51,7 @@ namespace BoxProblems.Graphing
         private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
         internal readonly State CreatedFromThisState;
 
-        internal BoxConflictGraph(State state, Level level, Entity? goal,HashSet<Entity> removedEntities)
+        internal BoxConflictGraph(State state, Level level, HashSet<Entity> removedEntities)
         {
             CreatedFromThisState = state;
 
@@ -70,10 +70,6 @@ namespace BoxProblems.Graphing
                     continue;
                 }
                 AddNode(new BoxConflictNode(new EntityNodeInfo(agent, EntityType.AGENT)));
-            }
-            if (goal.HasValue)
-            {
-                AddNode(new BoxConflictNode(new EntityNodeInfo(goal.Value, EntityType.GOAL)));
             }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
@@ -103,11 +99,8 @@ namespace BoxProblems.Graphing
             return PositionToNode.ContainsKey(pos);
         }
 
-        internal void AddFreeNodes(Level level, Point start, Point end)
+        internal void AddFreeNodes(Level level)
         {
-            var pathsMap = Precomputer.GetPathMap(level.Walls, end, false);
-            var distancesMap = Precomputer.GetDistanceMap(level.Walls, end, false);
-
             //
             //First of all the path from start to end and all entities need to be made into
             //walls so the only freepsace is space that won't block the path or be on
@@ -121,14 +114,6 @@ namespace BoxProblems.Graphing
                     level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
                 }
             }
-
-            Point currentPos = start;
-            for (int i = 0; i < distancesMap[start.X, start.Y]; i++)
-            {
-                level.Walls[currentPos.X, currentPos.Y] = true;
-                currentPos = currentPos + pathsMap[currentPos.X, currentPos.Y].DirectionDelta();
-            }
-            level.Walls[currentPos.X, currentPos.Y] = true;
 
 
             //

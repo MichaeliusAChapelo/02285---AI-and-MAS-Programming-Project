@@ -64,14 +64,14 @@ namespace BoxProblems
             jsExe.ExecuteScript(js);
         }
 
-        public static void ShowSimplifiedGraph<N, E>(Graph graph) where E : new()
+        public static void ShowSimplifiedGraph<E>(Graph graph) where E : new()
         {
-            ShowSimplifiedGraphs<N, E>(new Graph[] { graph });
+            ShowSimplifiedGraphs<E>(new Graph[] { graph });
         }
 
-        public static void ShowSimplifiedGraphs<N, E>(Graph[] graphs) where E : new()
+        public static void ShowSimplifiedGraphs<E>(Graph[] graphs) where E : new()
         {
-            ShowGraphs(graphs.Select(x => Graph.CreateSimplifiedGraph<N, E>(x)).ToArray());
+            ShowGraphs(graphs.Select(x => Graph.CreateSimplifiedGraph<E>(x)).ToArray());
         }
 
         public static void Shutdown()

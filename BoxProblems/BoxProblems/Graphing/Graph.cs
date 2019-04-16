@@ -42,12 +42,12 @@ namespace BoxProblems.Graphing
                 }
             }
             asdsa += Nodes.Count;
-            Console.WriteLine($"Nodes: {nodes}");
-            Console.WriteLine($"Edges: {edges}");
+            //Console.WriteLine($"Nodes: {nodes}");
+            //Console.WriteLine($"Edges: {edges}");
             return (nodesBuilder.ToString(), edgesBuilder.ToString());
         }
 
-        public static Graph CreateSimplifiedGraph<N, E>(Graph graph) where E : new()
+        public static Graph CreateSimplifiedGraph<E>(Graph graph) where E : new()
         {
             Graph groupedGraph = new Graph();
             Dictionary<INode, Node<NodeGroup, E>> nodeToGroupNode = new Dictionary<INode, Node<NodeGroup, E>>(); 

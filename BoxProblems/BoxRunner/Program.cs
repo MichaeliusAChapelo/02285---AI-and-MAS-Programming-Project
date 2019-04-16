@@ -8,8 +8,7 @@ namespace BoxRunner
         static void Main(string[] args)
         {
             Console.WriteLine("asdasda");
-            ProblemSolver.GetSolveStatistics("Levels/Old_Format/real_levels/SACybot.lvl", TimeSpan.MaxValue, false);
-            Console.WriteLine("Hello World!");
+            ProblemSolver.SolveLevel("Levels/Old_Format/initial_levels/SAtowersOfSaigon04.lvl", TimeSpan.FromHours(1), false);
             Console.Read();
         }
     }

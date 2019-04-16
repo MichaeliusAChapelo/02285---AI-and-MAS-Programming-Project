@@ -145,6 +145,9 @@ namespace BoxProblems
                     currentConflicts = new BoxConflictGraph(currentState, level, removedEntities);
                     currentConflicts.AddFreeNodes(level);
                     solutionGraphs.Add(currentConflicts);
+                    //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
+                    //Console.Read();
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, currentConflicts, solvedGoals);
                     Entity box = GetBoxToSolveProblem(currentConflicts, goalToSolve);
@@ -162,8 +165,6 @@ namespace BoxProblems
                             }
                             solution.AddRange(boxongoalSolution);
                         }
-
-
                     }
 
                     var storeConflicts = currentConflicts;
@@ -243,7 +244,8 @@ namespace BoxProblems
                 currentConflicts.AddFreeNodes(level);
                 solutionGraphs.Add(currentConflicts);
                 //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
-                //GraphShower.ShowSimplifiedGraph(currentConflicts);
+                //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
+                //Console.Read();
             }
 
             solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
@@ -258,7 +260,8 @@ namespace BoxProblems
             {
                 solutionToSubProblem = new List<HighlevelMove>();
                 Point[] path = Precomputer.GetPath(level, toMove.Pos, goal, false);
-                freePath.UnionWith(path);
+                HashSet<Point> pathAlsoFree = new HashSet<Point>(freePath);
+                pathAlsoFree.UnionWith(path);
                 do
                 {
                     cancelToken.ThrowIfCancellationRequested();
@@ -273,10 +276,11 @@ namespace BoxProblems
                         }
                         continue;
                     }
-                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, currentConflicts, freePath);
+                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, currentConflicts, pathAlsoFree);
                     Point[] solveConflictPath = Precomputer.GetPath(level, conflict.Value.Ent.Pos, freeSpace, false);
-                    freePath.UnionWith(solveConflictPath);
-                    if (TrySolveSubProblem(conflict.Value.Ent, freeSpace, conflict.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out List<HighlevelMove> solutionMoves, freePath, removedEntities, depth + 1, cancelToken))
+                    HashSet<Point> pathAndPathAlsoFree = new HashSet<Point>(pathAlsoFree);
+                    pathAndPathAlsoFree.UnionWith(solveConflictPath);
+                    if (TrySolveSubProblem(conflict.Value.Ent, freeSpace, conflict.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out List<HighlevelMove> solutionMoves, pathAndPathAlsoFree, removedEntities, depth + 1, cancelToken))
                     {
                         solutionToSubProblem.AddRange(solutionMoves);
                     }
@@ -285,10 +289,8 @@ namespace BoxProblems
                         //Do astar graph searching thing
                         throw new Exception("Can't handle that there is no high level solution yet.");
                     }
-                    freePath.ExceptWith(solveConflictPath);
                     conflicts = GetConflicts(toMove, goal, currentConflicts);
-                } while (conflicts != null && conflicts.Count > 0);         
-                freePath.ExceptWith(path);
+                } while (conflicts != null && conflicts.Count > 0);
             }
 
             return true;

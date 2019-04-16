@@ -51,14 +51,14 @@ namespace BoxPerformance
             var errorGroups = statistics.Where(x => x.Status == SolverStatus.ERROR)
                                         .GroupBy(x => string.Join(Environment.NewLine, x.ErrorThrown.StackTrace.Split(Environment.NewLine).Take(2))).OrderByDescending(x => x.Count()).ToList();
 
-            foreach (var errorGroup in errorGroups.Take(Math.Min(3, errorGroups.Count)))
+            foreach (var errorGroup in errorGroups.Take(Math.Min(4, errorGroups.Count)))
             {
                 var orderedErrors = errorGroup.OrderBy(x => x.ErrorThrown.StackTrace.Split(Environment.NewLine).Length);
                 Console.WriteLine("Levels with this error:");
                 Console.WriteLine(string.Join(Environment.NewLine, orderedErrors.Select(x => x.LevelName)));
                 Console.WriteLine();
                 Console.WriteLine("Error: ");
-                Console.WriteLine(errorGroup.First().ErrorThrown.Message + Environment.NewLine + orderedErrors.First().ErrorThrown.StackTrace);
+                Console.WriteLine(orderedErrors.First().ErrorThrown.Message + Environment.NewLine + orderedErrors.First().ErrorThrown.StackTrace);
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine();

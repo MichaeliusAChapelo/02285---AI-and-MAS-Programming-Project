@@ -256,9 +256,31 @@ namespace BoxProblems
             if (conflicts != null)
             {
                 solutionToSubProblem = new List<HighlevelMove>();
-                Point[] path = Precomputer.GetPath(level, toMove.Pos, goal, false);
                 HashSet<Point> pathAlsoFree = new HashSet<Point>(freePath);
+
+                //The path needs to go through the same entitites as the conflicts
+                //list says it does but the precosnputer may not return the same
+                //path as it doesn't care if it goes through more entitites
+                //to get to the goal. So the solution is to mark all entities,
+                //except the conflicting ones, as walls so the precomputer
+                //can't find an alternative path through other entitites.
+
+                for (int i = 0; i < currentState.Entities.Length; i++)
+                {
+                    level.AddWall(currentState.Entities[i].Pos);
+                }
+
+                level.RemoveWall(toMove.Pos);
+                level.RemoveWall(goal);
+                for (int i = 0; i < conflicts.Count; i++)
+                {
+                    level.RemoveWall(conflicts[i].Value.Ent.Pos);
+                }
+
+                Point[] path = Precomputer.GetPath(level, toMove.Pos, goal, false);
                 pathAlsoFree.UnionWith(path);
+
+                level.ResetWalls();
                 do
                 {
                     cancelToken.ThrowIfCancellationRequested();

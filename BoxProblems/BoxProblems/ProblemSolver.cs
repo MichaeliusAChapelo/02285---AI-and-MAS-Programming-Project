@@ -145,7 +145,7 @@ namespace BoxProblems
                     currentConflicts = new BoxConflictGraph(currentState, level, removedEntities);
                     currentConflicts.AddFreeNodes(level);
                     solutionGraphs.Add(currentConflicts);
-                    PrintLatestStateDiff(level, solutionGraphs);
+                    //PrintLatestStateDiff(level, solutionGraphs);
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, currentConflicts, solvedGoals);
@@ -401,7 +401,7 @@ namespace BoxProblems
                     //conflicts.RemoveAt(conflicts.Count - 1);
                     conflicts.RemoveAll(x => x.Value.Ent == toMove);
 
-                    return conflicts;
+                    return conflicts.Count == 0 ? null : conflicts;
                 }
 
                 foreach (var child in leaf.GetNodeEnds())

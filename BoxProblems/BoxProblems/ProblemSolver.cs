@@ -145,9 +145,8 @@ namespace BoxProblems
                     currentConflicts = new BoxConflictGraph(currentState, level, removedEntities);
                     currentConflicts.AddFreeNodes(level);
                     solutionGraphs.Add(currentConflicts);
-                    //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+                    PrintLatestStateDiff(level, solutionGraphs);
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
-                    //Console.ReadLine();
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, currentConflicts, solvedGoals);
                     Entity box = GetBoxToSolveProblem(currentConflicts, goalToSolve);
@@ -243,9 +242,8 @@ namespace BoxProblems
             currentConflicts = new BoxConflictGraph(currentState, level, removedEntities);
             currentConflicts.AddFreeNodes(level);
             solutionGraphs.Add(currentConflicts);
-            //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+            //PrintLatestStateDiff(level, solutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
-            //Console.ReadLine();
 
             solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
             return true;
@@ -435,6 +433,41 @@ namespace BoxProblems
             }
 
             throw new Exception("No free space is available");
+        }
+
+        private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs)
+        {
+            if (graphs.Count == 1)
+            {
+                Console.WriteLine(level.StateToString(graphs.First().CreatedFromThisState));
+            }
+            else
+            {
+                State last = graphs.Last().CreatedFromThisState;
+                State sLast = graphs[graphs.Count - 2].CreatedFromThisState;
+
+                string[] lastStateStrings = level.StateToString(last).Split(Environment.NewLine);
+                string[] sLastStateStrings = level.StateToString(sLast).Split(Environment.NewLine);
+
+                for (int y = 0; y < lastStateStrings.Length; y++)
+                {
+                    for (int x = 0; x < lastStateStrings[y].Length; x++)
+                    {
+                        if (lastStateStrings[y][x] != sLastStateStrings[y][x])
+                        {
+                            Console.BackgroundColor = ConsoleColor.Red;
+                        }
+                        else
+                        {
+                            Console.BackgroundColor = ConsoleColor.Black;
+                        }
+                        Console.Write(lastStateStrings[y][x]);
+                    }
+                    Console.WriteLine();
+                }
+            }
+
+            Console.ReadLine();
         }
     }
 }

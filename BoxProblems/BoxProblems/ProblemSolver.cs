@@ -158,12 +158,14 @@ namespace BoxProblems
                         if (nodeongoal is BoxConflictNode boxongoal && boxongoal.Value.EntType != EntityType.GOAL)
                         {
                             Point freespace = GetFreeSpaceToMoveConflictTo(goalToSolve, currentConflicts, freePath);
+                            freePath.Add(freespace);
                             List<HighlevelMove> boxongoalSolution;
                             if (!TrySolveSubProblem(boxongoal.Value.Ent, freespace, boxongoal.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out boxongoalSolution, freePath, removedEntities, 0, cancelToken))
                             {
                                 throw new Exception("Could not move wrong box from goal.");
                             }
                             solution.AddRange(boxongoalSolution);
+                            freePath.Clear();
                         }
                     }
 

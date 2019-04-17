@@ -147,7 +147,7 @@ namespace BoxProblems
                     solutionGraphs.Add(currentConflicts);
                     //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
-                    //Console.Read();
+                    //Console.ReadLine();
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, currentConflicts, solvedGoals);
                     Entity box = GetBoxToSolveProblem(currentConflicts, goalToSolve);
@@ -228,27 +228,24 @@ namespace BoxProblems
                 }
             }
 
-            if (!toMoveIsAgent)
+            currentState = currentState.GetCopy();
+            for (int i = 0; i < currentState.Entities.Length; i++)
             {
-                currentState = currentState.GetCopy();
-                for (int i = 0; i < currentState.Entities.Length; i++)
+                if (currentState.Entities[i] == toMove)
                 {
-                    if (currentState.Entities[i] == toMove)
-                    {
-                        currentState.Entities[i] = currentState.Entities[i].Move(goal);
-                        break;
-                    }
+                    currentState.Entities[i] = currentState.Entities[i].Move(goal);
+                    break;
                 }
-
-                currentConflicts = new BoxConflictGraph(currentState, level, removedEntities);
-                currentConflicts.AddFreeNodes(level);
-                solutionGraphs.Add(currentConflicts);
-                //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
-                //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
-                //Console.Read();
-
-                solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
             }
+
+            currentConflicts = new BoxConflictGraph(currentState, level, removedEntities);
+            currentConflicts.AddFreeNodes(level);
+            solutionGraphs.Add(currentConflicts);
+            //Console.WriteLine(level.StateToString(currentConflicts.CreatedFromThisState));
+            //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
+            //Console.ReadLine();
+
+            solutionToSubProblem.Add(new HighlevelMove(currentState, toMove, goal, agentToUse));
             return true;
         }
 

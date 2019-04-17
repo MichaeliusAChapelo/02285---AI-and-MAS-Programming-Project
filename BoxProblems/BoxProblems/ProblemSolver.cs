@@ -298,10 +298,8 @@ namespace BoxProblems
                         continue;
                     }
                     Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, currentConflicts, pathAlsoFree);
-                    Point[] solveConflictPath = Precomputer.GetPath(level, conflict.Value.Ent.Pos, freeSpace, false);
-                    HashSet<Point> pathAndPathAlsoFree = new HashSet<Point>(pathAlsoFree);
-                    pathAndPathAlsoFree.UnionWith(solveConflictPath);
-                    if (TrySolveSubProblem(conflict.Value.Ent, freeSpace, conflict.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out List<HighlevelMove> solutionMoves, pathAndPathAlsoFree, removedEntities, depth + 1, cancelToken))
+                    pathAlsoFree.Add(freeSpace);
+                    if (TrySolveSubProblem(conflict.Value.Ent, freeSpace, conflict.Value.EntType == EntityType.AGENT, level, solutionGraphs, ref currentConflicts, ref currentState, out List<HighlevelMove> solutionMoves, pathAlsoFree, removedEntities, depth + 1, cancelToken))
                     {
                         solutionToSubProblem.AddRange(solutionMoves);
                     }
@@ -315,6 +313,7 @@ namespace BoxProblems
                         throw new Exception("toMove moved.");
                     }
 
+                    pathAlsoFree.Remove(freeSpace);
                     conflicts = GetConflicts(toMove, goal, currentConflicts);
                 } while (conflicts != null && conflicts.Count > 0);
             }

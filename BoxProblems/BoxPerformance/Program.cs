@@ -34,15 +34,7 @@ namespace BoxPerformance
                 Console.WriteLine($"{statistic.Status.ToString()} {Path.GetFileName(x)} ");
                 statisticsBag.Add(statistic);
             });
-
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine();
-
             List<SolveStatistic> statistics = statisticsBag.ToList();
-            Console.WriteLine($"Success: {statistics.Sum(x => x.Status == SolverStatus.SUCCESS ? 1 : 0)}");
-            Console.WriteLine($"Timeout: {statistics.Sum(x => x.Status == SolverStatus.TIMEOUT ? 1 : 0)}");
-            Console.WriteLine($"Error  : {statistics.Sum(x => x.Status == SolverStatus.ERROR ? 1 : 0)}");
 
             Console.WriteLine();
             Console.WriteLine();
@@ -51,7 +43,7 @@ namespace BoxPerformance
             var errorGroups = statistics.Where(x => x.Status == SolverStatus.ERROR)
                                         .GroupBy(x => string.Join(Environment.NewLine, x.ErrorThrown.StackTrace.Split(Environment.NewLine).Take(2))).OrderByDescending(x => x.Count()).ToList();
 
-            foreach (var errorGroup in errorGroups.Take(Math.Min(4, errorGroups.Count)))
+            foreach (var errorGroup in errorGroups)
             {
                 var orderedErrors = errorGroup.OrderBy(x => x.ErrorThrown.StackTrace.Split(Environment.NewLine).Length);
                 Console.WriteLine("Levels with this error:");
@@ -63,6 +55,14 @@ namespace BoxPerformance
                 Console.WriteLine();
                 Console.WriteLine();
             }
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+
+            Console.WriteLine($"Success: {statistics.Sum(x => x.Status == SolverStatus.SUCCESS ? 1 : 0)}");
+            Console.WriteLine($"Timeout: {statistics.Sum(x => x.Status == SolverStatus.TIMEOUT ? 1 : 0)}");
+            Console.WriteLine($"Error  : {statistics.Sum(x => x.Status == SolverStatus.ERROR ? 1 : 0)}");
 
 
             Console.Read();

@@ -17,6 +17,13 @@ namespace BoxProblems.Graphing
 
         private void CreateGoalPriority(Level level, GoalGraph goalGraph)
         {
+            Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>> nodeGraphs = new Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>>();
+            foreach (var goal in level.Goals)
+            {
+                GoalNode node = goalGraph.GetNodeFromPosition(goal.Pos);
+                nodeGraphs.Add(node, CreateDirectedEdgesToStart(node));
+            }
+
             HashSet<Entity> toIgnore = new HashSet<Entity>();
             while (toIgnore.Count < level.Goals.Length)
             {
@@ -37,7 +44,7 @@ namespace BoxProblems.Graphing
                         continue;
                     }
 
-                    GoalNode start = (GoalNode)goalGraph.GetNodeFromPosition(goal.Pos);
+                    GoalNode start = goalGraph.GetNodeFromPosition(goal.Pos);
 
                     Dictionary<GoalNode, int> shortestPathsVisitedNodesCount = new Dictionary<GoalNode, int>();
                     int pathsCount = 0;
@@ -46,7 +53,9 @@ namespace BoxProblems.Graphing
                     {
                         if (box.Type == goal.Type)
                         {
-                            pathsCount += AddToNodeCounterForShortestPath(start, box, nodeCounter, shortestPathsVisitedNodesCount, toIgnore);
+                            GoalNode goalNode = goalGraph.GetNodeFromPosition(box.Pos);
+                            //pathsCount += AddToNodeCounterForShortestPath(start, box, nodeCounter, shortestPathsVisitedNodesCount, toIgnore);
+                            pathsCount += GetShortestPathsData(goalNode, nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore);
                             boxCount++;
                         }
                     }
@@ -67,97 +76,20 @@ namespace BoxProblems.Graphing
             }
         }
 
-        private int AddToNodeCounterForShortestPath(GoalNode startNode, Entity goal, Dictionary<GoalNode, float> nodeCounter, Dictionary<GoalNode, int> shortestPathsVisitedNodes, HashSet<Entity> toIgnore)
+        private Dictionary<GoalNode, List<GoalNode>> CreateDirectedEdgesToStart(GoalNode startNode)
         {
-            int minLength = int.MaxValue;
             Queue<GoalNode> frontier = new Queue<GoalNode>();
             Dictionary<GoalNode, List<GoalNode>> childToParent = new Dictionary<GoalNode, List<GoalNode>>();
-            HashSet<GoalNode> exploredSet = new HashSet<GoalNode>();
-            Stack<GoalNode> backtrackPaths = new Stack<GoalNode>();
-            int shortestPathsCount = 0;
+            Dictionary<GoalNode, int> nodeDepths = new Dictionary<GoalNode, int>();
 
             frontier.Enqueue(startNode);
             childToParent.Add(startNode, null);
-
-            //depth implementation copied from https://github.com/TheAIBot/Bioly/blob/master/BiolyCompiler/Routing/Router.cs#L198
-            int depthNodeCount = 1;
-            int nextDepthNodeCount = 0;
-            int depth = 0;
+            nodeDepths.Add(startNode, 0);
 
             while (frontier.Count > 0)
             {
-                //Handles setting the depth of the bfs search.
-                if (depthNodeCount == 0)
-                {
-                    depthNodeCount = nextDepthNodeCount;
-                    nextDepthNodeCount = 0;
-                    depth++;
-                }
-                depthNodeCount--;
-
-                //Only the shortests paths are allowed
-                //If the depth is higher than the shortest path then
-                //all shortest paths has been found
-                if (depth > minLength)
-                {
-                    break;
-                }
-
                 GoalNode leaf = frontier.Dequeue();
-
-                bool foundGoal = false;
-                foreach (var edge in leaf.Edges)
-                {
-                    if (((GoalNode)edge.End).Value.Ent == goal)
-                    {
-                        foundGoal = true;
-                    }
-                }
-                if (foundGoal)
-                {
-                    shortestPathsCount++;
-                    minLength = depth;
-
-                    backtrackPaths.Clear();
-                    backtrackPaths.Push(leaf);
-
-                    while (backtrackPaths.Count > 0)
-                    {
-                        GoalNode pathEnd = backtrackPaths.Pop();
-                        //Console.WriteLine(pathEnd);
-
-                        if (childToParent.TryGetValue(pathEnd, out List<GoalNode> parents))
-                        {
-                            if (parents != null)
-                            {
-                                foreach (var node in parents)
-                                {
-                                    backtrackPaths.Push(node);
-                                }
-                                shortestPathsCount += parents.Count - 1;
-
-                                if (pathEnd.Value.EntType == EntityType.GOAL)
-                                {
-                                    if (!shortestPathsVisitedNodes.ContainsKey(pathEnd))
-                                    {
-                                        shortestPathsVisitedNodes.Add(pathEnd, 0);
-                                    }
-                                    shortestPathsVisitedNodes[pathEnd] += parents.Count;
-                                }
-                            }
-                            else
-                            {
-                                if (!shortestPathsVisitedNodes.ContainsKey(pathEnd))
-                                {
-                                    shortestPathsVisitedNodes.Add(pathEnd, 0);
-                                }
-                                shortestPathsVisitedNodes[pathEnd] += 1;
-                            }
-                        }
-                    }
-                    continue;
-                    //Console.WriteLine();
-                }
+                int depth = nodeDepths[leaf];
 
                 if (leaf.Value.EntType == EntityType.BOX)
                 {
@@ -166,24 +98,63 @@ namespace BoxProblems.Graphing
 
                 foreach (var child in leaf.Edges)
                 {
-                    if (exploredSet.Contains(child.End) || toIgnore.Contains(((GoalNode)child.End).Value.Ent))
+                    GoalNode goalChild = (GoalNode)child.End;
+                    if (nodeDepths.ContainsKey(goalChild) && nodeDepths[goalChild] <= depth)
                     {
                         continue;
                     }
-                    
-                    GoalNode goalChild = (GoalNode)child.End;
+
                     if (!childToParent.ContainsKey(goalChild))
                     {
                         childToParent.Add(goalChild, new List<GoalNode>() { leaf });
                         frontier.Enqueue(goalChild);
-                        nextDepthNodeCount++;
+                        nodeDepths.Add(goalChild, depth + 1);
                     }
                     else
                     {
                         childToParent[goalChild].Add(leaf);
                     }
                 }
-                exploredSet.Add(leaf);
+            }
+
+            return childToParent;
+        }
+
+        private int GetShortestPathsData(GoalNode goal, Dictionary<GoalNode, List<GoalNode>> childToParent, Dictionary<GoalNode, int> shortestPathsVisitedNodes, HashSet<Entity> toIgnore)
+        {
+            int shortestPathsCount = 1;
+            Stack<GoalNode> backtrackPaths = new Stack<GoalNode>();
+            backtrackPaths.Push(goal);
+
+            while (backtrackPaths.Count > 0)
+            {
+                GoalNode pathEnd = backtrackPaths.Pop();
+                //Console.WriteLine(pathEnd);
+
+                List<GoalNode> parents = childToParent[pathEnd];
+                int validParentsCount = 0;
+                if (parents != null)
+                {
+                    foreach (var node in parents)
+                    {
+                        if (!toIgnore.Contains(node.Value.Ent))
+                        {
+                            backtrackPaths.Push(node);
+                            validParentsCount++;
+                        }
+                    }
+                    shortestPathsCount += validParentsCount - 1;
+                }
+                else
+                {
+                    validParentsCount = 1;
+                }
+
+                if (pathEnd.Value.EntType == EntityType.GOAL)
+                {
+                    shortestPathsVisitedNodes.TryAdd(pathEnd, 0);
+                    shortestPathsVisitedNodes[pathEnd] += validParentsCount;
+                }
             }
 
             return shortestPathsCount;

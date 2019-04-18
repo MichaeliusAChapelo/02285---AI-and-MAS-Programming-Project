@@ -230,6 +230,8 @@ namespace BoxProblems
 
                     level.AddPermanentWalll(goalToSolve.Pos);
                     removedEntities.Add(new Entity(solutionMoves.Last().ToHere,box.Color,box.Type));
+
+                    Debug.Assert(sData.FreePath.Count == 0, "Expecting FreePath to be empty after each problem has been solved.");
                 }
             }
 
@@ -326,10 +328,11 @@ namespace BoxProblems
             }
 
             toMovePath = Precomputer.GetPath(level, toMove.Pos, goal, false);
-            sData.AddToFreePath(toMovePath);
 
             if (conflicts != null)
             {
+                sData.AddToFreePath(toMovePath);
+
                 solutionToSubProblem = new List<HighlevelMove>();
 
                 level.ResetWalls();

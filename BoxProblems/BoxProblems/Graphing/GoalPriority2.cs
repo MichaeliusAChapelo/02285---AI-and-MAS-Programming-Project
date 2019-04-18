@@ -54,7 +54,6 @@ namespace BoxProblems.Graphing
                         if (box.Type == goal.Type)
                         {
                             GoalNode goalNode = goalGraph.GetNodeFromPosition(box.Pos);
-                            //pathsCount += AddToNodeCounterForShortestPath(start, box, nodeCounter, shortestPathsVisitedNodesCount, toIgnore);
                             pathsCount += GetShortestPathsData(goalNode, nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore);
                             boxCount++;
                         }
@@ -129,7 +128,6 @@ namespace BoxProblems.Graphing
             while (backtrackPaths.Count > 0)
             {
                 GoalNode pathEnd = backtrackPaths.Pop();
-                //Console.WriteLine(pathEnd);
 
                 List<GoalNode> parents = childToParent[pathEnd];
                 int validParentsCount = 0;

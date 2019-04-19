@@ -341,29 +341,13 @@ namespace BoxProblems
                 //except the conflicting ones, as walls so the precomputer
                 //can't find an alternative path through other entitites.
 
-                for (int i = 0; i < sData.CurrentState.Entities.Length; i++)
-                {
-                    sData.Level.AddWall(sData.CurrentState.Entities[i].Pos);
-                }
-
-                sData.Level.RemoveWall(toMove.Pos);
-                sData.Level.RemoveWall(goal);
-                if (conflicts != null)
-                {
-                    for (int i = 0; i < conflicts.Count; i++)
-                    {
-                        sData.Level.RemoveWall(conflicts[i].Value.Ent.Pos);
-                    }
-                }
-
-                toMovePath = Precomputer.GetPath(sData.Level, toMove.Pos, goal, false);
+                toMovePath = GetPathThroughConflicts(goal, sData, toMove, conflicts);
 
                 if (conflicts == null)
                 {
                     break;
                 }
 
-                sData.Level.ResetWalls();
                 sData.AddToFreePath(toMovePath);
 
                 solutionToSubProblem = new List<HighlevelMove>();
@@ -376,12 +360,9 @@ namespace BoxProblems
                     if (agentNotConflict.HasValue && conflict.Value.Ent == agentNotConflict.Value)
                     {
                         conflicts.Remove(conflict);
-                        if (conflicts.Count == 0)
-                        {
-                            break;
-                        }
                         continue;
                     }
+
                     Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData.CurrentConflicts, sData.FreePath);
                     sData.AddToFreePath(freeSpace);
 
@@ -418,6 +399,29 @@ namespace BoxProblems
 #endif
 
             return true;
+        }
+
+        private static Point[] GetPathThroughConflicts(Point goal, SolverData sData, Entity toMove, List<BoxConflictNode> conflicts)
+        {
+            Point[] toMovePath;
+            for (int i = 0; i < sData.CurrentState.Entities.Length; i++)
+            {
+                sData.Level.AddWall(sData.CurrentState.Entities[i].Pos);
+            }
+
+            sData.Level.RemoveWall(toMove.Pos);
+            sData.Level.RemoveWall(goal);
+            if (conflicts != null)
+            {
+                for (int i = 0; i < conflicts.Count; i++)
+                {
+                    sData.Level.RemoveWall(conflicts[i].Value.Ent.Pos);
+                }
+            }
+
+            toMovePath = Precomputer.GetPath(sData.Level, toMove.Pos, goal, false);
+            sData.Level.ResetWalls();
+            return toMovePath;
         }
 
         private static Entity GetGoalToSolve(GoalNode[] goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts, HashSet<Entity> solvedGoals)
@@ -498,8 +502,8 @@ namespace BoxProblems
                         }
                         
                     }
-                    //The last conflict is toMove itself which isn't a conflict
-                    //conflicts.RemoveAt(conflicts.Count - 1);
+
+                    //toMove itself can't be a conflict to itself
                     conflicts.RemoveAll(x => x.Value.Ent == toMove);
 
                     return conflicts.Count == 0 ? null : conflicts;

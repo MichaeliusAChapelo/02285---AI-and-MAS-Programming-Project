@@ -46,7 +46,7 @@ namespace BoxProblems.Graphing
                     {
                         continue;
                     }
-                    node.AddEdge(new Edge<EntityNodeInfo, EmptyEdgeInfo>(reached, new EmptyEdgeInfo()));
+                    node.AddEdge(new Edge<EmptyEdgeInfo>(reached, new EmptyEdgeInfo()));
                 }
 
                 potentialGoals.Add(node.Value.Ent.Pos, node);

@@ -65,6 +65,16 @@ namespace BoxProblems
             Array.Copy(OriginalWalls, 0, Walls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
+        public void AddWall(Point pos)
+        {
+            Walls[pos.X, pos.Y] = true;
+        }
+
+        public void RemoveWall(Point pos)
+        {
+            Walls[pos.X, pos.Y] = false;
+        }
+
         public void AddPermanentWalll(Point pos)
         {
             OriginalWalls[pos.X, pos.Y] = true;

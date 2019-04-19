@@ -99,12 +99,11 @@ namespace BoxProblems.Graphing
             return PositionToNode.ContainsKey(pos);
         }
 
-        internal void AddFreeNodes(Level level)
+        internal void AddFreeSpaceNodes(Level level)
         {
             //
-            //First of all the path from start to end and all entities need to be made into
-            //walls so the only freepsace is space that won't block the path or be on
-            //top of other entities.
+            //All entities need to be made into walls so the only freepsace is space 
+            //that won't block the path or be on top of other entities.
             //
 
             foreach (var inode in Nodes)
@@ -188,14 +187,14 @@ namespace BoxProblems.Graphing
                     if (neighbour != freeSpaceNode)
                     {
                         //Bidirectional edges
-                        freeSpaceNode.AddEdge(new Edge<FreeSpaceNodeInfo, EmptyEdgeInfo>(neighbour, new EmptyEdgeInfo()));
+                        freeSpaceNode.AddEdge(new Edge<EmptyEdgeInfo>(neighbour, new EmptyEdgeInfo()));
                         if (neighbour is BoxConflictNode boxNode)
                         {
-                            boxNode.AddEdge(new Edge<EntityNodeInfo, EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                            boxNode.AddEdge(new Edge<EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
                         }
                         else if (neighbour is FreeSpaceNode freeNode)
                         {
-                            freeNode.AddEdge(new Edge<FreeSpaceNodeInfo, EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                            freeNode.AddEdge(new Edge<EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
                         }
                     }
                 }

@@ -46,15 +46,13 @@ namespace BoxProblems
 
         public override bool Equals(object obj)
         {
-            if (!(obj is Entity))
+            if (obj is Entity entity)
             {
-                return false;
+                return Pos == entity.Pos &&
+                       Color == entity.Color &&
+                       Type == entity.Type;
             }
-
-            var entity = (Entity)obj;
-            return Pos == entity.Pos &&
-                   Color == entity.Color &&
-                   Type == entity.Type;
+            return false;
         }
 
         public override int GetHashCode()

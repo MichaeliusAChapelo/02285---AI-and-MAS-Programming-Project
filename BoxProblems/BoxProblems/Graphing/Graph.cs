@@ -78,7 +78,7 @@ namespace BoxProblems.Graphing
                     var edgeGroupNode = nodeToGroupNode[edgeNode];
                     if (!alreadyCreatedEdges.Contains(edgeGroupNode) && groupNode != edgeGroupNode)
                     {
-                        groupNode.AddEdge(new Edge<NodeGroup, E>(edgeGroupNode, new E()));
+                        groupNode.AddEdge(new Edge<E>(edgeGroupNode, new E()));
                         alreadyCreatedEdges.Add(edgeGroupNode);
                     }
                 }

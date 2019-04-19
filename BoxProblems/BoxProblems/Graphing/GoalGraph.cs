@@ -41,7 +41,7 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal class GoalEdge : Edge<EntityNodeInfo, EmptyEdgeInfo>
+    internal class GoalEdge : Edge<EmptyEdgeInfo>
     {
         public GoalEdge(GoalNode end, EmptyEdgeInfo value) : base(end, value)
         {

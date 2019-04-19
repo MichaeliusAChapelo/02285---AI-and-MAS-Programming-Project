@@ -60,6 +60,13 @@ namespace BoxPerformance
             Console.WriteLine();
             Console.WriteLine();
 
+            Console.WriteLine("Timeout:");
+            Console.WriteLine(string.Join(Environment.NewLine, statistics.Where(x => x.Status == SolverStatus.TIMEOUT).Select(x => x.LevelName)));
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+
             Console.WriteLine($"Success: {statistics.Sum(x => x.Status == SolverStatus.SUCCESS ? 1 : 0)}");
             Console.WriteLine($"Timeout: {statistics.Sum(x => x.Status == SolverStatus.TIMEOUT ? 1 : 0)}");
             Console.WriteLine($"Error  : {statistics.Sum(x => x.Status == SolverStatus.ERROR ? 1 : 0)}");

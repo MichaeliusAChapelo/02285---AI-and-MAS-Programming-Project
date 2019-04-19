@@ -245,14 +245,8 @@ namespace BoxProblems
                         throw new Exception("Can't handle that there is no high level solution yet.");
                     }
 
-                    int solutionLength = solution.Count;
                     solution.AddRange(solutionMoves);
                     solvedGoals.Add(goalToSolve);
-
-                    //for (int z = solutionLength; z < solution.Count; z++)
-                    //{
-                    //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
-                    //}
 
                     level.AddPermanentWalll(goalToSolve.Pos);
                     sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere,box.Color,box.Type));
@@ -260,6 +254,11 @@ namespace BoxProblems
                     Debug.Assert(sData.FreePath.Count == 0, "Expecting FreePath to be empty after each problem has been solved.");
                 }
             }
+
+            //for (int z = 0; z < solution.Count; z++)
+            //{
+            //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
+            //}
 
             return (solution, sData.SolutionGraphs);
         }
@@ -310,14 +309,7 @@ namespace BoxProblems
             }
 
             sData.CurrentState = sData.CurrentState.GetCopy();
-            for (int i = 0; i < sData.CurrentState.Entities.Length; i++)
-            {
-                if (sData.CurrentState.Entities[i] == toMove)
-                {
-                    sData.CurrentState.Entities[i] = sData.CurrentState.Entities[i].Move(goal);
-                    break;
-                }
-            }
+            sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
 
             sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeNodes(sData.Level);

@@ -266,7 +266,7 @@ namespace BoxProblems
 
         private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth)
         {
-            if (depth == 80)
+            if (depth == 30)
             {
                 throw new Exception("sub problem depth limit reached.");
             }

@@ -102,9 +102,8 @@ namespace BoxProblems.Graphing
         internal void AddFreeSpaceNodes(Level level)
         {
             //
-            //First of all the path from start to end and all entities need to be made into
-            //walls so the only freepsace is space that won't block the path or be on
-            //top of other entities.
+            //All entities need to be made into walls so the only freepsace is space 
+            //that won't block the path or be on top of other entities.
             //
 
             foreach (var inode in Nodes)

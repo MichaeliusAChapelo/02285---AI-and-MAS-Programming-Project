@@ -7,14 +7,14 @@ namespace BoxProblems.Graphing
     internal class Node<N, E> : INode
     {
         public readonly N Value;
-        public readonly List<Edge<N, E>> Edges = new List<Edge<N, E>>();
+        public readonly List<Edge<E>> Edges = new List<Edge<E>>();
 
         public Node(N value)
         {
             this.Value = value;
         }
 
-        public void AddEdge(Edge<N, E> edge)
+        public void AddEdge(Edge<E> edge)
         {
             Edges.Add(edge);
         }

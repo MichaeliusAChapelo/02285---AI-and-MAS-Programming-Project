@@ -99,7 +99,7 @@ namespace BoxProblems.Graphing
             return PositionToNode.ContainsKey(pos);
         }
 
-        internal void AddFreeNodes(Level level)
+        internal void AddFreeSpaceNodes(Level level)
         {
             //
             //First of all the path from start to end and all entities need to be made into

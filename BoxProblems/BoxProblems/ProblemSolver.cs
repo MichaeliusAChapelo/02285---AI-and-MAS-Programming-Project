@@ -207,7 +207,7 @@ namespace BoxProblems
                     cancelToken.ThrowIfCancellationRequested();
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddFreeNodes(level);
+                    sData.CurrentConflicts.AddFreeSpaceNodes(level);
                     sData.SolutionGraphs.Add(sData.CurrentConflicts);
                     //PrintLatestStateDiff(level, sData.SolutionGraphs);
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
@@ -312,7 +312,7 @@ namespace BoxProblems
             sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
 
             sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
-            sData.CurrentConflicts.AddFreeNodes(sData.Level);
+            sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
             //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);

@@ -188,14 +188,14 @@ namespace BoxProblems.Graphing
                     if (neighbour != freeSpaceNode)
                     {
                         //Bidirectional edges
-                        freeSpaceNode.AddEdge(new Edge<FreeSpaceNodeInfo, EmptyEdgeInfo>(neighbour, new EmptyEdgeInfo()));
+                        freeSpaceNode.AddEdge(new Edge<EmptyEdgeInfo>(neighbour, new EmptyEdgeInfo()));
                         if (neighbour is BoxConflictNode boxNode)
                         {
-                            boxNode.AddEdge(new Edge<EntityNodeInfo, EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                            boxNode.AddEdge(new Edge<EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
                         }
                         else if (neighbour is FreeSpaceNode freeNode)
                         {
-                            freeNode.AddEdge(new Edge<FreeSpaceNodeInfo, EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                            freeNode.AddEdge(new Edge<EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
                         }
                     }
                 }

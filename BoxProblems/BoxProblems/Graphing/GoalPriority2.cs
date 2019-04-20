@@ -158,6 +158,20 @@ namespace BoxProblems.Graphing
             return shortestPathsCount;
         }
 
+        public string ToLevelString(Level level)
+        {
+            List<Entity> priorityEntities = new List<Entity>();
+            int priority = 1;
+            for (int i = 0; i < PriorityLayers.Count; i++)
+            {
+                priorityEntities.AddRange(PriorityLayers[i].Select(x => new Entity(x.Value.Ent.Pos, 0, (char)(priority + '0'))));
+                priority++;
+            }
+
+            State priorityState = new State(null, priorityEntities.ToArray(), 0);
+            return level.StateToString(priorityState);
+        }
+
         public override string ToString()
         {
             return string.Join(Environment.NewLine, PriorityLayers.Select(x => string.Join(' ', (object[])x)));

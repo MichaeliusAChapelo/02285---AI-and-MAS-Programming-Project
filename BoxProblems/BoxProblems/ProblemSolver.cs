@@ -119,6 +119,19 @@ namespace BoxProblems
             {
                 return Array.IndexOf(CurrentState.Entities, entity);
             }
+
+            public Entity? GetEntityAtPos(Point pos)
+            {
+                foreach (var entity in CurrentState.Entities)
+                {
+                    if (entity.Pos == pos)
+                    {
+                        return entity;
+                    }
+                }
+
+                return null;
+            }
         }
 
         public static SolveStatistic GetSolveStatistics(string levelPath, TimeSpan timeoutTime, bool parallelize = false)
@@ -193,16 +206,55 @@ namespace BoxProblems
             return solutionPieces.ToList();
         }
 
+        private static List<List<Point>> GetLevelGroups(SolverData sData, Entity goal)
+        {
+            sData.Level.AddWall(goal.Pos);
+
+            HashSet<Point> entityPositions = new HashSet<Point>();
+            foreach (Entity entity in sData.CurrentState.Entities)
+            {
+                entityPositions.Add(entity.Pos);
+            }
+
+            var goalCondition = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
+            {
+                return new GraphSearcher.GoalFound<Point>(x, true);
+            });
+
+            List<List<Point>> groups = new List<List<Point>>();
+            HashSet<Point> alreadySeen = new HashSet<Point>();
+            for (int y = 0; y < sData.Level.Height; y++)
+            {
+                for (int x = 0; x < sData.Level.Width; x++)
+                {
+                    if (!sData.Level.Walls[x, y] && !alreadySeen.Contains(new Point(x, y)))
+                    {
+                        List<Point> foundSpaces = GraphSearcher.GetReachedGoalsBFS(sData.Level, new Point(x, y), goalCondition);
+                        alreadySeen.UnionWith(foundSpaces);
+
+                        if (foundSpaces.Any(z => entityPositions.Contains(z) && !sData.RemovedEntities.Contains(sData.GetEntityAtPos(z).Value)))
+                        {
+                            groups.Add(foundSpaces);
+                        }
+                    }
+                }
+            }
+
+            return groups;
+        }
+
         private static (List<HighlevelMove> solutionMoves, List<BoxConflictGraph> solutionGraphs) SolvePartialLevel(Level level, CancellationToken cancelToken)
         {
             List<HighlevelMove> solution = new List<HighlevelMove>();
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph);
+            //Console.WriteLine(priority);
             SolverData sData = new SolverData(level, cancelToken);
             HashSet<Entity> solvedGoals = new HashSet<Entity>();
             foreach (var goalPriorityLayer in priority.PriorityLayers)
             {
-                for (int i = 0; i < goalPriorityLayer.Length; i++)
+                int goalsFinished = 0;
+                while (goalsFinished < goalPriorityLayer.Length)
                 {
                     cancelToken.ThrowIfCancellationRequested();
 
@@ -213,6 +265,14 @@ namespace BoxProblems
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
+                    List<List<Point>> groups = GetLevelGroups(sData, goalToSolve);
+                    if (groups.Count > 1)
+                    {
+                        //Console.WriteLine(priority.ToLevelString(sData.Level));
+                        throw new Exception("level will be split by this action.");
+                    }
+
+
                     Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);
                     int boxIndex = sData.GetEntityIndex(box);
 
@@ -249,9 +309,11 @@ namespace BoxProblems
                     solvedGoals.Add(goalToSolve);
 
                     level.AddPermanentWalll(goalToSolve.Pos);
-                    sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere,box.Color,box.Type));
+                    sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, box.Color, box.Type));
 
                     Debug.Assert(sData.FreePath.Count == 0, "Expecting FreePath to be empty after each problem has been solved.");
+
+                    goalsFinished++;
                 }
             }
 

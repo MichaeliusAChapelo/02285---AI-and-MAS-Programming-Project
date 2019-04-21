@@ -13,7 +13,6 @@ namespace BoxProblems.Solver
 {
     public static partial class ProblemSolver
     {
-
         public static SolveStatistic GetSolveStatistics(string levelPath, TimeSpan timeoutTime, bool parallelize = false)
         {
             if (!File.Exists(levelPath))
@@ -390,37 +389,6 @@ namespace BoxProblems.Solver
             return toMovePath;
         }
 
-        private static Entity GetGoalToSolve(GoalNode[] goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts, HashSet<Entity> solvedGoals)
-        {
-            return goals.Where(x => !solvedGoals.Contains(x.Value.Ent)).First().Value.Ent;
-        }
-
-        private static Entity GetBoxToSolveProblem(BoxConflictGraph currentConflicts, Entity goal)
-        {
-            foreach (var iNode in currentConflicts.Nodes)
-            {
-                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Type)
-                {
-                    return boxNode.Value.Ent;
-                }
-            }
-
-            throw new Exception("No box exist that can solve the goal.");
-        }
-
-        private static Entity GetAgentToSolveProblem(BoxConflictGraph currentConflicts, Entity toMove)
-        {
-            foreach (var iNode in currentConflicts.Nodes)
-            {
-                if (iNode is BoxConflictNode agentNode && agentNode.Value.EntType == EntityType.AGENT && agentNode.Value.Ent.Color == toMove.Color)
-                {
-                    return agentNode.Value.Ent;
-                }
-            }
-
-            throw new Exception("No agent exists that can solve this problem.");
-        }
-
         private static List<BoxConflictNode> GetConflicts(Entity toMove, Point goal, BoxConflictGraph currentConflicts)
         {
             INode startNode = currentConflicts.GetNodeFromPosition(toMove.Pos);
@@ -487,23 +455,6 @@ namespace BoxProblems.Solver
             }
 
             throw new Exception("Found no path from  entity to goal.");
-        }
-
-        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, BoxConflictGraph currentConflicts, Dictionary<Point, int> freePath)
-        {
-            foreach (var iNode in currentConflicts.Nodes)
-            {
-                if (iNode is FreeSpaceNode freeSpaceNode)
-                {
-                    var sdf = freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
-                    if (sdf.Count() > 0)
-                    {
-                        return sdf.First();
-                    }
-                }
-            }
-
-            throw new Exception("No free space is available");
         }
 
         private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs)

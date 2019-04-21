@@ -9,130 +9,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BoxProblems
+namespace BoxProblems.Solver
 {
-    public class HighlevelMove
+    public static partial class ProblemSolver
     {
-        internal State CurrentState;
-        internal Entity MoveThis;
-        internal Point ToHere;
-        internal Entity? UsingThisAgent;
-
-        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent)
-        {
-            this.CurrentState = state;
-            this.MoveThis = moveThis;
-            this.ToHere = toHere;
-            this.UsingThisAgent = usingThisAgent;
-        }
-    }
-
-    public enum SolverStatus
-    {
-        ERROR,
-        TIMEOUT,
-        SUCCESS
-    }
-
-    public class SolveStatistic
-    {
-        public readonly long RunTimeInMiliseconds;
-        public readonly Exception ErrorThrown;
-        public SolverStatus Status;
-        public string LevelName;
-
-        public SolveStatistic(long runTimeInMiliseconds, Exception error, SolverStatus status, string levelName)
-        {
-            this.RunTimeInMiliseconds = runTimeInMiliseconds;
-            this.ErrorThrown = error;
-            this.Status = status;
-            this.LevelName = levelName;
-        }
-    }
-
-    public static class ProblemSolver
-    {
-        private class SolverData
-        {
-            public readonly Dictionary<Point, int> FreePath = new Dictionary<Point, int>();
-            public readonly List<BoxConflictGraph> SolutionGraphs = new List<BoxConflictGraph>();
-            public readonly HashSet<Entity> RemovedEntities = new HashSet<Entity>();
-            public readonly Level Level;
-            public readonly CancellationToken CancelToken;
-            public BoxConflictGraph CurrentConflicts;
-            public State CurrentState;
-
-            public SolverData(Level level, CancellationToken cancelToken)
-            {
-                this.Level = level;
-                this.CancelToken = cancelToken;
-                this.CurrentState = level.InitialState;
-            }
-
-            public void AddToFreePath(Point[] path)
-            {
-                foreach (var pos in path)
-                {
-                    AddToFreePath(pos);
-                }
-            }
-
-            public void AddToFreePath(Point pos)
-            {
-                if (FreePath.TryGetValue(pos, out int value))
-                {
-                    FreePath[pos] = value + 1;
-                }
-                else
-                {
-                    FreePath.Add(pos, 1);
-                }
-            }
-
-            public void RemoveFromFreePath(Point[] path)
-            {
-                foreach (var pos in path)
-                {
-                    RemoveFromFreePath(pos);
-                }
-            }
-
-            public void RemoveFromFreePath(Point pos)
-            {
-                int value = FreePath[pos];
-                if (value == 1)
-                {
-                    FreePath.Remove(pos);
-                }
-                else
-                {
-                    FreePath[pos] = value - 1;
-                }
-            }
-
-            public Entity GetEntity(int index)
-            {
-                return CurrentState.Entities[index];
-            }
-
-            public int GetEntityIndex(Entity entity)
-            {
-                return Array.IndexOf(CurrentState.Entities, entity);
-            }
-
-            public Entity? GetEntityAtPos(Point pos)
-            {
-                foreach (var entity in CurrentState.Entities)
-                {
-                    if (entity.Pos == pos)
-                    {
-                        return entity;
-                    }
-                }
-
-                return null;
-            }
-        }
 
         public static SolveStatistic GetSolveStatistics(string levelPath, TimeSpan timeoutTime, bool parallelize = false)
         {
@@ -206,9 +86,9 @@ namespace BoxProblems
             return solutionPieces.ToList();
         }
 
-        private static List<List<Point>> GetLevelGroups(SolverData sData, Entity goal)
+        private static LevelGroupsInfo GetLevelGroups(SolverData sData, Entity goalToMakeWall)
         {
-            sData.Level.AddWall(goal.Pos);
+            sData.Level.AddWall(goalToMakeWall.Pos);
 
             HashSet<Point> entityPositions = new HashSet<Point>();
             foreach (Entity entity in sData.CurrentState.Entities)
@@ -216,12 +96,18 @@ namespace BoxProblems
                 entityPositions.Add(entity.Pos);
             }
 
+            HashSet<Point> goalPositions = new HashSet<Point>();
+            foreach (Entity goal in sData.Level.Goals)
+            {
+                goalPositions.Add(goal.Pos);
+            }
+
             var goalCondition = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
             {
-                return new GraphSearcher.GoalFound<Point>(x, true);
+                return new GraphSearcher.GoalFound<Point>(x, !sData.Level.Walls[x.X, x.Y]);
             });
 
-            List<List<Point>> groups = new List<List<Point>>();
+            LevelGroupsInfo groupsInfo = new LevelGroupsInfo(false);
             HashSet<Point> alreadySeen = new HashSet<Point>();
             for (int y = 0; y < sData.Level.Height; y++)
             {
@@ -232,15 +118,33 @@ namespace BoxProblems
                         List<Point> foundSpaces = GraphSearcher.GetReachedGoalsBFS(sData.Level, new Point(x, y), goalCondition);
                         alreadySeen.UnionWith(foundSpaces);
 
-                        if (foundSpaces.Any(z => entityPositions.Contains(z) && !sData.RemovedEntities.Contains(sData.GetEntityAtPos(z).Value)))
+                        List<Entity> foundEntities = new List<Entity>();
+                        foreach (var foundSpace in foundSpaces)
                         {
-                            groups.Add(foundSpaces);
+                            if (entityPositions.Contains(foundSpace))
+                            {
+                                Entity entity = sData.GetEntityAtPos(foundSpace).Value;
+                                if (!sData.RemovedEntities.Contains(entity))
+                                {
+                                    foundEntities.Add(entity);
+                                }
+                            }
+                            else if (goalPositions.Contains(foundSpace))
+                            {
+                                Entity entity = sData.GetGoalEntityAtPos(foundSpace).Value;
+                                foundEntities.Add(entity);
+                            }
+                        }
+
+                        if (foundEntities.Count > 0)
+                        {
+                            groupsInfo.AddGroup(new LevelGroup(foundSpaces, foundEntities));
                         }
                     }
                 }
             }
 
-            return groups;
+            return groupsInfo;
         }
 
         private static (List<HighlevelMove> solutionMoves, List<BoxConflictGraph> solutionGraphs) SolvePartialLevel(Level level, CancellationToken cancelToken)
@@ -265,12 +169,12 @@ namespace BoxProblems
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
-                    List<List<Point>> groups = GetLevelGroups(sData, goalToSolve);
-                    if (groups.Count > 1)
-                    {
-                        //Console.WriteLine(priority.ToLevelString(sData.Level));
-                        throw new Exception("level will be split by this action.");
-                    }
+                    LevelGroupsInfo groups = GetLevelGroups(sData, goalToSolve);
+                    //if (groups.Count > 1)
+                    //{
+                    //    //Console.WriteLine(priority.ToLevelString(sData.Level));
+                    //    throw new Exception("level will be split by this action.");
+                    //}
 
 
                     Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);

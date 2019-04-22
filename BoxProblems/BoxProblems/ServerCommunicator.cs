@@ -11,8 +11,14 @@ namespace BoxProblems
     internal class ServerCommunicator
     {
         const string strategy = "-astar";
-        const string levelPath = "MAFiveWalls.lvl";
-        //const string levelPath = "Levels\\MABahaMAS.lvl";
+        //const string levelPath = "MAKarlMarx.lvl";
+        //const string levelPath = @"Levels\New_Format\MAExample.lvl";
+        //const string levelPath = @"Levels\New_Format\MAPullPush.lvl";
+        //const string levelPath = @"Levels\New_Format\MAPullPush2.lvl";
+        //const string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
+        const string levelPath = @"Levels\New_Format\MACorridor.lvl";
+        //const string levelPath = @"Levels\New_Format\SAlabyrinthOfStBertin.lvl"; //MABahaMAS.lvl";
+        //const string levelPath = @"Levels\New_Format\MAKarlMarx.lvl";
 
         public void Run(string[] args)
         {
@@ -23,14 +29,13 @@ namespace BoxProblems
                 PrintMap(); // Definitely not necessary.
 
                 // Pick one!
-                //NonAsyncSolve();
-                AsyncSolve();
+                NonAsyncSolve();
+                //AsyncSolve();
             }
         }
 
         public void NonAsyncSolve()
         {
-            // Ideally, you should input a solution here.
             var solver = new NaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)));
             solver.Solve(); // A most convenient function.
         }

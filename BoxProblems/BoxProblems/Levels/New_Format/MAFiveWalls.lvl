@@ -1,0 +1,36 @@
+#domain
+hospital
+#levelname
+MAFiveWalls
+#colors
+red: 0, A
+green: 1, B
+pink: 2, C
+cyan: 3, D
+green: 4, E
+purple: F
+#initial
+++++++++++++++
++0  A        +
++FFFFFFFFFFFF+
++1  B        +
++FFFFFFFFFFFF+
++2  C        +
++FFFFFFFFFFFF+
++3  D        +
++FFFFFFFFFFFF+
++4  E        +
+++++++++++++++
+#goal
+++++++++++++++
++           A+
++            +
++           B+
++            +
++           C+
++            +
++           D+
++            +
++           E+
+++++++++++++++
+#end

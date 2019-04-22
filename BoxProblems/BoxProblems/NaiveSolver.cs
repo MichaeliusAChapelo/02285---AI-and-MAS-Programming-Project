@@ -28,8 +28,9 @@ namespace BoxProblems
         int[] waits; // How long each agent with a goal must wait.
         int g = 0; // Number of turns.
         Entity[] agents;
+        public static bool Solved { get; private set; }
 
-        public NaiveSolver(Level level) { this.level = level; }
+        public NaiveSolver(Level level) { this.level = level; Solved = false; }
 
         internal readonly struct AgentBoxGoalPairs
         {
@@ -90,6 +91,7 @@ namespace BoxProblems
                 mappings = InitialMappings(); // Parte Deux: Find path to destination
             }
             Console.Error.WriteLine("\n WE SOLVE, WE DONE");
+            Solved = true;
         }
 
         // POLY-THEIS-TIC GOD FUNCTION

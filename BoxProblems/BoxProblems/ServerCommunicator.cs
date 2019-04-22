@@ -14,11 +14,14 @@ namespace BoxProblems
         //const string levelPath = "MAKarlMarx.lvl";
         //const string levelPath = @"Levels\New_Format\MAExample.lvl";
         //const string levelPath = @"Levels\New_Format\MAPullPush.lvl";
+        const string levelPath = @"Levels\New_Format\MAFiveWalls.lvl";
         //const string levelPath = @"Levels\New_Format\MAPullPush2.lvl";
         //const string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
-        const string levelPath = @"Levels\New_Format\MACorridor.lvl";
+        //const string levelPath = @"Levels\New_Format\MACorridor.lvl";
         //const string levelPath = @"Levels\New_Format\SAlabyrinthOfStBertin.lvl"; //MABahaMAS.lvl";
         //const string levelPath = @"Levels\New_Format\MAKarlMarx.lvl";
+
+        public static bool SkipConsoleRead = false;
 
         public void Run(string[] args)
         {
@@ -112,6 +115,7 @@ namespace BoxProblems
         public static string Command(string command)
         {
             Console.WriteLine(command);
+            if (SkipConsoleRead) return string.Empty;
             string response = Console.ReadLine();
             Console.Error.WriteLine(command + "\n" + response);
             return response;

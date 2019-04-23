@@ -217,6 +217,8 @@ namespace BoxProblems.Solver
                     Debug.Assert(sData.FreePath.Count == 0, "Expecting FreePath to be empty after each problem has been solved.");
                     Debug.Assert(sData.SolutionGraphs.Count == solution.Count, "asda");
 
+                    Console.WriteLine();
+
                     goalsFinished++;
                 }
             }
@@ -224,6 +226,18 @@ namespace BoxProblems.Solver
             //var sortedSolution = solution.Zip(sData.SolutionGraphs, (move, graph) => (move, graph)).OrderBy(x => x.move.MoveNumber);
             //solution = sortedSolution.Select(x => x.move).ToList();
             //sData.SolutionGraphs = sortedSolution.Select(x => x.graph).ToList();
+
+
+            //State state = level.InitialState;
+            //List<BoxConflictGraph> asad = new List<BoxConflictGraph>();
+            //for (int z = 0; z < sData.SolutionGraphs.Count; z++)
+            //{
+            //    state = state.GetModifiedState(solution[z]);
+            //    BoxConflictGraph graph = new BoxConflictGraph(state, level, new HashSet<Entity>());
+            //    asad.Add(graph);
+            //    PrintLatestStateDiff(level, asad);
+            //}
+
             for (int z = 0; z < sData.SolutionGraphs.Count; z++)
             {
                 PrintLatestStateDiff(level, sData.SolutionGraphs, z);
@@ -256,6 +270,7 @@ namespace BoxProblems.Solver
             toMove = sData.GetEntity(toMoveIndex);
             if (solveConflictMoves != null)
             {
+                //solutionToSubProblem.InsertRange(0, solveConflictMoves);
                 solutionToSubProblem.AddRange(solveConflictMoves);
             }
 
@@ -273,6 +288,7 @@ namespace BoxProblems.Solver
                 toMove = sData.GetEntity(toMoveIndex);
                 if (solveAgentConflictMoves != null)
                 {
+                    //solutionToSubProblem.InsertRange(0, solveAgentConflictMoves);
                     solutionToSubProblem.AddRange(solveAgentConflictMoves);
                 }
                 sData.RemoveFromFreePath(toMovePath);
@@ -288,13 +304,12 @@ namespace BoxProblems.Solver
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
+            Console.WriteLine(solutionToSubProblem.Last());
             return true;
         }
 
         private static bool TrySolveConflicts(int toMoveIndex, Point goal, out List<HighlevelMove> solutionToSubProblem, out Point[] toMovePath, SolverData sData, Entity? agentNotConflict, int depth)
         {
-            solutionToSubProblem = null;
-
 #if DEBUG
             Dictionary<Point, int> freePathCopy = new Dictionary<Point, int>(sData.FreePath);
 #endif
@@ -336,11 +351,11 @@ namespace BoxProblems.Solver
                     Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData.CurrentConflicts, sData.FreePath);
                     sData.AddToFreePath(freeSpace);
 
-                    //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
+                    Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
                     if (TrySolveSubProblem(sData.GetEntityIndex(conflict.Value.Ent), freeSpace, conflict.Value.EntType == EntityType.AGENT, out List<HighlevelMove> solutionMoves, sData, depth + 1))
                     {
-                        solutionToSubProblem.InsertRange(0, solutionMoves);
-                        //solutionToSubProblem.AddRange(solutionMoves);
+                        //solutionToSubProblem.InsertRange(0, solutionMoves);
+                        solutionToSubProblem.AddRange(solutionMoves);
                     }
                     else
                     {
@@ -371,7 +386,6 @@ namespace BoxProblems.Solver
 #if DEBUG
             Debug.Assert(sData.FreePath.Except(freePathCopy).Count() == 0, "Expected the end result to be the same as when this method started");
 #endif
-
             return true;
         }
 

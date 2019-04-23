@@ -20,5 +20,10 @@ namespace BoxProblems.Solver
             this.UsingThisAgent = usingThisAgent;
             this.MoveNumber = moveNumber;
         }
+
+        public override string ToString()
+        {
+            return $"{MoveThis} -> {ToHere} " + (UsingThisAgent.HasValue ? $"Using {UsingThisAgent}" : string.Empty);
+        }
     }
 }

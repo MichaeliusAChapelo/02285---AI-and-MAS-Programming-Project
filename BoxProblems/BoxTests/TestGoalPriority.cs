@@ -238,22 +238,7 @@ namespace BoxTests
             Level level = TestTools.StringToOldFormatLevel(levelString);
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
             var actualGoalPriority = new GoalPriority(level, goalGraph);
-
-            //foreach (var item in actualGoalPriority)
-            //{
-            //    Console.WriteLine(item.Key.ToString() + "  " + item.Value);
-            //}
-
-            List<Entity> priorityEntities = new List<Entity>();
-            int priority = 1;
-            for (int i = 0; i < actualGoalPriority.PriorityLayers.Count; i++)
-            {
-                priorityEntities.AddRange(actualGoalPriority.PriorityLayers[i].Select(x => new Entity(x.Value.Ent.Pos, 0, (char)(priority + '0'))));
-                priority++;
-            }
-
-            State priorityState = new State(null, priorityEntities.ToArray(), 0);
-            string actualPriorityString = level.StateToString(priorityState);
+            var actualPriorityString = actualGoalPriority.ToLevelString(level);
 
             string expectedLevel = TestTools.RemoveInvisibleCharacters(levelPriorityString);
             string actualLevel = TestTools.RemoveInvisibleCharacters(actualPriorityString);

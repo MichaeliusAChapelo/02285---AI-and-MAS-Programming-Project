@@ -9,118 +9,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BoxProblems
+namespace BoxProblems.Solver
 {
-    public class HighlevelMove
+    public static partial class ProblemSolver
     {
-        internal State CurrentState;
-        internal Entity MoveThis;
-        internal Point ToHere;
-        internal Entity? UsingThisAgent;
-
-        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent)
-        {
-            this.CurrentState = state;
-            this.MoveThis = moveThis;
-            this.ToHere = toHere;
-            this.UsingThisAgent = usingThisAgent;
-        }
-    }
-
-    public enum SolverStatus
-    {
-        ERROR,
-        TIMEOUT,
-        SUCCESS
-    }
-
-    public class SolveStatistic
-    {
-        public readonly long RunTimeInMiliseconds;
-        public readonly Exception ErrorThrown;
-        public SolverStatus Status;
-        public string LevelName;
-
-        public SolveStatistic(long runTimeInMiliseconds, Exception error, SolverStatus status, string levelName)
-        {
-            this.RunTimeInMiliseconds = runTimeInMiliseconds;
-            this.ErrorThrown = error;
-            this.Status = status;
-            this.LevelName = levelName;
-        }
-    }
-
-    public static class ProblemSolver
-    {
-        private class SolverData
-        {
-            public readonly Dictionary<Point, int> FreePath = new Dictionary<Point, int>();
-            public readonly List<BoxConflictGraph> SolutionGraphs = new List<BoxConflictGraph>();
-            public readonly HashSet<Entity> RemovedEntities = new HashSet<Entity>();
-            public readonly Level Level;
-            public readonly CancellationToken CancelToken;
-            public BoxConflictGraph CurrentConflicts;
-            public State CurrentState;
-
-            public SolverData(Level level, CancellationToken cancelToken)
-            {
-                this.Level = level;
-                this.CancelToken = cancelToken;
-                this.CurrentState = level.InitialState;
-            }
-
-            public void AddToFreePath(Point[] path)
-            {
-                foreach (var pos in path)
-                {
-                    AddToFreePath(pos);
-                }
-            }
-
-            public void AddToFreePath(Point pos)
-            {
-                if (FreePath.TryGetValue(pos, out int value))
-                {
-                    FreePath[pos] = value + 1;
-                }
-                else
-                {
-                    FreePath.Add(pos, 1);
-                }
-            }
-
-            public void RemoveFromFreePath(Point[] path)
-            {
-                foreach (var pos in path)
-                {
-                    RemoveFromFreePath(pos);
-                }
-            }
-
-            public void RemoveFromFreePath(Point pos)
-            {
-                int value = FreePath[pos];
-                if (value == 1)
-                {
-                    FreePath.Remove(pos);
-                }
-                else
-                {
-                    FreePath[pos] = value - 1;
-                }
-            }
-
-            public Entity GetEntity(int index)
-            {
-                return CurrentState.Entities[index];
-            }
-
-            public int GetEntityIndex(Entity entity)
-            {
-                return Array.IndexOf(CurrentState.Entities, entity);
-            }
-        }
-
         public static SolveStatistic GetSolveStatistics(string levelPath, TimeSpan timeoutTime, bool parallelize = false)
         {
             if (!File.Exists(levelPath))
@@ -193,26 +85,97 @@ namespace BoxProblems
             return solutionPieces.ToList();
         }
 
+        private static LevelGroupsInfo GetLevelGroups(SolverData sData, Entity goalToMakeWall)
+        {
+            sData.Level.AddWall(goalToMakeWall.Pos);
+
+            HashSet<Point> entityPositions = new HashSet<Point>();
+            foreach (Entity entity in sData.CurrentState.Entities)
+            {
+                entityPositions.Add(entity.Pos);
+            }
+
+            HashSet<Point> goalPositions = new HashSet<Point>();
+            foreach (Entity goal in sData.Level.Goals)
+            {
+                goalPositions.Add(goal.Pos);
+            }
+
+            var goalCondition = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
+            {
+                return new GraphSearcher.GoalFound<Point>(x, !sData.Level.Walls[x.X, x.Y]);
+            });
+
+            LevelGroupsInfo groupsInfo = new LevelGroupsInfo(false);
+            HashSet<Point> alreadySeen = new HashSet<Point>();
+            for (int y = 0; y < sData.Level.Height; y++)
+            {
+                for (int x = 0; x < sData.Level.Width; x++)
+                {
+                    if (!sData.Level.Walls[x, y] && !alreadySeen.Contains(new Point(x, y)))
+                    {
+                        List<Point> foundSpaces = GraphSearcher.GetReachedGoalsBFS(sData.Level, new Point(x, y), goalCondition);
+                        alreadySeen.UnionWith(foundSpaces);
+
+                        List<Entity> foundEntities = new List<Entity>();
+                        foreach (var foundSpace in foundSpaces)
+                        {
+                            if (entityPositions.Contains(foundSpace))
+                            {
+                                Entity entity = sData.GetEntityAtPos(foundSpace).Value;
+                                if (!sData.RemovedEntities.Contains(entity))
+                                {
+                                    foundEntities.Add(entity);
+                                }
+                            }
+                            else if (goalPositions.Contains(foundSpace))
+                            {
+                                Entity entity = sData.GetGoalEntityAtPos(foundSpace).Value;
+                                foundEntities.Add(entity);
+                            }
+                        }
+
+                        if (foundEntities.Count > 0)
+                        {
+                            groupsInfo.AddGroup(new LevelGroup(foundSpaces, foundEntities));
+                        }
+                    }
+                }
+            }
+
+            return groupsInfo;
+        }
+
         private static (List<HighlevelMove> solutionMoves, List<BoxConflictGraph> solutionGraphs) SolvePartialLevel(Level level, CancellationToken cancelToken)
         {
             List<HighlevelMove> solution = new List<HighlevelMove>();
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph);
+            //Console.WriteLine(priority);
             SolverData sData = new SolverData(level, cancelToken);
             HashSet<Entity> solvedGoals = new HashSet<Entity>();
             foreach (var goalPriorityLayer in priority.PriorityLayers)
             {
-                for (int i = 0; i < goalPriorityLayer.Length; i++)
+                int goalsFinished = 0;
+                while (goalsFinished < goalPriorityLayer.Length)
                 {
                     cancelToken.ThrowIfCancellationRequested();
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
                     sData.CurrentConflicts.AddFreeSpaceNodes(level);
-                    sData.SolutionGraphs.Add(sData.CurrentConflicts);
+                    //sData.SolutionGraphs.Add(sData.CurrentConflicts);
                     //PrintLatestStateDiff(level, sData.SolutionGraphs);
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
+                    LevelGroupsInfo groups = GetLevelGroups(sData, goalToSolve);
+                    //if (groups.Count > 1)
+                    //{
+                    //    //Console.WriteLine(priority.ToLevelString(sData.Level));
+                    //    throw new Exception("level will be split by this action.");
+                    //}
+
+
                     Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);
                     int boxIndex = sData.GetEntityIndex(box);
 
@@ -249,16 +212,22 @@ namespace BoxProblems
                     solvedGoals.Add(goalToSolve);
 
                     level.AddPermanentWalll(goalToSolve.Pos);
-                    sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere,box.Color,box.Type));
+                    sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, box.Color, box.Type));
 
                     Debug.Assert(sData.FreePath.Count == 0, "Expecting FreePath to be empty after each problem has been solved.");
+                    Debug.Assert(sData.SolutionGraphs.Count == solution.Count, "asda");
+
+                    goalsFinished++;
                 }
             }
 
-            //for (int z = 0; z < solution.Count; z++)
-            //{
-            //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
-            //}
+            //var sortedSolution = solution.Zip(sData.SolutionGraphs, (move, graph) => (move, graph)).OrderBy(x => x.move.MoveNumber);
+            //solution = sortedSolution.Select(x => x.move).ToList();
+            //sData.SolutionGraphs = sortedSolution.Select(x => x.graph).ToList();
+            for (int z = 0; z < sData.SolutionGraphs.Count; z++)
+            {
+                PrintLatestStateDiff(level, sData.SolutionGraphs, z);
+            }
 
             return (solution, sData.SolutionGraphs);
         }
@@ -269,6 +238,7 @@ namespace BoxProblems
             {
                 throw new Exception("sub problem depth limit reached.");
             }
+            int counter = sData.Counter++;
 
             Entity toMove = sData.GetEntity(toMoveIndex);
             solutionToSubProblem = new List<HighlevelMove>();
@@ -317,7 +287,7 @@ namespace BoxProblems
             //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
-            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse));
+            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
             return true;
         }
 
@@ -329,6 +299,7 @@ namespace BoxProblems
             Dictionary<Point, int> freePathCopy = new Dictionary<Point, int>(sData.FreePath);
 #endif
 
+            solutionToSubProblem = new List<HighlevelMove>();
             while (true)
             {
                 Entity toMove = sData.GetEntity(toMoveIndex);
@@ -350,7 +321,6 @@ namespace BoxProblems
 
                 sData.AddToFreePath(toMovePath);
 
-                solutionToSubProblem = new List<HighlevelMove>();
                 bool toMoveMoved = false;
                 do
                 {
@@ -369,7 +339,8 @@ namespace BoxProblems
                     //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
                     if (TrySolveSubProblem(sData.GetEntityIndex(conflict.Value.Ent), freeSpace, conflict.Value.EntType == EntityType.AGENT, out List<HighlevelMove> solutionMoves, sData, depth + 1))
                     {
-                        solutionToSubProblem.AddRange(solutionMoves);
+                        solutionToSubProblem.InsertRange(0, solutionMoves);
+                        //solutionToSubProblem.AddRange(solutionMoves);
                     }
                     else
                     {
@@ -393,7 +364,10 @@ namespace BoxProblems
                     break;
                 }
             }
+            //if (solutionToSubProblem.Count > 0)
+            //{
 
+            //}
 #if DEBUG
             Debug.Assert(sData.FreePath.Except(freePathCopy).Count() == 0, "Expected the end result to be the same as when this method started");
 #endif
@@ -422,37 +396,6 @@ namespace BoxProblems
             toMovePath = Precomputer.GetPath(sData.Level, toMove.Pos, goal, false);
             sData.Level.ResetWalls();
             return toMovePath;
-        }
-
-        private static Entity GetGoalToSolve(GoalNode[] goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts, HashSet<Entity> solvedGoals)
-        {
-            return goals.Where(x => !solvedGoals.Contains(x.Value.Ent)).First().Value.Ent;
-        }
-
-        private static Entity GetBoxToSolveProblem(BoxConflictGraph currentConflicts, Entity goal)
-        {
-            foreach (var iNode in currentConflicts.Nodes)
-            {
-                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Type)
-                {
-                    return boxNode.Value.Ent;
-                }
-            }
-
-            throw new Exception("No box exist that can solve the goal.");
-        }
-
-        private static Entity GetAgentToSolveProblem(BoxConflictGraph currentConflicts, Entity toMove)
-        {
-            foreach (var iNode in currentConflicts.Nodes)
-            {
-                if (iNode is BoxConflictNode agentNode && agentNode.Value.EntType == EntityType.AGENT && agentNode.Value.Ent.Color == toMove.Color)
-                {
-                    return agentNode.Value.Ent;
-                }
-            }
-
-            throw new Exception("No agent exists that can solve this problem.");
         }
 
         private static List<BoxConflictNode> GetConflicts(Entity toMove, Point goal, BoxConflictGraph currentConflicts)
@@ -521,23 +464,6 @@ namespace BoxProblems
             }
 
             throw new Exception("Found no path from  entity to goal.");
-        }
-
-        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, BoxConflictGraph currentConflicts, Dictionary<Point, int> freePath)
-        {
-            foreach (var iNode in currentConflicts.Nodes)
-            {
-                if (iNode is FreeSpaceNode freeSpaceNode)
-                {
-                    var sdf = freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
-                    if (sdf.Count() > 0)
-                    {
-                        return sdf.First();
-                    }
-                }
-            }
-
-            throw new Exception("No free space is available");
         }
 
         private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs)

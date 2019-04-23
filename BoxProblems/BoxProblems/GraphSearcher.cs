@@ -25,6 +25,7 @@ namespace BoxProblems
             Array.Fill(world, Direction.NONE);
             Queue<Point> frontier = new Queue<Point>();
             frontier.Enqueue(start);
+            //world[level.PosToIndex(start)] = Direction.S;
             List<T> reachedGoals = new List<T>();
 
             int depthNodeCount = 1;

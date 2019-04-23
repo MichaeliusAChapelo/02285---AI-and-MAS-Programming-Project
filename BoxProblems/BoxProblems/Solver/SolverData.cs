@@ -10,12 +10,13 @@ namespace BoxProblems.Solver
         private class SolverData
         {
             public readonly Dictionary<Point, int> FreePath = new Dictionary<Point, int>();
-            public readonly List<BoxConflictGraph> SolutionGraphs = new List<BoxConflictGraph>();
+            public List<BoxConflictGraph> SolutionGraphs = new List<BoxConflictGraph>();
             public readonly HashSet<Entity> RemovedEntities = new HashSet<Entity>();
             public readonly Level Level;
             public readonly CancellationToken CancelToken;
             public BoxConflictGraph CurrentConflicts;
             public State CurrentState;
+            public int Counter = 0;
 
             public SolverData(Level level, CancellationToken cancelToken)
             {

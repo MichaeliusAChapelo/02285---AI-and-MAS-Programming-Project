@@ -1,4 +1,5 @@
 ﻿using BoxProblems;
+using BoxProblems.Solver;
 using System;
 
 namespace BoxRunner
@@ -7,8 +8,9 @@ namespace BoxRunner
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("asdasda");
-            ProblemSolver.SolveLevel("Levels/Old_Format/initial_levels/SAtowersOfSaigon04.lvl", TimeSpan.FromHours(1), false);
+            Console.WriteLine("Started");
+            var solution = ProblemSolver.SolveLevel("Levels/Old_Format/initial_levels/SAtowersOfSaigon04.lvl", TimeSpan.FromHours(1), false);
+            Console.WriteLine("Done");
             Console.Read();
         }
     }

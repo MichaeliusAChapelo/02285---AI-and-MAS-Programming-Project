@@ -7,17 +7,17 @@ using System.Text.RegularExpressions;
 namespace BoxProblems
 {
 
-    internal class Level
+    public class Level
     {
-        public readonly bool[,] Walls;
+        internal readonly bool[,] Walls;
         private readonly bool[,] OriginalWalls;
-        public readonly Entity[] Goals;
-        public readonly State InitialState;
-        public readonly int Width;
-        public readonly int Height;
-        public readonly int AgentCount;
-        public readonly int BoxCount;
-        public static readonly string[] VALID_COLORS = new string[]
+        internal readonly Entity[] Goals;
+        internal readonly State InitialState;
+        internal readonly int Width;
+        internal readonly int Height;
+        internal readonly int AgentCount;
+        internal readonly int BoxCount;
+        internal static readonly string[] VALID_COLORS = new string[]
         {
             "red",
             "blue",
@@ -31,7 +31,7 @@ namespace BoxProblems
             "brown"
         };
 
-        public Level(bool[,] walls, Entity[] goals, State initial, int width, int height, int agentCount, int boxCount)
+        internal Level(bool[,] walls, Entity[] goals, State initial, int width, int height, int agentCount, int boxCount)
         {
             this.Walls = walls;
             this.Goals = goals;
@@ -45,43 +45,43 @@ namespace BoxProblems
             Array.Copy(Walls, 0, OriginalWalls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
-        public Span<Entity> GetAgents()
+        internal Span<Entity> GetAgents()
         {
             return InitialState.GetAgents(this);
         }
 
-        public Span<Entity> GetBoxes()
+        internal Span<Entity> GetBoxes()
         {
             return InitialState.GetBoxes(this);
         }
 
-        public int PosToIndex(Point pos)
+        internal int PosToIndex(Point pos)
         {
             return pos.X + pos.Y * Width;
         }
 
-        public void ResetWalls()
+        internal void ResetWalls()
         {
             Array.Copy(OriginalWalls, 0, Walls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
-        public void AddWall(Point pos)
+        internal void AddWall(Point pos)
         {
             Walls[pos.X, pos.Y] = true;
         }
 
-        public void RemoveWall(Point pos)
+        internal void RemoveWall(Point pos)
         {
             Walls[pos.X, pos.Y] = false;
         }
 
-        public void AddPermanentWalll(Point pos)
+        internal void AddPermanentWalll(Point pos)
         {
             OriginalWalls[pos.X, pos.Y] = true;
             Walls[pos.X, pos.Y] = true;
         }
 
-        public void RemovePermanentWall(Point pos)
+        internal void RemovePermanentWall(Point pos)
         {
             OriginalWalls[pos.X, pos.Y] = false;
             Walls[pos.X, pos.Y] = false;
@@ -316,7 +316,7 @@ namespace BoxProblems
             return new Level(walls, goals.ToArray(), state, width, height, agents.Count, boxes.Count);
         }
 
-        public string StateToString(State state)
+        internal string StateToString(State state)
         {
             char[][] world = GetWallsAsWorld();
             foreach (var goal in Goals)
@@ -362,7 +362,7 @@ namespace BoxProblems
             return world;
         }
 
-        public string WorldToString(char[][] world)
+        internal string WorldToString(char[][] world)
         {
             StringBuilder sBuilder = new StringBuilder();
             foreach (var worldRow in world)

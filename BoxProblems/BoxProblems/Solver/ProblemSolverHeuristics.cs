@@ -41,6 +41,32 @@ namespace BoxProblems.Solver
 
         private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData, Dictionary<Point, int> freePath)
         {
+            //See if there is even 1 free space.
+            int avaiableFreeSpacesCount = 0;
+            foreach (var iNode in sData.CurrentConflicts.Nodes)
+            {
+                if (iNode is FreeSpaceNode freeSpaceNode)
+                {
+                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
+                }
+            }
+            if (avaiableFreeSpacesCount < 1)
+            {
+                throw new Exception("No free space is available");
+
+            }
+            if (avaiableFreeSpacesCount==1)
+            {
+                foreach (var iNode in sData.CurrentConflicts.Nodes)
+                {
+                    if (iNode is FreeSpaceNode freeSpaceNode)
+                    {
+                        if (freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count()==1) {
+                            return freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).First();
+                        }
+                    }
+                }    
+            }
             //Get the node to start the BFS in the conflict graph, probably an easier way to do this, but not sure how this works
             INode startnode = sData.CurrentConflicts.Nodes.First(); //Had to initalize it to something
             foreach (var iNode in sData.CurrentConflicts.Nodes)
@@ -53,20 +79,6 @@ namespace BoxProblems.Solver
                         break;
                     }
                 }
-            }
-            //See if there is even 1 free space.
-            int avaiableFreeSpacesCount = 0;
-            foreach (var iNode in sData.CurrentConflicts.Nodes)
-            {
-                if (iNode is FreeSpaceNode freeSpaceNode)
-                {
-                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
-                }
-            }
-            if (avaiableFreeSpacesCount<1)
-            {
-                throw new Exception("No free space is available");
-
             }
             FreeSpaceNode freeSpaceNodeToUse = null;
             Point freeSpacePointToUse;
@@ -119,15 +131,16 @@ namespace BoxProblems.Solver
                 }
 
             }
+
             if (freeSpaceNodeToUse==null)
             {
                throw new Exception("Not enough free space is available");
             }
-            int howFarIntoFreeSpace = -1;
+            int howFarIntoFreeSpace = -2;//-2 For the box and the goal. that is being solved
             var boxes = sData.Level.GetBoxes();
             foreach (var p in freePath)
             {
-                if (sData.GetEntityAtPos(p.Key)!=null && sData.GetEntityAtPos(p.Key).Value.Type>57)
+                if (sData.GetEntityAtPos(p.Key)!=null)
                 {
                     howFarIntoFreeSpace += 1;
                 }

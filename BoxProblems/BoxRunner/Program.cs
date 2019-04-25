@@ -9,7 +9,7 @@ namespace BoxRunner
         static void Main(string[] args)
         {
             Console.WriteLine("Started");
-            var solution = ProblemSolver.SolveLevel("Levels/Old_Format/initial_levels/SAtowersOfSaigon05.lvl", TimeSpan.FromHours(1), false);
+            var solution = ProblemSolver.SolveLevel("Levels/Old_Format/real_levels/SANavy.lvl", TimeSpan.FromHours(1), false);
             Console.WriteLine("Done");
             Console.Read();
         }

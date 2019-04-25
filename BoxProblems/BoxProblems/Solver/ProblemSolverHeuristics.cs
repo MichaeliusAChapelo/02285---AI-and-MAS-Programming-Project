@@ -88,7 +88,7 @@ namespace BoxProblems.Solver
                 if (currentNode is BoxConflictNode)
                 {
                     var currentBoxNode = (BoxConflictNode)currentNode;
-                    if (currentBoxNode.Value.Ent.Type>57)
+                    if (currentBoxNode.Value.Ent.Type>57)//Maybe it should hold for agents aswell, past the 1 agent, but idk
                     {
                         boxesToMove += 1;
                     }
@@ -123,7 +123,15 @@ namespace BoxProblems.Solver
             {
                throw new Exception("Not enough free space is available");
             }
-
+            int howFarIntoFreeSpace = -1;
+            var boxes = sData.Level.GetBoxes();
+            foreach (var p in freePath)
+            {
+                if (sData.GetEntityAtPos(p.Key)!=null && sData.GetEntityAtPos(p.Key).Value.Type>57)
+                {
+                    howFarIntoFreeSpace += 1;
+                }
+            }
             var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
             freeSpacePointToUse = potentialFreeSpacePoints.First();
             int maxDistance = 0;
@@ -139,6 +147,10 @@ namespace BoxProblems.Solver
                 {
                     maxDistance = minDistance;
                     freeSpacePointToUse = FSP;
+                }
+                if (maxDistance>= howFarIntoFreeSpace)
+                {
+                    break;
                 }
             }
             return freeSpacePointToUse;

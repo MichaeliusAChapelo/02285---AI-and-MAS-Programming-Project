@@ -169,11 +169,11 @@ namespace BoxProblems.Solver
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
                     LevelGroupsInfo groups = GetLevelGroups(sData, goalToSolve);
-                    //if (groups.Count > 1)
-                    //{
-                    //    //Console.WriteLine(priority.ToLevelString(sData.Level));
-                    //    throw new Exception("level will be split by this action.");
-                    //}
+                    if (groups.Groups.Count > 1)
+                    {
+                        //Console.WriteLine(priority.ToLevelString(sData.Level));
+                        throw new Exception("level will be split by this action.");
+                    }
 
 
                     Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);
@@ -217,8 +217,6 @@ namespace BoxProblems.Solver
                     Debug.Assert(sData.FreePath.Count == 0, "Expecting FreePath to be empty after each problem has been solved.");
                     Debug.Assert(sData.SolutionGraphs.Count == solution.Count, "asda");
 
-                    Console.WriteLine();
-
                     goalsFinished++;
                 }
             }
@@ -238,10 +236,10 @@ namespace BoxProblems.Solver
             //    PrintLatestStateDiff(level, asad);
             //}
 
-            for (int z = 0; z < sData.SolutionGraphs.Count; z++)
-            {
-                PrintLatestStateDiff(level, sData.SolutionGraphs, z);
-            }
+            //for (int z = 0; z < sData.SolutionGraphs.Count; z++)
+            //{
+            //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
+            //}
 
             return (solution, sData.SolutionGraphs);
         }
@@ -304,7 +302,7 @@ namespace BoxProblems.Solver
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
-            Console.WriteLine(solutionToSubProblem.Last());
+            //Console.WriteLine(solutionToSubProblem.Last());
             return true;
         }
 
@@ -351,7 +349,7 @@ namespace BoxProblems.Solver
                     Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData.CurrentConflicts, sData.FreePath);
                     sData.AddToFreePath(freeSpace);
 
-                    Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
+                    //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
                     if (TrySolveSubProblem(sData.GetEntityIndex(conflict.Value.Ent), freeSpace, conflict.Value.EntType == EntityType.AGENT, out List<HighlevelMove> solutionMoves, sData, depth + 1))
                     {
                         //solutionToSubProblem.InsertRange(0, solutionMoves);

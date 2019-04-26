@@ -37,6 +37,7 @@ Do for each split level:
 
 # Michaelius' ideas:
 
+## Old list
 1) Give agents a goal, translate into a destination.
 
 2) For each agent, do A* to goal destination. Compute distance maps.
@@ -45,6 +46,21 @@ Do for each split level:
 
 4) Once any agent has reached its destination, repeat from step 1 until solved.
 
+## New Stuff
+
+1) Refactor code to implement direct use of abstract commands from me mates.
+
+2) Simplify BFS to A*, from agent to box to goal.
+
+3) Can we combine pathfinding with actions, such that we don't need to break into new superstates?
+
+	- We want to minimize the breaking of outputting actions, because does lots of unnecessary computations.
+	
+	- We already have a way to detect if the agent will be pushing or pulling.
+	
+	- Check if solution path contains open space. Then pull-reverse into pushing box to goal.
+	
+	- Otherwise run BFS on map to find nearest reverse spot.
 
 # Heuristics
 ## Goal priority 

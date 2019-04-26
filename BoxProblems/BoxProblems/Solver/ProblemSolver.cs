@@ -165,7 +165,7 @@ namespace BoxProblems.Solver
                     sData.CurrentConflicts.AddFreeSpaceNodes(level);
                     //sData.SolutionGraphs.Add(sData.CurrentConflicts);
                     //PrintLatestStateDiff(level, sData.SolutionGraphs);
-                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
+                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
                     LevelGroupsInfo groups = GetLevelGroups(sData, goalToSolve);
@@ -224,10 +224,10 @@ namespace BoxProblems.Solver
             //var sortedSolution = solution.Zip(sData.SolutionGraphs, (move, graph) => (move, graph)).OrderBy(x => x.move.MoveNumber);
             //solution = sortedSolution.Select(x => x.move).ToList();
             //sData.SolutionGraphs = sortedSolution.Select(x => x.graph).ToList();
-            for (int z = 0; z < sData.SolutionGraphs.Count; z++)
-            {
-                PrintLatestStateDiff(level, sData.SolutionGraphs, z);
-            }
+            //for (int z = 0; z < sData.SolutionGraphs.Count; z++)
+            //{
+            //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
+            //}
 
             return (solution, sData.SolutionGraphs);
         }

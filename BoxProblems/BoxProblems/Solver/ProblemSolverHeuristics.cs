@@ -55,105 +55,82 @@ namespace BoxProblems.Solver
                 throw new Exception("No free space is available");
 
             }
-            if (avaiableFreeSpacesCount==1)
-            {
-                foreach (var iNode in sData.CurrentConflicts.Nodes)
-                {
-                    if (iNode is FreeSpaceNode freeSpaceNode)
-                    {
-                        if (freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count()==1) {
-                            return freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).First();
-                        }
-                    }
-                }    
-            }
             //Get the node to start the BFS in the conflict graph, probably an easier way to do this, but not sure how this works
-            INode startnode = sData.CurrentConflicts.Nodes.First(); //Had to initalize it to something
-            foreach (var iNode in sData.CurrentConflicts.Nodes)
-            {
-                if (iNode is BoxConflictNode node)
-                {
-                    if (node.Value.Ent.Pos == conflict.Pos)
-                    {
-                        startnode = node;
-                        break;
-                    }
-                }
-            }
+            INode startnode = sData.CurrentConflicts.GetNodeFromPosition(conflict.Pos); //Had to initalize it to something
             int howFarIntoFreeSpace = 0;
             var boxes = sData.Level.GetBoxes();
             foreach (var p in freePath)
             {
-                if (sData.GetEntityAtPos(p.Key) != null && sData.GetEntityAtPos(p.Key).Value.Type > 64 && sData.GetEntityAtPos(p.Key).Value.Type < 91)
+                if (sData.CurrentConflicts.PositionHasNode(p.Key))
                 {
-                    Console.Write(p.Key);
-
-                    howFarIntoFreeSpace += 1;
+                    if (sData.CurrentConflicts.GetNodeFromPosition(p.Key) is BoxConflictNode boxnode && boxnode.Value.EntType==EntityType.BOX)
+                    {
+                        howFarIntoFreeSpace += 1;
+                    }
                 }
 
             }
-            Console.WriteLine();
-            if (sData.SolutionGraphs.Count - 1 > 0)
-            {
-                PrintLatestStateDiff(sData.Level, sData.SolutionGraphs, sData.SolutionGraphs.Count - 1);
-            }
-            Console.WriteLine(howFarIntoFreeSpace);
-            if (howFarIntoFreeSpace <= 0)
-            {
-                howFarIntoFreeSpace = 1;
-            }
             FreeSpaceNode freeSpaceNodeToUse = null;
-            Point freeSpacePointToUse;
             var visitedNodes = new HashSet<INode>();
-            Tuple<INode, int, int> starttuple = new Tuple<INode, int, int>(startnode, howFarIntoFreeSpace, 0);
-            var bfsQueue = new Queue<Tuple<INode, int, int>>();
+            (INode node,int extraBoxes,int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);
+            var bfsQueue = new Queue<(INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes)>();
+            int minExtraBoxes = int.MaxValue;
             bfsQueue.Enqueue(starttuple);
             while (bfsQueue.Count > 0)
             {
                 var tuple = bfsQueue.Dequeue();
-                var currentNode = tuple.Item1;
-                var boxesToMove = tuple.Item2;
-                var freeSpacesNotOnPath = tuple.Item3;
+                var currentNode = tuple.node;
+                var currentExtraBoxes = tuple.extraBoxes;
+                var currentNumFreeSpaces = tuple.numFreeSpaces;
+                var currentRepeatBoxes = tuple.repeatBoxes;
                 if (visitedNodes.Contains(currentNode))
                 {
                     continue;
                 }
                 visitedNodes.Add(currentNode);
-                if (currentNode is BoxConflictNode)
+                if (currentNode is BoxConflictNode currentBoxNode)
                 {
-                    var currentBoxNode = (BoxConflictNode)currentNode;
-                    if (currentBoxNode.Value.Ent.Type>64 && currentBoxNode.Value.Ent.Type < 91 && !freePath.ContainsKey(currentBoxNode.Value.Ent.Pos))//Maybe it should hold for agents aswell, past the 1 agent, but idk
+                    if (currentBoxNode.Value.EntType==EntityType.BOX)//Maybe it should hold for agents aswell, past the 1 agent, but idk
                     {
-                        boxesToMove += 1;
-                    }
-                    foreach (var edge in currentBoxNode.Edges)
-                    {
-                        var newNode = edge.End;
-                        Tuple<INode, int, int> newTuple = new Tuple<INode, int, int>(newNode, boxesToMove, freeSpacesNotOnPath);
-                        bfsQueue.Enqueue(newTuple);
+                        if (!freePath.ContainsKey(currentBoxNode.Value.Ent.Pos))
+                        {
+                            currentExtraBoxes += 1;
+                        }
+                        else
+                        {
+                            currentRepeatBoxes += 1;
+                        }
+
                     }
                 }
-                if (currentNode is FreeSpaceNode)
+                if (currentNode is FreeSpaceNode currentFreeSpaceNode)
                 {
-                    var currentFreeSpaceNode = (FreeSpaceNode)currentNode;
-                    freeSpacesNotOnPath += currentFreeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
-                    Console.WriteLine(boxesToMove +" "+ freeSpacesNotOnPath);
-                    if (freeSpacesNotOnPath >= boxesToMove)
+                    currentNumFreeSpaces += currentFreeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
+                    if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
                     {
-                        freeSpaceNodeToUse = currentFreeSpaceNode;
-                        howFarIntoFreeSpace = boxesToMove;
-                        break;
-                    }
+                        if(currentExtraBoxes+currentRepeatBoxes< minExtraBoxes)
+                        {
+                            freeSpaceNodeToUse = currentFreeSpaceNode;
+                            minExtraBoxes = currentExtraBoxes+currentRepeatBoxes;
+                        }
+                        if (currentExtraBoxes == 0 && currentRepeatBoxes ==0)
+                        {
+                            break;
+                        }
 
-                    foreach (var edge in currentFreeSpaceNode.Edges)
-                    {
-                        var newNode = edge.End;
-                        Tuple<INode, int, int> newTuple = new Tuple<INode, int, int>(newNode, boxesToMove, freeSpacesNotOnPath);
-                        bfsQueue.Enqueue(newTuple);
                     }
 
                 }
-
+                foreach (var edge in currentNode.GetNodeEnds())
+                {
+                    var newNode = edge;
+                    (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) newTuple = (newNode, currentExtraBoxes, currentNumFreeSpaces, currentRepeatBoxes);
+                    bfsQueue.Enqueue(newTuple);
+                }
+                if (bfsQueue.Count==0)
+                {
+                    howFarIntoFreeSpace += currentExtraBoxes;
+                }
             }
 
             if (freeSpaceNodeToUse==null)
@@ -161,12 +138,12 @@ namespace BoxProblems.Solver
                throw new Exception("Not enough free space is available");
             }
             var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
-            freeSpacePointToUse = potentialFreeSpacePoints.First();
+            Point freeSpacePointToUse = potentialFreeSpacePoints.First();
             int maxDistance = 0;
             foreach (var FSP in potentialFreeSpacePoints)
             {
                 var distancesMap = Precomputer.GetDistanceMap(sData.Level.Walls, FSP, false);
-                int minDistance = 10000;
+                int minDistance = int.MaxValue;
                 foreach (var p in freePath)
                 {
                     minDistance = Math.Min(minDistance, distancesMap[p.Key.X, p.Key.Y]);
@@ -175,11 +152,12 @@ namespace BoxProblems.Solver
                 {
                     maxDistance = minDistance;
                     freeSpacePointToUse = FSP;
+                    if (maxDistance >= howFarIntoFreeSpace)
+                    {
+                        break;
+                    }
                 }
-                if (maxDistance>= howFarIntoFreeSpace)
-                {
-                    break;
-                }
+
             }
             return freeSpacePointToUse;
 

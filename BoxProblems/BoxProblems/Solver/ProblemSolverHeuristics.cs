@@ -80,10 +80,32 @@ namespace BoxProblems.Solver
                     }
                 }
             }
+            int howFarIntoFreeSpace = 0;
+            var boxes = sData.Level.GetBoxes();
+            foreach (var p in freePath)
+            {
+                if (sData.GetEntityAtPos(p.Key) != null && sData.GetEntityAtPos(p.Key).Value.Type > 64 && sData.GetEntityAtPos(p.Key).Value.Type < 91)
+                {
+                    Console.Write(p.Key);
+
+                    howFarIntoFreeSpace += 1;
+                }
+
+            }
+            Console.WriteLine();
+            if (sData.SolutionGraphs.Count - 1 > 0)
+            {
+                PrintLatestStateDiff(sData.Level, sData.SolutionGraphs, sData.SolutionGraphs.Count - 1);
+            }
+            Console.WriteLine(howFarIntoFreeSpace);
+            if (howFarIntoFreeSpace <= 0)
+            {
+                howFarIntoFreeSpace = 1;
+            }
             FreeSpaceNode freeSpaceNodeToUse = null;
             Point freeSpacePointToUse;
             var visitedNodes = new HashSet<INode>();
-            Tuple<INode, int, int> starttuple = new Tuple<INode, int, int>(startnode,0,0);
+            Tuple<INode, int, int> starttuple = new Tuple<INode, int, int>(startnode, howFarIntoFreeSpace, 0);
             var bfsQueue = new Queue<Tuple<INode, int, int>>();
             bfsQueue.Enqueue(starttuple);
             while (bfsQueue.Count > 0)
@@ -100,7 +122,7 @@ namespace BoxProblems.Solver
                 if (currentNode is BoxConflictNode)
                 {
                     var currentBoxNode = (BoxConflictNode)currentNode;
-                    if (currentBoxNode.Value.Ent.Type>57)//Maybe it should hold for agents aswell, past the 1 agent, but idk
+                    if (currentBoxNode.Value.Ent.Type>64 && currentBoxNode.Value.Ent.Type < 91 && !freePath.ContainsKey(currentBoxNode.Value.Ent.Pos))//Maybe it should hold for agents aswell, past the 1 agent, but idk
                     {
                         boxesToMove += 1;
                     }
@@ -115,9 +137,11 @@ namespace BoxProblems.Solver
                 {
                     var currentFreeSpaceNode = (FreeSpaceNode)currentNode;
                     freeSpacesNotOnPath += currentFreeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
+                    Console.WriteLine(boxesToMove +" "+ freeSpacesNotOnPath);
                     if (freeSpacesNotOnPath >= boxesToMove)
                     {
                         freeSpaceNodeToUse = currentFreeSpaceNode;
+                        howFarIntoFreeSpace = boxesToMove;
                         break;
                     }
 
@@ -135,15 +159,6 @@ namespace BoxProblems.Solver
             if (freeSpaceNodeToUse==null)
             {
                throw new Exception("Not enough free space is available");
-            }
-            int howFarIntoFreeSpace = -2;//-2 For the box and the goal. that is being solved
-            var boxes = sData.Level.GetBoxes();
-            foreach (var p in freePath)
-            {
-                if (sData.GetEntityAtPos(p.Key)!=null)
-                {
-                    howFarIntoFreeSpace += 1;
-                }
             }
             var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
             freeSpacePointToUse = potentialFreeSpacePoints.First();

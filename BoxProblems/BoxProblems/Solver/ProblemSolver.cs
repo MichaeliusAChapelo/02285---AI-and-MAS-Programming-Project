@@ -89,16 +89,22 @@ namespace BoxProblems.Solver
         {
             sData.Level.AddWall(goalToMakeWall.Pos);
 
-            HashSet<Point> entityPositions = new HashSet<Point>();
-            foreach (Entity entity in sData.CurrentState.Entities)
+            Dictionary<Point, Entity> boxPositions = new Dictionary<Point, Entity>();
+            foreach (Entity box in sData.CurrentState.GetBoxes(sData.Level))
             {
-                entityPositions.Add(entity.Pos);
+                boxPositions.Add(box.Pos, box);
             }
 
-            HashSet<Point> goalPositions = new HashSet<Point>();
+            Dictionary<Point, Entity> agentPositions = new Dictionary<Point, Entity>();
+            foreach (Entity agent in sData.CurrentState.GetBoxes(sData.Level))
+            {
+                agentPositions.Add(agent.Pos, agent);
+            }
+
+            Dictionary<Point, Entity> goalPositions = new Dictionary<Point, Entity>();
             foreach (Entity goal in sData.Level.Goals)
             {
-                goalPositions.Add(goal.Pos);
+                goalPositions.Add(goal.Pos, goal);
             }
 
             var goalCondition = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
@@ -115,33 +121,40 @@ namespace BoxProblems.Solver
                     if (!sData.Level.Walls[x, y] && !alreadySeen.Contains(new Point(x, y)))
                     {
                         List<Point> foundSpaces = GraphSearcher.GetReachedGoalsBFS(sData.Level, new Point(x, y), goalCondition);
+                        if (foundSpaces.Any(z => alreadySeen.Contains(z)))
+                        {
+                            throw new Exception("asdasdasdadsdas");
+                        }
                         alreadySeen.UnionWith(foundSpaces);
 
-                        List<Entity> foundEntities = new List<Entity>();
+                        List<Entity> foundBoxes = new List<Entity>();
+                        List<Entity> foundAgents = new List<Entity>();
+                        List<Entity> foundGoals = new List<Entity>();
                         foreach (var foundSpace in foundSpaces)
                         {
-                            if (entityPositions.Contains(foundSpace))
+                            if (boxPositions.TryGetValue(foundSpace, out Entity box))
                             {
-                                Entity entity = sData.GetEntityAtPos(foundSpace).Value;
-                                if (!sData.RemovedEntities.Contains(entity))
-                                {
-                                    foundEntities.Add(entity);
-                                }
+                                foundBoxes.Add(box);
                             }
-                            else if (goalPositions.Contains(foundSpace))
+                            if (agentPositions.TryGetValue(foundSpace, out Entity agent))
                             {
-                                Entity entity = sData.GetGoalEntityAtPos(foundSpace).Value;
-                                foundEntities.Add(entity);
+                                foundAgents.Add(agent);
+                            }
+                            if (goalPositions.TryGetValue(foundSpace, out Entity goal))
+                            {
+                                foundGoals.Add(goal);
                             }
                         }
 
-                        if (foundEntities.Count > 0)
+                        if (foundBoxes.Count > 0 || foundAgents.Count > 0 || foundGoals.Count > 0)
                         {
-                            groupsInfo.AddGroup(new LevelGroup(foundSpaces, foundEntities));
+                            groupsInfo.AddGroup(new LevelGroup(foundSpaces, foundBoxes, foundAgents, foundGoals));
                         }
                     }
                 }
             }
+
+            sData.Level.ResetWalls();
 
             return groupsInfo;
         }
@@ -169,11 +182,11 @@ namespace BoxProblems.Solver
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
                     LevelGroupsInfo groups = GetLevelGroups(sData, goalToSolve);
-                    if (groups.Groups.Count > 1)
-                    {
-                        //Console.WriteLine(priority.ToLevelString(sData.Level));
-                        throw new Exception("level will be split by this action.");
-                    }
+                    //if (groups.Groups.Count > 1)
+                    //{
+                    //    //Console.WriteLine(priority.ToLevelString(sData.Level));
+                    //    throw new Exception("level will be split by this action.");
+                    //}
 
 
                     Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);

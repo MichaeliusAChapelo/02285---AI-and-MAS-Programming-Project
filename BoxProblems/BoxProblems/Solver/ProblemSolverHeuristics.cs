@@ -10,33 +10,45 @@ namespace BoxProblems.Solver
     {
         private static Entity GetGoalToSolve(GoalNode[] goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts, HashSet<Entity> solvedGoals)
         {
-            return goals.Where(x => !solvedGoals.Contains(x.Value.Ent)).First().Value.Ent;
+            return GetEntityToSolveProblem(currentConflicts, null, goals, goalGraph, solvedGoals);
         }
 
         private static Entity GetBoxToSolveProblem(BoxConflictGraph currentConflicts, Entity goal)
         {
-            foreach (var iNode in currentConflicts.Nodes)
-            {
-                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Type)
-                {
-                    return boxNode.Value.Ent;
-                }
-            }
-
+            return GetEntityToSolveProblem(currentConflicts, goal);
             throw new Exception("No box exist that can solve the goal.");
         }
 
         private static Entity GetAgentToSolveProblem(BoxConflictGraph currentConflicts, Entity toMove)
         {
-            foreach (var iNode in currentConflicts.Nodes)
+
+            return GetEntityToSolveProblem(currentConflicts, toMove);
+            throw new Exception("No agent exists that can solve this problem.");
+        }
+
+        private static Entity GetEntityToSolveProblem(BoxConflictGraph currentConflicts, Entity? entity=null, GoalNode[] goals=null, GoalGraph goalGraph=null, HashSet<Entity> solvedGoals=null)
+        {
+            if (entity == null)
             {
-                if (iNode is BoxConflictNode agentNode && agentNode.Value.EntType == EntityType.AGENT && agentNode.Value.Ent.Color == toMove.Color)
+                return goals.Where(x => !solvedGoals.Contains(x.Value.Ent)).First().Value.Ent;
+            }
+            else
+            {
+                foreach (var iNode in currentConflicts.Nodes)
                 {
-                    return agentNode.Value.Ent;
+                    if (iNode is BoxConflictNode agentNode && agentNode.Value.EntType == EntityType.AGENT && agentNode.Value.Ent.Color == entity.Value.Color)
+                    {
+                        return agentNode.Value.Ent;
+                    }
+                    if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == entity.Value.Type)
+                    {
+                        return boxNode.Value.Ent;
+                    }
+
                 }
             }
+            return (Entity)entity;
 
-            throw new Exception("No agent exists that can solve this problem.");
         }
 
         private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData, Dictionary<Point, int> freePath)

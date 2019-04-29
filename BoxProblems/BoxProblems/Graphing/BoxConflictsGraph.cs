@@ -51,7 +51,7 @@ namespace BoxProblems.Graphing
         private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
         internal readonly State CreatedFromThisState;
 
-        internal BoxConflictGraph(State state, Level level, HashSet<Entity> removedEntities)
+        internal BoxConflictGraph(State state, Level level, Entity? goal, HashSet<Entity> removedEntities)
         {
             CreatedFromThisState = state;
 
@@ -70,6 +70,10 @@ namespace BoxProblems.Graphing
                     continue;
                 }
                 AddNode(new BoxConflictNode(new EntityNodeInfo(agent, EntityType.AGENT)));
+            }
+            if (goal.HasValue)
+            {
+                AddNode(new BoxConflictNode(new EntityNodeInfo(goal.Value, EntityType.GOAL)));
             }
 
             GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);

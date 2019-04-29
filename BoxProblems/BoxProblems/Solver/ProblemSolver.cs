@@ -96,7 +96,7 @@ namespace BoxProblems.Solver
             }
 
             Dictionary<Point, Entity> agentPositions = new Dictionary<Point, Entity>();
-            foreach (Entity agent in sData.CurrentState.GetBoxes(sData.Level))
+            foreach (Entity agent in sData.CurrentState.GetAgents(sData.Level))
             {
                 agentPositions.Add(agent.Pos, agent);
             }
@@ -167,6 +167,7 @@ namespace BoxProblems.Solver
             //Console.WriteLine(priority);
             SolverData sData = new SolverData(level, cancelToken);
             HashSet<Entity> solvedGoals = new HashSet<Entity>();
+            Stack<Entity> goalsToDoFirst = new Stack<Entity>();
             foreach (var goalPriorityLayer in priority.PriorityLayers)
             {
                 int goalsFinished = 0;
@@ -180,13 +181,47 @@ namespace BoxProblems.Solver
                     //PrintLatestStateDiff(level, sData.SolutionGraphs);
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
 
-                    Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
-                    LevelGroupsInfo groups = GetLevelGroups(sData, goalToSolve);
-                    //if (groups.Groups.Count > 1)
-                    //{
-                    //    //Console.WriteLine(priority.ToLevelString(sData.Level));
-                    //    throw new Exception("level will be split by this action.");
-                    //}
+                    Entity goalToSolve;
+                    if (goalsToDoFirst.Count > 0)
+                    {
+                        goalToSolve = goalsToDoFirst.Pop();
+                    }
+                    else
+                    {
+                        goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
+                    }
+
+
+
+                    LevelGroupsInfo groupsInfo = GetLevelGroups(sData, goalToSolve);
+                    if (groupsInfo.IsSplit())
+                    {
+                        bool hadGoalToPrioritize = false;
+                        LevelGroup mainGroup = groupsInfo.GetMainGroup();
+                        foreach (var group in groupsInfo.Groups)
+                        {
+                            if (group != mainGroup)
+                            {
+                                if (group.Goals.Count > 0)
+                                {
+                                    hadGoalToPrioritize = true;
+                                }
+
+                                for (int i = 0; i < group.Goals.Count; i++)
+                                {
+                                    goalsToDoFirst.Push(group.Goals[i]);
+                                }
+                            }
+                        }
+
+                        if (hadGoalToPrioritize)
+                        {
+                            continue;
+                        }
+
+                        //Console.WriteLine(priority.ToLevelString(sData.Level));
+                        throw new Exception("level will be split by this action.");
+                    }
 
 
                     Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);

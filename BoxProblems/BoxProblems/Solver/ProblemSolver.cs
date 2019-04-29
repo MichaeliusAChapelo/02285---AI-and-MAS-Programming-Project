@@ -165,7 +165,7 @@ namespace BoxProblems.Solver
                     sData.CurrentConflicts.AddFreeSpaceNodes(level);
                     //sData.SolutionGraphs.Add(sData.CurrentConflicts);
                     //PrintLatestStateDiff(level, sData.SolutionGraphs);
-                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
+                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
                     Entity goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
                     LevelGroupsInfo groups = GetLevelGroups(sData, goalToSolve);
@@ -185,7 +185,7 @@ namespace BoxProblems.Solver
                         if (nodeOnGoal is BoxConflictNode boxOnGoal && boxOnGoal.Value.EntType != EntityType.GOAL)
                         {
                             int boxOnGoalIndex = sData.GetEntityIndex(boxOnGoal.Value.Ent);
-                            Point freeSpace = GetFreeSpaceToMoveConflictTo(goalToSolve, sData.CurrentConflicts, sData.FreePath);
+                            Point freeSpace = GetFreeSpaceToMoveConflictTo(goalToSolve, sData, sData.FreePath);
                             sData.AddToFreePath(freeSpace);
                             List<HighlevelMove> boxongoalSolution;
                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxOnGoal.Value.EntType == EntityType.AGENT, out boxongoalSolution, sData, 0))
@@ -224,17 +224,17 @@ namespace BoxProblems.Solver
             //var sortedSolution = solution.Zip(sData.SolutionGraphs, (move, graph) => (move, graph)).OrderBy(x => x.move.MoveNumber);
             //solution = sortedSolution.Select(x => x.move).ToList();
             //sData.SolutionGraphs = sortedSolution.Select(x => x.graph).ToList();
-            for (int z = 0; z < sData.SolutionGraphs.Count; z++)
-            {
-                PrintLatestStateDiff(level, sData.SolutionGraphs, z);
-            }
+            //for (int z = 0; z < sData.SolutionGraphs.Count; z++)
+            //{
+            //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
+            //}
 
             return (solution, sData.SolutionGraphs);
         }
 
         private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth)
         {
-            if (depth == 30)
+            if (depth == 100)
             {
                 throw new Exception("sub problem depth limit reached.");
             }
@@ -333,7 +333,7 @@ namespace BoxProblems.Solver
                         continue;
                     }
 
-                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData.CurrentConflicts, sData.FreePath);
+                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData, sData.FreePath);
                     sData.AddToFreePath(freeSpace);
 
                     //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");

@@ -283,7 +283,7 @@ namespace BoxProblems.Solver
                         if (nodeOnGoal is BoxConflictNode boxOnGoal && boxOnGoal.Value.EntType != EntityType.GOAL)
                         {
                             int boxOnGoalIndex = sData.GetEntityIndex(boxOnGoal.Value.Ent);
-                            Point freeSpace = GetFreeSpaceToMoveConflictTo(goalToSolve, sData.CurrentConflicts, sData.FreePath);
+                            Point freeSpace = GetFreeSpaceToMoveConflictTo(goalToSolve, sData, sData.FreePath);
                             sData.AddToFreePath(freeSpace);
                             List<HighlevelMove> boxongoalSolution;
                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxOnGoal.Value.EntType == EntityType.AGENT, out boxongoalSolution, sData, 0))
@@ -323,17 +323,6 @@ namespace BoxProblems.Solver
             //solution = sortedSolution.Select(x => x.move).ToList();
             //sData.SolutionGraphs = sortedSolution.Select(x => x.graph).ToList();
 
-
-            //State state = level.InitialState;
-            //List<BoxConflictGraph> asad = new List<BoxConflictGraph>();
-            //for (int z = 0; z < sData.SolutionGraphs.Count; z++)
-            //{
-            //    state = state.GetModifiedState(solution[z]);
-            //    BoxConflictGraph graph = new BoxConflictGraph(state, level, new HashSet<Entity>());
-            //    asad.Add(graph);
-            //    PrintLatestStateDiff(level, asad);
-            //}
-
             //for (int z = 0; z < sData.SolutionGraphs.Count; z++)
             //{
             //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
@@ -344,7 +333,7 @@ namespace BoxProblems.Solver
 
         private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth)
         {
-            if (depth == 30)
+            if (depth == 100)
             {
                 throw new Exception("sub problem depth limit reached.");
             }
@@ -444,7 +433,7 @@ namespace BoxProblems.Solver
                         continue;
                     }
 
-                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData.CurrentConflicts, sData.FreePath);
+                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData, sData.FreePath);
                     sData.AddToFreePath(freeSpace);
 
                     //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");

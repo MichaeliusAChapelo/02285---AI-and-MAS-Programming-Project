@@ -1,0 +1,32 @@
+#domain
+hospital
+#levelname
+MAPullPush2
+#colors
+purple: 0, A
+orange: 1, B
+#initial
++++++
++A+ +
++0+ +
++ + +
++   +
++ + +
++ + +
++ + +
++ +1+
++ +B+
++++++
+#goal
++++++
++ +B+
++ + +
++ + +
++   +
++ + +
++ + +
++ + +
++ + +
++A+ +
++++++
+#end

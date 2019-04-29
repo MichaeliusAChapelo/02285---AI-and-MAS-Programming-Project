@@ -7,19 +7,30 @@ namespace BoxProblems
 {
     internal class NaiveSolver
     {
-        // Find some way to make the agent deal with boxes.
-        // Preferably by pushing from agent to box to goal in one whole path.
+        // TODO: Right now, an agent will attempt to "swap places" with a box,
+        // i.e., Push(W,E), which is an illegal move.
+        // Simple solution: Pull box along solution path until non-corridor space is encountered.
+
+        // How do we detect that a box nee
+
+        // TODO: Place box at some arbitrary place, probably not even the goal.
+        // This heuristic will be useful to find non-corridor spaces away from the goal.
+
+        /* One possible solution is to simply pull the box along the solution path
+         * until it is possible for the agent to do a turn-around?
+         */
 
         public static int totalAgentCount;
-        Level level;
+        readonly Level level;
         State currentState;
         List<AgentBoxGoalPairs?> priorities; // Box/Goal target for agents.
         List<EntityMapping?> mappings; // Agent paths.
         int[] waits; // How long each agent with a goal must wait.
         int g = 0; // Number of turns.
         Entity[] agents;
+        public static bool Solved { get; private set; }
 
-        public NaiveSolver(Level level) { this.level = level; }
+        public NaiveSolver(Level level) { this.level = level; Solved = false; }
 
         internal readonly struct AgentBoxGoalPairs
         {
@@ -42,12 +53,14 @@ namespace BoxProblems
             public readonly Entity Agent;
             public readonly int[,] DistanceMap;
             public List<Point> Solution; // Don't know if needed.
+            public readonly bool PullBox;
 
-            public EntityMapping(Entity Agent, int[,] DistanceMap, List<Point> Solution)
+            public EntityMapping(Entity Agent, int[,] DistanceMap, List<Point> Solution, bool PullBox)
             {
                 this.Agent = Agent;
                 this.DistanceMap = DistanceMap;
                 this.Solution = Solution;
+                this.PullBox = PullBox;
             }
         }
 
@@ -57,15 +70,11 @@ namespace BoxProblems
             currentState = level.InitialState;
             agents = level.GetAgents().ToArray();
 
-            while (true)
+            priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
+            mappings = InitialMappings(); // Parte Deux: Find path to destination
+
+            while (!IsGoalState())
             {
-                priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
-                // Do NOT rely on indexing from this list. Agents with nothing to do are not included in list!
-
-                mappings = InitialMappings(); // Parte Deux: Find path to destination
-
-                if (IsGoalState()) break; // If no agent has any goals, we at goal state boys.
-
                 waits = new int[agents.Length]; // Parte Trois: Locate agent conflicts. Is currently solved by waiting.
                 // For each pair of agents, calculate how long to wait. Agents last in priority list waits the most.
                 for (int i = 0; i < agents.Length - 1; ++i)
@@ -77,11 +86,15 @@ namespace BoxProblems
 
                 // Parte Cinq: Replace current state, then restart algorithm.
                 currentState = CreateCurrentState();
+
+                priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
+                mappings = InitialMappings(); // Parte Deux: Find path to destination
             }
             Console.Error.WriteLine("\n WE SOLVE, WE DONE");
+            Solved = true;
         }
 
-        // MULTI GOD FUNCTION
+        // POLY-THEIS-TIC GOD FUNCTION
         public List<string[]> AsyncSolve()
         {
             currentState = level.InitialState;
@@ -89,15 +102,11 @@ namespace BoxProblems
 
             List<string[]> commands = new List<string[]>() { };
 
-            while (true)
+            priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
+            mappings = InitialMappings(); // Parte Deux: Find path to destination
+
+            while (!IsGoalState())
             {
-                priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
-                // Do NOT rely on indexing from this list. Agents with nothing to do are not included in list!
-
-                mappings = InitialMappings(); // Parte Deux: Find path to destination
-
-                if (IsGoalState()) break; // If no agent has any goals, we at goal state boys.
-
                 waits = new int[agents.Length]; // Parte Trois: Locate agent conflicts. Is currently solved by waiting.
                 // For each pair of agents, calculate how long to wait. Agents last in priority list waits the most.
                 for (int i = 0; i < agents.Length - 1; ++i)
@@ -109,16 +118,14 @@ namespace BoxProblems
 
                 // Parte Cinq: Replace current state, then restart algorithm.
                 currentState = CreateCurrentState();
-            }
 
+                priorities = AssignGoals(); // Parte Uno: Assign agent goals. First in list should have highest priority.
+                mappings = InitialMappings(); // Parte Deux: Find path to destination
+            }
             return commands;
         }
 
         #region Zeroness: General purpose
-        public bool IsNextTo(Entity a, Entity b) { return Point.ManhattenDistance(a.Pos, b.Pos) == 1; }
-
-        public bool IsNextTo(Point a, Entity b) { return Point.ManhattenDistance(a, b.Pos) == 1; }
-
         public Direction PointToDirection(Point p1, Point p2)
         {
             Point delta = p2 - p1;
@@ -165,23 +172,30 @@ namespace BoxProblems
         {
             var mappings = new List<EntityMapping?>();
             foreach (AgentBoxGoalPairs? priority in priorities)
-                if (!priority.HasValue)
-                    mappings.Add(null);
-                else if (!priority.Value.AgentIsNextToBox)
-                    mappings.Add(CreateEntityMap(priority.Value.Agent, priority.Value.Box.Pos)); // Agent move to box
+                if (priority.HasValue)
+                    mappings.Add(CreateEntityMap(priority.Value));
                 else
-                {
-                    mappings.Add(CreateEntityMap(priority.Value.Box, priority.Value.Goal.Pos)); // Push box to goal
-                    mappings.Last().Value.Solution.Insert(0, priority.Value.Agent.Pos); // Add agent as first index.
-                    mappings.Last().Value.Solution.Add(priority.Value.Goal.Pos);
-                }
+                    mappings.Add(null);
             return mappings;
         }
 
-        public EntityMapping CreateEntityMap(Entity entity, Point destination)
+        public EntityMapping CreateEntityMap(AgentBoxGoalPairs priority)
         {
-            int[,] distanceMap = BFS(entity.Pos, destination);
-            return new EntityMapping(entity, distanceMap, BacktrackSolution(destination, distanceMap));
+            Point destination = (priority.AgentIsNextToBox) ? priority.Goal.Pos : priority.Box.Pos;
+            var distanceMap = BFS(priority.Agent.Pos, destination);
+            var solution = BacktrackSolution(destination, distanceMap);
+
+            if (priority.AgentIsNextToBox)
+                solution.Add(priority.Goal.Pos);
+
+            bool pull = (priority.AgentIsNextToBox && !solution.Contains(priority.Box.Pos));
+
+            if (pull)
+                solution.Insert(0, priority.Box.Pos);
+            //else if (!solution.Contains(priority.Agent.Pos))
+            //    solution.Insert(0, priority.Agent.Pos);
+
+            return new EntityMapping(priority.Agent, distanceMap, solution, pull);
         }
 
         public int[,] BFS(Point start, Point destination)
@@ -191,10 +205,11 @@ namespace BoxProblems
             var frontier = new Queue<Point>();
             frontier.Enqueue(start);
 
+            int dist;
+            Point p;
             while (frontier.Count != 0) // Explores the entire map. Suboptimal but safer.
-            //while (distanceMap[destination.X, destination.Y] != 0) // Stops once goal is found.
             {
-                Point p = frontier.Dequeue();
+                p = frontier.Dequeue();
 
                 if (level.Walls[p.X, p.Y])
                 {
@@ -202,7 +217,7 @@ namespace BoxProblems
                     continue;
                 }
 
-                int dist = 1337;
+                dist = 1337;
 
                 // Only adds if not explored.
                 AddIfUnexplored(new Point(p.X + 1, p.Y), distanceMap, frontier, start, ref dist);
@@ -213,6 +228,7 @@ namespace BoxProblems
                 // Set distance at point.
                 distanceMap[p.X, p.Y] = (p == start) ? 0 : dist + 1;
             }
+
             return distanceMap;
         }
 
@@ -281,12 +297,13 @@ namespace BoxProblems
         }
 
         public bool IsCorridor(Point p)
-        {
-            if (level.Walls[p.X + 1, p.Y] && level.Walls[p.X - 1, p.Y])
-                return true; // Vertical corridor
-            if (level.Walls[p.X, p.Y + 1] && level.Walls[p.X, p.Y - 1])
-                return true; // Horizontal corridor
-            return false; // No corridor
+        { // This works for corridor corners too.
+            int walls = 0;
+            if (level.Walls[p.X + 1, p.Y]) walls++;
+            if (level.Walls[p.X - 1, p.Y]) walls++;
+            if (level.Walls[p.X, p.Y + 1]) walls++;
+            if (level.Walls[p.X, p.Y - 1]) walls++;
+            return (2 <= walls);
         }
 
         #endregion
@@ -296,7 +313,8 @@ namespace BoxProblems
         // Continually writes commands until any agent needs a new goal.
         public void WriteCommands()
         {
-            while (!AgentReachedDestination())
+            bool assignNewGoal = false;
+            while (!AgentReachedDestination() && !assignNewGoal)
             {
                 g++; // Add turn count.
                 string[] commands = new string[agents.Length];
@@ -320,13 +338,30 @@ namespace BoxProblems
                         solution.RemoveAt(0);
                         commands[i] = ServerCommunicator.Move(d);
                     }
-                    else // Push box to goal.
+                    else if (!mappings[i].Value.PullBox) // Push box
                     {
                         var solution = mappings[i].Value.Solution;
-                        Direction d1 = PointToDirection(solution[0], solution[1]);
-                        Direction d2 = PointToDirection(solution[1], solution[2]);
+                        Direction moveDirAgent = PointToDirection(solution[0], solution[1]);
+                        Direction moveDirBox = PointToDirection(solution[1], solution[2]);
                         solution.RemoveAt(0);
-                        commands[i] = ServerCommunicator.Push(d1, d2);
+                        commands[i] = ServerCommunicator.Push(moveDirAgent, moveDirBox);
+                    }
+                    else // Pull box
+                    {
+                        var solution = mappings[i].Value.Solution;
+                        Direction currDirBox = PointToDirection(solution[1], solution[0]); // From agent to box pos, always.
+                        Direction moveDirAgent;
+                        if (IsCorridor(solution[1]))
+                            moveDirAgent = PointToDirection(solution[1], solution[2]); // Pull along corridor.
+                        else // Use free space to switch-a-roo, then break this function to start pushing.
+                        {
+                            Point turnTo = FindSpaceToTurn(agentPos: solution[1], boxPos: solution[0], nextPoint: solution[2]);
+                            moveDirAgent = PointToDirection(solution[1], turnTo);
+                            solution.Insert(2, turnTo); // Insert turn-around position at relevant index in list.
+                            assignNewGoal = true; // Break loop and assign new goal to this agent.
+                        }
+                        solution.RemoveAt(0);
+                        commands[i] = ServerCommunicator.Pull(moveDirAgent, currDirBox);
                     }
                 }
 
@@ -335,6 +370,22 @@ namespace BoxProblems
                     throw new Exception("Attempted illegal move.");
             }
         }
+
+        private Point FindSpaceToTurn(Point agentPos, Point boxPos, Point nextPoint)
+        {
+            Point[] points = new Point[4] { new Point(1, 0), new Point(-1, 0), new Point(0, 1), new Point(0, -1) };
+
+            foreach (Point testDir in points)
+            {
+                var p = agentPos + testDir;
+                if (p != boxPos && p != nextPoint && !level.Walls[p.X, p.Y]) return p;
+            }
+            throw new Exception("Agent pos was corridor, but no extra space was found.");
+        }
+
+
+
+
 
         // This is an asynchronous version of WriteCommands().
         public List<string[]> ReturnCommands()
@@ -398,7 +449,10 @@ namespace BoxProblems
             // Set agents positions.
             for (int i = 0; i < agents.Length; ++i)
                 if (mappings[i].HasValue)
-                    agents[i] = new Entity(mappings[i].Value.Solution[0], agents[i].Color, agents[i].Type);
+                    if (!mappings[i].Value.PullBox)
+                        agents[i] = new Entity(mappings[i].Value.Solution[0], agents[i].Color, agents[i].Type);
+                    else
+                        agents[i] = new Entity(mappings[i].Value.Solution[1], agents[i].Color, agents[i].Type);
 
             // Set box positions.
             var boxes = currentState.GetBoxes(level);
@@ -407,7 +461,8 @@ namespace BoxProblems
             {
                 if (!priorities[i].HasValue || !priorities[i].Value.AgentIsNextToBox) continue;
                 int boxIndex = MatchBox(i, boxes);
-                boxes[boxIndex] = new Entity(mappings[i].Value.Solution[1], boxes[boxIndex].Color, boxes[boxIndex].Type);
+                Point position = (!mappings[i].Value.PullBox) ? mappings[i].Value.Solution[1] : mappings[i].Value.Solution[0];
+                boxes[boxIndex] = new Entity(position, boxes[boxIndex].Color, boxes[boxIndex].Type);
             }
 
             return new State(currentState, agents.Concat(boxes.ToArray()).ToArray(), g);
@@ -432,78 +487,5 @@ namespace BoxProblems
         #endregion
     }
 
-    #region Old A* algorithm, 02148
-    //public class AStar
-    //{
-    //    public static List<Node> Run(Node start, Node goal)
-    //    {
-    //        var ClosedSet = new List<Node>();
-    //        var OpenSet = new List<Node>() { start };
-    //        var CameFrom = new Dictionary<Node, Node>();
-    //        start.SetGScore(0);
-    //        start.SetFScore(start.CalculateCosts(goal));
 
-    //        while (OpenSet.Count != 0)
-    //        {
-    //            Node current = OpenSet[0];
-    //            foreach (Node n in OpenSet)
-    //                if (n.FScore < current.FScore)
-    //                    current = n;
-    //            if (current.IsGoalState(goal))
-    //                return ReconstructPath(CameFrom, current);
-
-    //            OpenSet.Remove(current);
-    //            ClosedSet.Add(current);
-
-    //            foreach (Node neighbor in current.Edges)
-    //            {
-    //                if (ClosedSet.Contains(neighbor))
-    //                    continue;
-    //                double tentative_GScore = current.GScore + current.CalculateCosts(neighbor);
-    //                if (!OpenSet.Contains(neighbor))
-    //                    OpenSet.Add(neighbor);
-    //                else if (tentative_GScore >= neighbor.GScore)
-    //                    continue;
-    //                CameFrom.Add(neighbor, current);
-    //                neighbor.SetGScore(tentative_GScore);
-    //                neighbor.SetFScore(neighbor.GScore + neighbor.CalculateCosts(goal));
-    //            }
-    //        }
-    //        return null;
-    //    }
-
-    //    private static List<Node> ReconstructPath(Dictionary<Node, Node> CameFrom, Node current)
-    //    {
-    //        var TotalPath = new List<Node>() { current };
-    //        while (CameFrom.ContainsKey(current))
-    //        {
-    //            current = CameFrom[current];
-    //            TotalPath.Add(current);
-    //        }
-    //        TotalPath.Reverse();
-    //        return TotalPath;
-    //    }
-
-    //    public interface INode
-    //    {
-    //        double CalculateCosts(Node n);
-    //        bool IsGoalState(Node n);
-    //        void SetFScore(double i);
-    //        void SetGScore(double i);
-    //    }
-
-    //    public abstract class Node : INode
-    //    {
-    //        public List<Node> Edges = new List<Node>();
-    //        public double FScore = 0;
-    //        public double GScore = 0;
-
-    //        public abstract double CalculateCosts(Node n);
-    //        public abstract bool IsGoalState(Node n);
-    //        public abstract void SetFScore(double i);
-    //        public abstract void SetGScore(double i);
-    //    }
-
-    //}
-    #endregion
 }

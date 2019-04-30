@@ -231,7 +231,7 @@ namespace BoxProblems.Solver
                     cancelToken.ThrowIfCancellationRequested();
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
-
+                    sData.CurrentConflicts.AddFreeSpaceNodes(level);
                     Entity goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData.CurrentConflicts);
 
 
@@ -272,6 +272,17 @@ namespace BoxProblems.Solver
                             if (goalsWithHigherPriority.Count == 0)
                             {
                                 throw new Exception("level will be split by this action.");
+                            }
+                        }
+                        else
+                        {
+                            foreach (var layer in goalPriorityLinkedLayers)
+                            {
+                                foreach (var goal in goalsWithHigherPriority)
+                                {
+                                    layer.Goals.Remove(goal);
+                                }
+
                             }
                         }
 
@@ -401,9 +412,6 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
-            //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
-            //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
-
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
             //Console.WriteLine(solutionToSubProblem.Last());
             return true;

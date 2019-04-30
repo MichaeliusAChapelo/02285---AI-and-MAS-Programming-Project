@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BoxProblems.Solver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,6 +33,8 @@ namespace BoxProblems
 
         public NaiveSolver(Level level) { this.level = level; Solved = false; }
 
+        public static List<HighlevelMove> plan;
+
         internal readonly struct AgentBoxGoalPairs
         {
             public readonly Entity Agent;
@@ -44,6 +47,17 @@ namespace BoxProblems
                 this.Agent = Agent;
                 this.Box = Box;
                 this.Goal = Goal;
+                this.AgentIsNextToBox = (Point.ManhattenDistance(Agent.Pos, Box.Pos) == 1);
+            }
+
+            public AgentBoxGoalPairs(HighlevelMove move)
+            {
+                if (!move.UsingThisAgent.HasValue)
+                    throw new Exception("Could not convert HighlevelMove to AgentBoxGoalPairs; No agent specified.");
+
+                this.Agent = move.UsingThisAgent.Value;
+                this.Box = move.MoveThis;
+                this.Goal = new Entity(move.ToHere, Box.Color, Box.Type);
                 this.AgentIsNextToBox = (Point.ManhattenDistance(Agent.Pos, Box.Pos) == 1);
             }
         }
@@ -126,7 +140,7 @@ namespace BoxProblems
         }
 
         #region Zeroness: General purpose
-        public Direction PointToDirection(Point p1, Point p2)
+        public static Direction PointToDirection(Point p1, Point p2)
         {
             Point delta = p2 - p1;
 
@@ -147,10 +161,37 @@ namespace BoxProblems
         // Gives all agents a goal.
         public List<AgentBoxGoalPairs?> AssignGoals()
         {
-            var priorities = new List<AgentBoxGoalPairs?>();
-            foreach (Entity agent in agents)
-                priorities.Add(AssignAgentGoal(agent));
-            return priorities;
+            var newPriorities = new List<AgentBoxGoalPairs?>();
+            if (plan == null)
+                foreach (Entity agent in agents)
+                    newPriorities.Add(AssignAgentGoal(agent));
+            else
+            {
+                var move = plan[0];
+                plan.RemoveAt(0);
+
+                // Check if previous move is unfinished and has pending moves.
+                for (int i = 0; i < agents.Length; ++i)
+                    if ( // Continue previously unfinished high-level move
+                        priorities != null && // not initial state
+                        priorities[i].HasValue && // this agent == prev active agent
+                        !priorities[i].Value.AgentIsNextToBox) // was not next to box previously
+                    {
+                        plan.Insert(0, move); // Reinsert unused move.
+                        var prevPair = priorities[i].Value;
+                        var newPair = new AgentBoxGoalPairs(
+                            agents[i], // new agent position
+                            prevPair.Box, // same box position
+                            prevPair.Goal); // same (potentially) "fake" goal.
+                        newPriorities.Add(newPair);
+                    }
+                    else if (move.UsingThisAgent.Value.Type != agents[i].Type)
+                        newPriorities.Add(null);
+                    else
+                        newPriorities.Add(new AgentBoxGoalPairs(move));
+
+            }
+            return newPriorities;
         }
 
         //For assigning individual agents
@@ -438,9 +479,9 @@ namespace BoxProblems
                 if (!priorities[i].HasValue)
                     continue;
                 else if (priorities[i].Value.AgentIsNextToBox && mappings[i].Value.Solution.Count == 2)
-                    return true;
+                    return true; // Agent reached a targeted box.
                 else if (!priorities[i].Value.AgentIsNextToBox && mappings[i].Value.Solution.Count == 1)
-                    return true;
+                    return true; // Agent pushed box to target goal.
             return false;
         }
 

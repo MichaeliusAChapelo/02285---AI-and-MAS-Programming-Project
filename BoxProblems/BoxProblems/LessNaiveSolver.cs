@@ -1,0 +1,330 @@
+﻿using BoxProblems.Solver;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+//#nullable enable
+
+namespace BoxProblems
+{
+    internal class LessNaiveSolver
+    {
+        private readonly Level Level;
+        private State CurrentState;
+        private List<HighlevelMove> Plan;
+        //int[] Waits;
+        //private int g = 0;
+        private Entity[] Agents;
+        public static bool Solved { get; private set; }
+
+        public LessNaiveSolver(Level level, List<HighlevelMove> plan)
+        {
+            this.Level = level;
+            Solved = false;
+            this.Plan = plan;
+            Agents = Level.GetAgents().ToArray();
+        }
+
+        // GOD FUNCTION DEUX
+        public void Solve()
+        {
+
+            foreach (HighlevelMove plan in Plan)
+            //while (Plan.Count != 0)
+            {
+                // 1) Create current state
+                //CurrentState = plan.CurrentState;
+
+                //CurrentState = plan.CurrentState;
+                //Agents = CurrentState.GetAgents(Level).ToArray();
+
+                // 2) Manhatten A* to solution; This time, try to break the search
+                // 3) Convert to high level moves to low level commands
+                // Includes U-turning boxes (from pull to push)
+                var commands = CreateOnlyFirstSolutionCommand(plan);
+
+                // 4) Conflicts
+                // Use the multiple solution paths to create a data structure mapping conflicts, then modify solutions.
+
+                // 5) Loop through commands
+                //int index = Array.IndexOf(Agents, plan.UsingThisAgent);
+                int index = Array.IndexOf(Agents, plan.UsingThisAgent);
+                OutputCommands(commands, index);
+
+                // 6) Set agent positions proper.
+                //SetAgentPosition();
+                if (plan.UsingThisAgent == null)
+                    Agents[index] = Agents[index].Move(plan.ToHere);
+
+                //sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
+
+            }
+            Solved = true;
+        }
+
+        // Temporary: Only moving one agent at a time.
+        public void OutputCommands(List<string> commands, int agentIndex)
+        {
+            Console.Error.WriteLine("AYYYY agentIndex: " + agentIndex);
+
+            string[] output = new string[Agents.Length];
+
+            foreach (string c in commands)
+            {
+                Array.Fill(output, ServerCommunicator.NoOp());
+                output[agentIndex] = c;
+
+                string response = ServerCommunicator.Command(output);
+                if (response.Contains("false")) throw new Exception("Sent illegal command to server.");
+            }
+
+            //while (commands.Count != 0)
+            //{
+            //    for (int i = 0; i < Agents.Length; ++i)
+            //        if (i == agentIndex)
+            //        {
+            //            output[i] = commands[0];
+            //            commands.RemoveAt(0);
+            //        }
+            //        else
+            //            output[i] = ServerCommunicator.NoOp();
+
+            //    string response = ServerCommunicator.Command(output);
+            //    if (response.Contains("false")) throw new Exception("Sent illegal command to server.");
+            //}
+
+        }
+
+        #region Abstract Moves to Specific Commands
+
+        public List<string> CreateOnlyFirstSolutionCommand(HighlevelMove move)
+        {
+            var box = move.MoveThis;
+            //Plan.Remove(move);
+
+            // Make all blockages into "fake" walls
+            foreach (Entity e in move.CurrentState.Entities)
+                Level.AddWall(e.Pos);
+
+            List<string> result;
+
+            if (move.UsingThisAgent.HasValue)
+                result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));
+            else
+                result = MoveToLocation(box.Pos, move.ToHere);
+
+            Level.ResetWalls();
+            return result;
+
+            //for (agentIndex = 0; agentIndex < Agents.Length; ++agentIndex)
+            //    if (move.UsingThisAgent == Agents[agentIndex])
+            //        return CreateSolutionCommands(agent: Agents[agentIndex], box: box, goal: new Entity(move.ToHere, box.Color, box.Type));
+
+            throw new Exception("High Level Move did not specify which agent to use.");
+        }
+
+        //public void CreateAllSolutionCommands() // Don't use until you're ready to run multiple agents, calculate conflicts, and perhaps parallellize.
+        //{
+        //    foreach (Entity agent in Agents)
+        //        foreach (HighlevelMove move in Plan)
+        //            if (agent == move.UsingThisAgent)
+        //            {
+        //                var box = move.MoveThis;
+        //                CreateSolutionCommands(move.UsingThisAgent.Value, box,
+        //                    new Entity(move.ToHere, box.Color, box.Type));
+        //                break;
+        //            }
+        //}
+
+        public List<string> CreateSolutionCommands(Entity agent, Entity box, Entity goal)
+        {
+            Level.RemoveWall(agent.Pos);
+            Level.RemoveWall(box.Pos);
+
+            var commands = new List<string>();
+            DistanceMap = new int[Level.Width, Level.Height];
+            DistanceMapOffset = 0;
+
+            // Does agent need to move to box position first?
+            Point agentPosNextToBox;
+            if (Point.ManhattenDistance(agent.Pos, box.Pos) != 1)
+                agentPosNextToBox = MoveToBox(agent, box, ref commands);
+            else
+                agentPosNextToBox = agent.Pos;
+            Console.Error.WriteLine("agentPosNextToBox: " + agentPosNextToBox.ToString());
+
+            var toGoal = RunAStar(box.Pos, goal.Pos);
+            bool ShouldPush = !toGoal.Contains(agentPosNextToBox); // always true right now
+            if (ShouldPush)
+                toGoal.Insert(0, agentPosNextToBox);
+
+            //if (!CanPush)
+            //    toGoal.Insert(0, box.Pos);
+
+            // Strategy: Check if need to pull: If yes, keep pulling until I can U-turn into pushing. Then push until end.
+            for (int i = 2; i < toGoal.Count; i++)
+                if (!ShouldPush) // then pull
+                    commands.Add(Pull(toGoal, ref i, ref ShouldPush));
+                else // push
+                    commands.Add(Push(toGoal, i));
+
+            Point newAgentPosition = toGoal[toGoal.Count - 2];
+
+            //SetAgentPosition(agent, newAgentPosition); // Much more preferable, but troublesome. Wait till heuristics improve.
+            MoveToLocation(newAgentPosition, agent.Pos, ref commands); // thats just how it is rite now i aint making them heuristics dawg
+
+            Level.ResetWalls();
+
+            return commands;
+        }
+
+        #region Solution Command Generation
+
+        private Point MoveToBox(Entity agent, Entity box, ref List<string> commands)
+        {
+            var toBox = RunAStar(agent.Pos, box.Pos);
+
+            toBox.Remove(toBox.Last()); // Remove box' position from solution list
+            for (int i = 1; i < toBox.Count; ++i)
+                commands.Add(ServerCommunicator.Move(NaiveSolver.PointToDirection(toBox[i - 1], toBox[i])));
+            DistanceMapOffset = commands.Count;
+            return toBox.Last(); // Return agent's destination, so next to box.
+        }
+
+        private List<string> MoveToLocation(Point agentFrom, Point destination)
+        {
+            var commands = new List<string>();
+            MoveToLocation(agentFrom, destination, ref commands);
+            return commands;
+        }
+
+        private void MoveToLocation(Point agentFrom, Point destination, ref List<string> commands)
+        {
+            var toDest = RunAStar(agentFrom, destination);
+            for (int i = 1; i < toDest.Count; ++i)
+                commands.Add(ServerCommunicator.Move(NaiveSolver.PointToDirection(toDest[i - 1], toDest[i])));
+        }
+
+        private string Push(List<Point> toGoal, int index)
+        {
+            Direction moveDirAgent = NaiveSolver.PointToDirection(toGoal[index - 2], toGoal[index - 1]);
+            Direction moveDirBox = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index]);
+            return ServerCommunicator.Push(moveDirAgent, moveDirBox);
+        }
+
+        private string Pull(List<Point> toGoal, ref int index, ref bool CanPush)
+        {
+            Direction currDirBox = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index - 2]);
+            Direction moveDirAgent;
+
+            if (IsCorridor(toGoal[index - 1]))
+                moveDirAgent = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index]);
+            else
+                moveDirAgent = UTurn(toGoal, ref index, ref CanPush); // Use free space to U-turn and add to solution
+
+            return ServerCommunicator.Pull(moveDirAgent, currDirBox);
+        }
+
+        private Direction UTurn(List<Point> toGoal, ref int index, ref bool CanPush)
+        {
+            Point turnTo = FindSpaceToTurn(agentPos: toGoal[index - 1], boxPos: toGoal[index - 2], nextPoint: toGoal[index]);
+            toGoal.Insert(index, toGoal[index - 1]);
+            toGoal.Insert(index, turnTo);
+            // So this works in the server, but can we do SOMETHING to remove that illegal command?
+            //index++;
+            CanPush = true;
+            return NaiveSolver.PointToDirection(toGoal[index - 1], turnTo);
+        }
+
+        #endregion
+
+        #region A* Search Algorithm
+
+        private int[,] DistanceMap;
+        private int DistanceMapOffset = 0;
+        private readonly Point[] neighboursPoints = new Point[4] { new Point(1, 0), new Point(-1, 0), new Point(0, 1), new Point(0, -1) };
+
+        public List<Point> RunAStar(Point start, Point end)
+        {
+            return Precomputer.GetPath(Level, start, end, false).ToList();
+
+            // LOL
+
+
+            //var frontier = new PriorityQueue<Point, int>();
+            //var cameFrom = new Dictionary<Point, Point>();
+            //frontier.Enqueue(start, Point.ManhattenDistance(start, end));
+
+            //Point currentPoint;
+            //while (frontier.Count != 0)
+            //{
+            //    currentPoint = frontier.Dequeue();
+            //    if (currentPoint == end)
+            //        return ReconstructPath(cameFrom, currentPoint);
+
+            //    foreach (Point neighbourPoint in neighboursPoints)
+            //    {
+            //        var p = currentPoint + neighbourPoint;
+            //        if (cameFrom.ContainsValue(p) || cameFrom.ContainsKey(p))
+            //            continue;
+            //        else if (!IsWall(p))
+            //        {
+            //            frontier.Enqueue(p, Point.ManhattenDistance(p, end));
+            //            cameFrom.Add(p, currentPoint);
+            //        }
+            //        else
+            //            DistanceMap[p.X, p.Y] = int.MaxValue; // Set to high value to indicate wall.
+            //    }
+            //}
+            //throw new Exception("Could not find path to desired location.");
+            ////return null;
+
+
+        }
+
+        public List<Point> ReconstructPath(Dictionary<Point, Point> cameFrom, Point current)
+        {
+            var TotalPath = new List<Point>() { current };
+            while (cameFrom.ContainsKey(current))
+            {
+                current = cameFrom[current];
+                TotalPath.Add(current);
+            }
+            TotalPath.Reverse();
+
+            for (int i = 0; i < TotalPath.Count; ++i)
+                DistanceMap[TotalPath[i].X, TotalPath[i].Y] = i + DistanceMapOffset;
+
+            return TotalPath;
+        }
+
+        private bool IsWall(Point p) { return Level.Walls[p.X, p.Y]; }
+
+        #endregion
+
+
+        public bool IsCorridor(Point p)
+        { // This works for corridor corners too.
+            int walls = 0;
+            if (Level.Walls[p.X + 1, p.Y]) walls++;
+            if (Level.Walls[p.X - 1, p.Y]) walls++;
+            if (Level.Walls[p.X, p.Y + 1]) walls++;
+            if (Level.Walls[p.X, p.Y - 1]) walls++;
+            return (2 <= walls);
+        }
+
+        private Point FindSpaceToTurn(Point agentPos, Point boxPos, Point nextPoint)
+        {
+            foreach (Point testDir in neighboursPoints)
+            {
+                var p = agentPos + testDir;
+                if (p != boxPos && p != nextPoint && !Level.Walls[p.X, p.Y]) return p;
+            }
+            throw new Exception("Agent pos was corridor, but no extra space was found.");
+        }
+
+        #endregion
+
+
+    }
+}

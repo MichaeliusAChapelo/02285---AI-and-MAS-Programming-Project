@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BoxProblems.Solver;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -8,28 +9,47 @@ using System.Threading.Tasks;
 
 namespace BoxProblems
 {
-    internal class ServerCommunicator
+    public class ServerCommunicator
     {
         const string strategy = "-astar";
+
         //const string levelPath = "MAKarlMarx.lvl";
-        //const string levelPath = @"Levels\New_Format\MAExample.lvl";
-        //const string levelPath = @"Levels\New_Format\MAPullPush.lvl";
-        const string levelPath = @"Levels\New_Format\MAFiveWalls.lvl";
-        //const string levelPath = @"Levels\New_Format\MAPullPush2.lvl";
-        //const string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
-        //const string levelPath = @"Levels\New_Format\MACorridor.lvl";
-        //const string levelPath = @"Levels\New_Format\SAlabyrinthOfStBertin.lvl"; //MABahaMAS.lvl";
-        //const string levelPath = @"Levels\New_Format\MAKarlMarx.lvl";
+        //public static string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
+
+        //public static string levelPath = @"Levels\New_Format\MAExample.lvl";
+        //public static string levelPath = @"Levels\New_Format\SAExample.lvl";
+        //public static string levelPath = @"Levels\New_Format\SAExample2.lvl";
+        //public static string levelPath = @"Levels\New_Format\MAPullPush.lvl";
+        //public static string levelPath = @"Levels\New_Format\MAFiveWalls.lvl";
+        //public static string levelPath = @"Levels\New_Format\MAPullPush2.lvl";
+        //public static string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
+        public static string levelPath = @"Levels\New_Format\MACorridor.lvl";
+        //public static string levelPath = @"Levels\New_Format\SAlabyrinthOfStBertin.lvl"; //MABahaMAS.lvl";
+        //public static string levelPath = @"Levels\New_Format\MAKarlMarx.lvl";
+
+
 
         public static bool SkipConsoleRead = false;
+
+        public ServerCommunicator() { }
+        public ServerCommunicator(List<List<HighlevelMove>> highlevelMoves)
+        {
+
+            List<HighlevelMove> allMoves = new List<HighlevelMove>();
+
+            foreach (List<HighlevelMove> list in highlevelMoves)
+                allMoves.AddRange(list);
+
+            NaiveSolver.plan = allMoves;
+        }
 
         public void Run(string[] args)
         {
             if (args.Length == 0)
-                System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxProblems.dll {strategy}' -g 150 -t 300");
+                System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300");
             else
             {
-                PrintMap(); // Definitely not necessary.
+                PrintMap(); // Michaelius: With the new solver, everything messes up if I don't print this. DON'T ASK, I DON'T KNOW WHY
 
                 // Pick one!
                 NonAsyncSolve();
@@ -39,7 +59,8 @@ namespace BoxProblems
 
         public void NonAsyncSolve()
         {
-            var solver = new NaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)));
+            //var solver = new NaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)));
+            var solver = new LessNaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)), NaiveSolver.plan);
             solver.Solve(); // A most convenient function.
         }
 
@@ -117,21 +138,22 @@ namespace BoxProblems
             Console.WriteLine(command);
             if (SkipConsoleRead) return string.Empty;
             string response = Console.ReadLine();
-            Console.Error.WriteLine(command + "\n" + response);
+
+            Console.Error.WriteLine("COMMAND: " + command + "\nRESPONSE: " + response);
             return response;
         }
 
-        public static string Command(string[] commands) { return Command(String.Join(';', commands)); }
-        public static string Command(List<string> commands) { return Command(String.Join(';', commands)); }
+        internal static string Command(string[] commands) { return Command(String.Join(';', commands)); }
+        internal static string Command(List<string> commands) { return Command(String.Join(';', commands)); }
 
-        public static string NoOp() { return "NoOp"; }
-        public static string Move(Direction agentDirection) { return "Move(" + agentDirection.ToString() + ")"; }
-        public static string Push(Direction agentDirection, Direction boxDirection) { return "Push(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
-        public static string Pull(Direction agentDirection, Direction boxDirection) { return "Pull(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
+        internal static string NoOp() { return "NoOp"; }
+        internal static string Move(Direction agentDirection) { return "Move(" + agentDirection.ToString() + ")"; }
+        internal static string Push(Direction agentDirection, Direction boxDirection) { return "Push(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
+        internal static string Pull(Direction agentDirection, Direction boxDirection) { return "Pull(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
 
-        public static string Move(char agentDirection) { return "Move(" + agentDirection + ")"; }
-        public static string Push(char agentDirection, char boxDirection) { return "Push(" + agentDirection + "," + boxDirection + ")"; }
-        public static string Pull(char agentDirection, char boxDirection) { return "Pull(" + agentDirection + "," + boxDirection + ")"; }
+        internal static string Move(char agentDirection) { return "Move(" + agentDirection + ")"; }
+        internal static string Push(char agentDirection, char boxDirection) { return "Push(" + agentDirection + "," + boxDirection + ")"; }
+        internal static string Pull(char agentDirection, char boxDirection) { return "Pull(" + agentDirection + "," + boxDirection + ")"; }
 
     }
 }

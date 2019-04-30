@@ -255,10 +255,10 @@ namespace BoxProblems
                 }
             }
 
-            //for (int z = 0; z < solution.Count; z++)
-            //{
-            //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
-            //}
+            for (int z = 0; z < solution.Count; z++)
+            {
+                PrintLatestStateDiff(level, sData.SolutionGraphs, z);
+            }
 
             return (solution, sData.SolutionGraphs);
         }

@@ -65,8 +65,6 @@ namespace BoxProblems
         // Temporary: Only moving one agent at a time.
         public void OutputCommands(List<string> commands, int agentIndex)
         {
-            Console.Error.WriteLine("AYYYY agentIndex: " + agentIndex);
-
             string[] output = new string[Agents.Length];
 
             foreach (string c in commands)
@@ -102,16 +100,21 @@ namespace BoxProblems
             var box = move.MoveThis;
             //Plan.Remove(move);
 
+            //Console.Error.WriteLine("MOVING TO LOCATION" + move.ToHere);
+            //Console.Error.WriteLine("");
+
             // Make all blockages into "fake" walls
             foreach (Entity e in move.CurrentState.Entities)
                 Level.AddWall(e.Pos);
 
             List<string> result;
 
+
             if (move.UsingThisAgent.HasValue)
                 result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));
             else
                 result = MoveToLocation(box.Pos, move.ToHere);
+
 
             Level.ResetWalls();
             return result;
@@ -140,6 +143,7 @@ namespace BoxProblems
         {
             Level.RemoveWall(agent.Pos);
             Level.RemoveWall(box.Pos);
+            Level.RemoveWall(goal.Pos);
 
             var commands = new List<string>();
             DistanceMap = new int[Level.Width, Level.Height];
@@ -151,25 +155,44 @@ namespace BoxProblems
                 agentPosNextToBox = MoveToBox(agent, box, ref commands);
             else
                 agentPosNextToBox = agent.Pos;
-            Console.Error.WriteLine("agentPosNextToBox: " + agentPosNextToBox.ToString());
 
             var toGoal = RunAStar(box.Pos, goal.Pos);
             bool ShouldPush = !toGoal.Contains(agentPosNextToBox); // always true right now
             if (ShouldPush)
                 toGoal.Insert(0, agentPosNextToBox);
 
-            //if (!CanPush)
-            //    toGoal.Insert(0, box.Pos);
-
             // Strategy: Check if need to pull: If yes, keep pulling until I can U-turn into pushing. Then push until end.
-            for (int i = 2; i < toGoal.Count; i++)
-                if (!ShouldPush) // then pull
-                    commands.Add(Pull(toGoal, ref i, ref ShouldPush));
-                else // push
+            if (!ShouldPush)
+            {
+                List<Point> parteUn = new List<Point>();
+                List<Point> parteDeux = new List<Point>();
+
+                for (int i = 0; i < toGoal.Count; ++i)
+                    if (!IsCorridor(toGoal[i]))
+                    {
+                        Point turnTo = FindSpaceToTurn(toGoal, toGoal[i]);
+                        parteUn.AddRange(toGoal.Take(i + 1));
+                        parteUn.Add(turnTo);
+
+                        for (int j = 2; j < parteUn.Count; ++j)
+                            commands.Add(Pull(parteUn, j));
+
+                        // Push
+                        parteDeux.Add(turnTo);
+                        parteDeux.AddRange(toGoal.Skip(i));
+
+                        for (int j = 2; j < parteDeux.Count; ++j)
+                            commands.Add(Push(parteDeux, j));
+                        break;
+                    }
+            }
+            else
+                for (int i = 2; i < toGoal.Count; i++)
                     commands.Add(Push(toGoal, i));
 
             Point newAgentPosition = toGoal[toGoal.Count - 2];
 
+            Level.AddWall(goal.Pos);
             //SetAgentPosition(agent, newAgentPosition); // Much more preferable, but troublesome. Wait till heuristics improve.
             MoveToLocation(newAgentPosition, agent.Pos, ref commands); // thats just how it is rite now i aint making them heuristics dawg
 
@@ -212,28 +235,11 @@ namespace BoxProblems
             return ServerCommunicator.Push(moveDirAgent, moveDirBox);
         }
 
-        private string Pull(List<Point> toGoal, ref int index, ref bool CanPush)
+        private string Pull(List<Point> toGoal, int index)
         {
             Direction currDirBox = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index - 2]);
-            Direction moveDirAgent;
-
-            if (IsCorridor(toGoal[index - 1]))
-                moveDirAgent = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index]);
-            else
-                moveDirAgent = UTurn(toGoal, ref index, ref CanPush); // Use free space to U-turn and add to solution
-
+            Direction moveDirAgent = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index]);
             return ServerCommunicator.Pull(moveDirAgent, currDirBox);
-        }
-
-        private Direction UTurn(List<Point> toGoal, ref int index, ref bool CanPush)
-        {
-            Point turnTo = FindSpaceToTurn(agentPos: toGoal[index - 1], boxPos: toGoal[index - 2], nextPoint: toGoal[index]);
-            toGoal.Insert(index, toGoal[index - 1]);
-            toGoal.Insert(index, turnTo);
-            // So this works in the server, but can we do SOMETHING to remove that illegal command?
-            //index++;
-            CanPush = true;
-            return NaiveSolver.PointToDirection(toGoal[index - 1], turnTo);
         }
 
         #endregion
@@ -311,6 +317,16 @@ namespace BoxProblems
             if (Level.Walls[p.X, p.Y + 1]) walls++;
             if (Level.Walls[p.X, p.Y - 1]) walls++;
             return (2 <= walls);
+        }
+
+        private Point FindSpaceToTurn(List<Point> solutionPath, Point agentPos)
+        {
+            foreach (Point testDir in neighboursPoints)
+            {
+                var p = agentPos + testDir;
+                if (!solutionPath.Contains(p) && !Level.Walls[p.X, p.Y]) return p;
+            }
+            throw new Exception("Agent pos was corridor, but no extra space was found.");
         }
 
         private Point FindSpaceToTurn(Point agentPos, Point boxPos, Point nextPoint)

@@ -18,12 +18,13 @@ namespace BoxProblems
 
         //public static string levelPath = @"Levels\New_Format\MAExample.lvl";
         //public static string levelPath = @"Levels\New_Format\SAExample.lvl";
+        public static string levelPath = @"Levels\New_Format\SACrunch.lvl";
         //public static string levelPath = @"Levels\New_Format\SAExample2.lvl";
         //public static string levelPath = @"Levels\New_Format\MAPullPush.lvl";
         //public static string levelPath = @"Levels\New_Format\MAFiveWalls.lvl";
         //public static string levelPath = @"Levels\New_Format\MAPullPush2.lvl";
         //public static string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
-        public static string levelPath = @"Levels\New_Format\MACorridor.lvl";
+        //public static string levelPath = @"Levels\New_Format\MACorridor.lvl";
         //public static string levelPath = @"Levels\New_Format\SAlabyrinthOfStBertin.lvl"; //MABahaMAS.lvl";
         //public static string levelPath = @"Levels\New_Format\MAKarlMarx.lvl";
 

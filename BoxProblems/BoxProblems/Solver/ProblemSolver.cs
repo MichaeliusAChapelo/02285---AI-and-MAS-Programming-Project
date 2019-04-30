@@ -284,8 +284,8 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
-            //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
-            //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(currentConflicts);
+            PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+            GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
             return true;

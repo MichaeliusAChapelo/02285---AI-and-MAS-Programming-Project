@@ -31,7 +31,7 @@ namespace BoxPerformance
 
             Parallel.ForEach(filePaths, x =>
             {
-                var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(180), false);
+                var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(5), false);
                 Console.WriteLine($"{statistic.Status.ToString()} {Path.GetFileName(x)} ");
                 statisticsBag.Add(statistic);
             });

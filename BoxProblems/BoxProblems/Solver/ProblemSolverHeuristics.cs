@@ -8,9 +8,9 @@ namespace BoxProblems.Solver
 {
     public static partial class ProblemSolver
     {
-        private static Entity GetGoalToSolve(GoalNode[] goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts, HashSet<Entity> solvedGoals)
+        private static Entity GetGoalToSolve(HashSet<Entity> goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts)
         {
-            return goals.Where(x => !solvedGoals.Contains(x.Value.Ent)).First().Value.Ent;
+            return goals.First();
         }
 
         private static Entity GetBoxToSolveProblem(BoxConflictGraph currentConflicts, Entity goal)

@@ -218,25 +218,21 @@ namespace BoxProblems.Solver
             //Console.WriteLine(priority);
             SolverData sData = new SolverData(level, cancelToken);
             HashSet<Entity> solvedGoals = new HashSet<Entity>();
-            Stack<Entity> goalsToDoFirst = new Stack<Entity>();
-            foreach (var goalPriorityLayer in priority.PriorityLayers)
+
+            var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
+            var currentLayerNode = goalPriorityLinkedLayers.First;
+            while (currentLayerNode != null)
             {
-                int goalsFinished = 0;
-                while (goalsFinished < goalPriorityLayer.Length)
+                var currentLayer = currentLayerNode.Value;
+                bool goToNextLayer = true;
+
+                while (currentLayer.Goals.Count > 0)
                 {
                     cancelToken.ThrowIfCancellationRequested();
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
 
-                    Entity goalToSolve;
-                    if (goalsToDoFirst.Count > 0)
-                    {
-                        goalToSolve = goalsToDoFirst.Pop();
-                    }
-                    else
-                    {
-                        goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
-                    }
+                    Entity goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData.CurrentConflicts);
 
 
                     sData.Level.AddPermanentWalll(goalToSolve.Pos);
@@ -248,8 +244,8 @@ namespace BoxProblems.Solver
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups))
                     {
-                        bool hadGoalToPrioritize = false;
                         var mainGroup = GetMainGraphGroup(graphGroups);
+                        List<Entity> goalsWithHigherPriority = new List<Entity>();
                         foreach (var group in graphGroups)
                         {
                             if (group != mainGroup)
@@ -258,20 +254,31 @@ namespace BoxProblems.Solver
                                 {
                                     if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
                                     {
-                                        goalsToDoFirst.Push(boxNode.Value.Ent);
-                                        hadGoalToPrioritize = true;
+                                        goalsWithHigherPriority.Add(boxNode.Value.Ent);
                                     }
                                 }
                             }
                         }
 
-                        if (hadGoalToPrioritize)
+                        if (goalsWithHigherPriority.Count == 0)
                         {
-                            continue;
+                            goalsWithHigherPriority.AddRange(currentLayer.Goals);
+                            goalsWithHigherPriority.Remove(goalToSolve);
+                            foreach (var higherGoal in goalsWithHigherPriority)
+                            {
+                                currentLayer.Goals.Remove(higherGoal);
+                            }
+
+                            if (goalsWithHigherPriority.Count == 0)
+                            {
+                                throw new Exception("level will be split by this action.");
+                            }
                         }
 
-
-                        throw new Exception("level will be split by this action.");
+                        goalPriorityLinkedLayers.AddBefore(currentLayerNode, new GoalPriorityLayer(goalsWithHigherPriority.ToHashSet()));
+                        currentLayerNode = currentLayerNode.Previous;
+                        goToNextLayer = false;
+                        break;
                     }
 
                     sData.CurrentConflicts.RemoveGoalNodes();
@@ -316,11 +323,15 @@ namespace BoxProblems.Solver
 
                     level.AddPermanentWalll(goalToSolve.Pos);
                     sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, box.Color, box.Type));
+                    currentLayer.Goals.Remove(goalToSolve);
 
                     Debug.Assert(sData.FreePath.Count == 0, "Expecting FreePath to be empty after each problem has been solved.");
                     Debug.Assert(sData.SolutionGraphs.Count == solution.Count, "asda");
+                }
 
-                    goalsFinished++;
+                if (goToNextLayer)
+                {
+                    currentLayerNode = currentLayerNode.Next;
                 }
             }
 

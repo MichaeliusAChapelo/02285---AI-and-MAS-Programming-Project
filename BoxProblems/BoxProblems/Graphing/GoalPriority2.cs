@@ -6,6 +6,16 @@ using System.Collections;
 
 namespace BoxProblems.Graphing
 {
+    internal readonly struct GoalPriorityLayer
+    {
+        public readonly HashSet<Entity> Goals;
+
+        public GoalPriorityLayer(HashSet<Entity> goals)
+        {
+            this.Goals = goals;
+        }
+    }
+
     internal class GoalPriority
     {
         public readonly List<GoalNode[]> PriorityLayers = new List<GoalNode[]>();
@@ -156,6 +166,17 @@ namespace BoxProblems.Graphing
             }
 
             return shortestPathsCount;
+        }
+
+        public LinkedList<GoalPriorityLayer> GetAsLinkedLayers()
+        {
+            LinkedList<GoalPriorityLayer> layers = new LinkedList<GoalPriorityLayer>();
+            foreach (var layer in PriorityLayers)
+            {
+                layers.AddLast(new GoalPriorityLayer(layer.Select(x => x.Value.Ent).ToHashSet()));
+            }
+
+            return layers;
         }
 
         public string ToLevelString(Level level)

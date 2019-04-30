@@ -7,5 +7,8 @@ namespace BoxProblems.Graphing
     internal interface INode
     {
         IEnumerable<INode> GetNodeEnds();
+        void RemoveEdge(INode toRemove);
+        void RemoveBiDirectionalEdge(INode toRemove);
+        void RemoveNode();
     }
 }

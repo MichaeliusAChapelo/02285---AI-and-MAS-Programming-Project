@@ -90,6 +90,58 @@ namespace BoxProblems.Graphing
             }
         }
 
+        internal void AddGoalNodes(Level level)
+        {
+            HashSet<Point> entityPositions = new HashSet<Point>();
+            foreach (var node in Nodes)
+            {
+                if (node is BoxConflictNode boxNode)
+                {
+                    level.AddWall(boxNode.Value.Ent.Pos);
+                    entityPositions.Add(boxNode.Value.Ent.Pos);
+                }
+            }
+
+            Func<Point, GraphSearcher.GoalFound<Point>> goalCondition = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
+            {
+                return new GraphSearcher.GoalFound<Point>(x, entityPositions.Contains(x));
+            });
+            foreach (var goal in level.Goals)
+            {
+                if (level.IsWall(goal.Pos))
+                {
+                    continue;
+                }
+
+                BoxConflictNode node = new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL));
+
+                List<Point> edges = GraphSearcher.GetReachedGoalsBFS(level, goal.Pos, goalCondition);
+                foreach (var edge in edges.Distinct())
+                {
+                    BoxConflictNode end = (BoxConflictNode)GetNodeFromPosition(edge);
+                    node.AddEdge(new Edge<EmptyEdgeInfo>(end, new EmptyEdgeInfo()));
+                    end.AddEdge(new Edge<EmptyEdgeInfo>(node, new EmptyEdgeInfo()));
+                }
+
+                Nodes.Add(node);
+            }
+
+            level.ResetWalls();
+        }
+
+        internal void RemoveGoalNodes()
+        {
+            for (int i = Nodes.Count - 1; i >= 0; i--)
+            {
+                INode node = Nodes[i];
+                if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
+                {
+                    Nodes.RemoveAt(i);
+                    node.RemoveNode();
+                }
+            }
+        }
+
         internal INode GetNodeFromPosition(Point pos)
         {
             return PositionToNode[pos];

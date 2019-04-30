@@ -8,13 +8,13 @@ namespace BoxProblems.Solver
 {
     public static partial class ProblemSolver
     {
-        private static Entity GetGoalToSolve(GoalNode[] goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts, HashSet<Entity> solvedGoals)
+        private static Entity GetGoalToSolve(HashSet<Entity> goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts)
         {
-            if (goals.Length == 1)
+            if (goals.Count == 1)
             {
-                return goals[0].Value.Ent;
+                return goals.First();
             }
-            return GetEntityToSolveProblem(currentConflicts, null, goals, solvedGoals);
+            return GetEntityToSolveProblem(currentConflicts, null, goals);
         }
 
         private static Entity GetBoxToSolveProblem(BoxConflictGraph currentConflicts, Entity goal)
@@ -62,7 +62,7 @@ namespace BoxProblems.Solver
             return GetEntityToSolveProblem(currentConflicts, toMove);
         }
 
-        private static Entity GetEntityToSolveProblem(BoxConflictGraph currentConflicts, Entity? entity=null, GoalNode[] goals=null, HashSet<Entity> solvedGoals=null)
+        private static Entity GetEntityToSolveProblem(BoxConflictGraph currentConflicts, Entity? entity=null, HashSet<Entity> goals =null)
         {
             int minimumConflict = int.MaxValue;
             Entity minimumConflictEntity = new Entity();
@@ -70,16 +70,12 @@ namespace BoxProblems.Solver
             {
                 foreach (var goal in goals)
                 {
-                    if (solvedGoals.Contains(goal.Value.Ent))
-                    {
-                        continue;
-                    }
-                    INode startnode = currentConflicts.GetNodeFromPosition(goal.Value.Ent.Pos);
-                    (int numConflicts, Entity goalEntity)=calculateMinimumConflict(currentConflicts, startnode, goal.Value.Ent);
+                    INode startnode = currentConflicts.GetNodeFromPosition(goal.Pos);
+                    (int numConflicts, Entity goalEntity)=calculateMinimumConflict(currentConflicts, startnode, goal);
                     if (minimumConflict>numConflicts)
                     {
                         minimumConflict = numConflicts;
-                        minimumConflictEntity = goal.Value.Ent;
+                        minimumConflictEntity = goal;
                         if (minimumConflict==0) {
                             break;
                         }

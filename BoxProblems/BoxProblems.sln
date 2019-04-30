@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxProblems", "BoxProblems\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxTests", "BoxTests\BoxTests.csproj", "{D0365E5C-2C25-4477-A01F-45D334613C74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxPerformance", "BoxPerformance\BoxPerformance.csproj", "{77DE5E3F-4126-4310-9143-C0B60D1093E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxPerformance", "BoxPerformance\BoxPerformance.csproj", "{77DE5E3F-4126-4310-9143-C0B60D1093E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxRunner", "BoxRunner\BoxRunner.csproj", "{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxRunner", "BoxRunner\BoxRunner.csproj", "{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxMisc", "BoxMisc\BoxMisc.csproj", "{72DD1EDC-F8D2-4039-8F5B-4C3948AC352A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FD20FB9-469A-4498-A1CD-3AFAC91F12F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72DD1EDC-F8D2-4039-8F5B-4C3948AC352A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72DD1EDC-F8D2-4039-8F5B-4C3948AC352A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72DD1EDC-F8D2-4039-8F5B-4C3948AC352A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72DD1EDC-F8D2-4039-8F5B-4C3948AC352A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

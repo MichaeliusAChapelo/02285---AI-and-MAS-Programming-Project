@@ -31,7 +31,7 @@ namespace BoxRunner
         static void Main(string[] args)
         {
             Console.WriteLine("Started");
-            var solution = ProblemSolver.SolveLevel(GetLevelPath("MATALK.lvl"), TimeSpan.FromHours(1), false);
+            var solution = ProblemSolver.SolveLevel(GetLevelPath("MACorridor.lvl"), TimeSpan.FromHours(1), false);
             Console.WriteLine("Done");
             Console.Read();
         }

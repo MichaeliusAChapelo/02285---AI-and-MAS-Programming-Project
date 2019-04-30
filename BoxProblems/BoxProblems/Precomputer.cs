@@ -45,7 +45,6 @@ namespace BoxProblems
 
             var pathsMap = Precomputer.GetPathMap(level.Walls, end, getFromCache);
             var distancesMap = Precomputer.GetDistanceMap(level.Walls, end, getFromCache);
-
             int distance = distancesMap[start.X, start.Y];
             Point[] path = new Point[distance + 1];
             Point currentPos = start;

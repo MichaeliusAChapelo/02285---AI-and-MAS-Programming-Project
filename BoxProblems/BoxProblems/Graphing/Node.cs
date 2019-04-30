@@ -27,6 +27,33 @@ namespace BoxProblems.Graphing
             }
         }
 
+        public void RemoveBiDirectionalEdge(INode toRemove)
+        {
+            RemoveEdge(toRemove);
+            toRemove.RemoveEdge(toRemove);
+        }
+
+        public void RemoveEdge(INode toRemove)
+        {
+            for (int i = Edges.Count - 1; i >= 0; i--)
+            {
+                if (Edges[i].End == toRemove)
+                {
+                    Edges.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        public void RemoveNode()
+        {
+            foreach (var edge in Edges)
+            {
+                edge.End.RemoveEdge(this);
+            }
+            Edges.Clear();
+        }
+
         public override string ToString()
         {
             return Value.ToString();

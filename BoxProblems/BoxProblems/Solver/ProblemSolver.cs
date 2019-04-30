@@ -93,7 +93,7 @@ namespace BoxProblems.Solver
             int seenNodesCount = 0;
 
             List<List<INode>> graphGroups = new List<List<INode>>();
-            while (seenNodesCount < graph.Nodes.Count - 1)
+            while (seenNodesCount < graph.Nodes.Count)
             {
                 List<INode> seenNodes = new List<INode>();
 
@@ -126,13 +126,31 @@ namespace BoxProblems.Solver
                 graphGroups.Add(seenNodes);
             }
 
-            INode asdsaaa = graph.GetNodeFromPosition(posToMakeWall);
-            if (exploredSet.Contains(asdsaaa))
+            return graphGroups;
+        }
+
+        private static List<INode> GetMainGraphGroup(List<List<INode>> graphGroups)
+        {
+            var bestGroup = graphGroups.First();
+            int bestGoalCount = int.MinValue;
+            foreach (var group in graphGroups)
             {
-                throw new Exception("dsadsa");
+                int goalsCount = 0;
+                foreach (var node in group)
+                {
+                    if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
+                    {
+                        goalsCount++;
+                    }
+                }
+                if (goalsCount > bestGoalCount)
+                {
+                    bestGroup = group;
+                    bestGoalCount = goalsCount;
+                }
             }
 
-            return graphGroups;
+            return bestGroup;
         }
 
         private static (List<HighlevelMove> solutionMoves, List<BoxConflictGraph> solutionGraphs) SolvePartialLevel(Level level, CancellationToken cancelToken)
@@ -151,10 +169,7 @@ namespace BoxProblems.Solver
                 {
                     cancelToken.ThrowIfCancellationRequested();
 
-                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, null, sData.RemovedEntities);
-                    //sData.SolutionGraphs.Add(sData.CurrentConflicts);
-                    //PrintLatestStateDiff(level, sData.SolutionGraphs);
-                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
+                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
 
                     Entity goalToSolve;
                     if (goalsToDoFirst.Count > 0)
@@ -166,61 +181,49 @@ namespace BoxProblems.Solver
                         goalToSolve = GetGoalToSolve(goalPriorityLayer, goalGraph, sData.CurrentConflicts, solvedGoals);
                     }
 
-                    Entity? goalMaybe = goalToSolve;
-                    if (sData.CurrentConflicts.PositionHasNode(goalToSolve.Pos))
+
+                    sData.Level.AddPermanentWalll(goalToSolve.Pos);
+                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
+                    sData.CurrentConflicts.AddGoalNodes(sData.Level);
+                    sData.Level.RemovePermanentWall(goalToSolve.Pos);
+
+                    //GraphShower.ShowGraph(sData.CurrentConflicts);
+                    var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
+                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1)
                     {
-                        goalMaybe = null;
+                        bool hadGoalToPrioritize = false;
+                        var mainGroup = GetMainGraphGroup(graphGroups);
+                        foreach (var group in graphGroups)
+                        {
+                            if (group != mainGroup)
+                            {
+                                foreach (var node in group)
+                                {
+                                    if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
+                                    {
+                                        goalsToDoFirst.Push(boxNode.Value.Ent);
+                                        hadGoalToPrioritize = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (hadGoalToPrioritize)
+                        {
+                            continue;
+                        }
+
+
+                        throw new Exception("level will be split by this action.");
                     }
-                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, goalMaybe, sData.RemovedEntities);
+
+                    sData.CurrentConflicts.RemoveGoalNodes();
                     sData.CurrentConflicts.AddFreeSpaceNodes(level);
                     //PrintLatestStateDiff(level, sData.SolutionGraphs);
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
-                    var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
-                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1)
-                    {
-                        throw new Exception("level will be split by this action.");
-                    }
-
-                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, null, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddFreeSpaceNodes(level);
-
-
-
-                    //LevelGroupsInfo groupsInfo = GetLevelGroups(sData, goalToSolve);
-                    //if (groupsInfo.IsSplit())
-                    //{
-                    //    bool hadGoalToPrioritize = false;
-                    //    LevelGroup mainGroup = groupsInfo.GetMainGroup();
-                    //    foreach (var group in groupsInfo.Groups)
-                    //    {
-                    //        if (group != mainGroup)
-                    //        {
-                    //            if (group.Goals.Count > 0)
-                    //            {
-                    //                hadGoalToPrioritize = true;
-                    //            }
-
-                    //            for (int i = 0; i < group.Goals.Count; i++)
-                    //            {
-                    //                goalsToDoFirst.Push(group.Goals[i]);
-                    //            }
-                    //        }
-                    //    }
-
-                    //    if (hadGoalToPrioritize)
-                    //    {
-                    //        continue;
-                    //    }
-
-                    //    //Console.WriteLine(priority.ToLevelString(sData.Level));
-                    //    throw new Exception("level will be split by this action.");
-                    //}
-
-
                     Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);
                     int boxIndex = sData.GetEntityIndex(box);
-
 
                     List<HighlevelMove> boxOnGoalSolution = null;
                     if (sData.CurrentConflicts.PositionHasNode(goalToSolve.Pos))
@@ -327,7 +330,7 @@ namespace BoxProblems.Solver
             sData.CurrentState = sData.CurrentState.GetCopy();
             sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
 
-            sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, null, sData.RemovedEntities);
+            sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
             //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
@@ -517,7 +520,11 @@ namespace BoxProblems.Solver
 
         private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs, int index)
         {
-            if (index == 0)
+            if (index == -1)
+            {
+                Console.WriteLine(level.ToString());
+            }
+            else if (index == 0)
             {
                 Console.WriteLine(level.StateToString(graphs[index].CreatedFromThisState));
             }

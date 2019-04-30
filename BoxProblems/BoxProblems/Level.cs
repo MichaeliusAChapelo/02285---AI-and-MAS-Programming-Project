@@ -87,6 +87,11 @@ namespace BoxProblems
             Walls[pos.X, pos.Y] = false;
         }
 
+        internal bool IsWall(Point pos)
+        {
+            return Walls[pos.X, pos.Y];
+        }
+
         public static Level ReadLevel(string levelString)
         {
             return Level.ReadLevel(levelString, "default level name");

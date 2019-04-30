@@ -18,7 +18,8 @@ namespace BoxProblems
 
         //public static string levelPath = @"Levels\New_Format\MAExample.lvl";
         //public static string levelPath = @"Levels\New_Format\SAExample.lvl";
-        public static string levelPath = @"Levels\New_Format\SACrunch.lvl";
+        //public static string levelPath = @"Levels\New_Format\SACrunch.lvl";
+        public static string levelPath = @"Levels\New_Format\SAAiMasTers.lvl";
         //public static string levelPath = @"Levels\New_Format\SAExample2.lvl";
         //public static string levelPath = @"Levels\New_Format\MAPullPush.lvl";
         //public static string levelPath = @"Levels\New_Format\MAFiveWalls.lvl";
@@ -53,7 +54,7 @@ namespace BoxProblems
                 PrintMap(); // Michaelius: With the new solver, everything messes up if I don't print this. DON'T ASK, I DON'T KNOW WHY
 
                 // Pick one!
-                NonAsyncSolve();
+                //NonAsyncSolve();
                 //AsyncSolve();
             }
         }
@@ -111,7 +112,7 @@ namespace BoxProblems
             }
         }
 
-        public void PrintMap()
+        public static void PrintMap()
         {
             Console.Error.WriteLine("C# Client initialized.");
             Console.WriteLine(); // Input to trigger Java client to respond.

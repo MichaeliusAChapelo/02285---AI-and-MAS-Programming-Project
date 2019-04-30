@@ -159,6 +159,57 @@ namespace BoxProblems.Solver
             return bestGroup;
         }
 
+        private static bool EveryGroupHasEverythingNeeded(List<List<INode>> graphGroups)
+        {
+            foreach (var group in graphGroups)
+            {
+                HashSet<char> agents = new HashSet<char>();
+                Dictionary<char, int> boxes = new Dictionary<char, int>();
+                Dictionary<char, int> goals = new Dictionary<char, int>();
+                foreach (var iNode in group)
+                {
+                    BoxConflictNode boxNode = (BoxConflictNode)iNode;
+                    char entityType = boxNode.Value.Ent.Type;
+                    switch (boxNode.Value.EntType)
+                    {
+                        case EntityType.AGENT:
+                            agents.Add(entityType);
+                            break;
+                        case EntityType.BOX:
+                            if (!boxes.ContainsKey(entityType))
+                            {
+                                boxes.Add(entityType, 0);
+                            }
+                            boxes[entityType] += 1;
+                            break;
+                        case EntityType.GOAL:
+                            if (!goals.ContainsKey(entityType))
+                            {
+                                goals.Add(entityType, 0);
+                            }
+                            goals[entityType] += 1;
+                            break;
+                        default:
+                            throw new Exception("Unknown entity type.");
+                    }
+                }
+
+                foreach (var goalInfo in goals)
+                {
+                    if (!boxes.TryGetValue(goalInfo.Key, out int boxCount) || boxCount < goalInfo.Value)
+                    {
+                        return false;
+                    }
+                    if (!agents.Contains(goalInfo.Key))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         private static (List<HighlevelMove> solutionMoves, List<BoxConflictGraph> solutionGraphs) SolvePartialLevel(Level level, CancellationToken cancelToken)
         {
             List<HighlevelMove> solution = new List<HighlevelMove>();
@@ -193,9 +244,9 @@ namespace BoxProblems.Solver
                     sData.CurrentConflicts.AddGoalNodes(sData.Level);
                     sData.Level.RemovePermanentWall(goalToSolve.Pos);
 
-                    //GraphShower.ShowGraph(sData.CurrentConflicts);
+                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
-                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1)
+                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups))
                     {
                         bool hadGoalToPrioritize = false;
                         var mainGroup = GetMainGraphGroup(graphGroups);

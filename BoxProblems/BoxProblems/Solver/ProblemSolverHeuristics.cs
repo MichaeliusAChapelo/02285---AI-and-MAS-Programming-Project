@@ -178,13 +178,13 @@ namespace BoxProblems.Solver
             }
             //Get the node to start the BFS in the conflict graph, probably an easier way to do this, but not sure how this works
             INode startnode = sData.CurrentConflicts.GetNodeFromPosition(conflict.Pos); //Had to initalize it to something
-            int howFarIntoFreeSpace = 0;
+            int howFarIntoFreeSpace = -1;// -1 for the box that should be moved into the goal as it is always on the path;
             var boxes = sData.Level.GetBoxes();
             foreach (var p in freePath)
             {
                 if (sData.CurrentConflicts.PositionHasNode(p.Key))
                 {
-                    if (sData.CurrentConflicts.GetNodeFromPosition(p.Key) is BoxConflictNode boxnode && boxnode.Value.EntType==EntityType.BOX)
+                    if (sData.CurrentConflicts.GetNodeFromPosition(p.Key) is BoxConflictNode boxnode)
                     {
                         howFarIntoFreeSpace += 1;
                     }
@@ -211,7 +211,7 @@ namespace BoxProblems.Solver
                 visitedNodes.Add(currentNode);
                 if (currentNode is BoxConflictNode currentBoxNode)
                 {
-                    if (currentBoxNode.Value.EntType==EntityType.BOX)//Maybe it should hold for agents aswell, past the 1 agent, but idk
+                    if (currentBoxNode.Value.EntType==EntityType.BOX)
                     {
                         if (!freePath.ContainsKey(currentBoxNode.Value.Ent.Pos))
                         {
@@ -261,7 +261,6 @@ namespace BoxProblems.Solver
             var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
             Point freeSpacePointToUse = potentialFreeSpacePoints.First();
             int maxDistance = 0;
-            ///howFarIntoFreeSpace += 1; Need this for MACorridor, not sure how to else do it
             foreach (var FSP in potentialFreeSpacePoints)
             {
                 var distancesMap = Precomputer.GetDistanceMap(sData.Level.Walls, FSP, false);

@@ -12,61 +12,23 @@ namespace BoxProblems
     public class ServerCommunicator
     {
         const string strategy = "-astar";
-
-        //const string levelPath = "MAKarlMarx.lvl";
-        //public static string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
-
-        //public static string levelPath = @"Levels\New_Format\MAExample.lvl";
-        //public static string levelPath = @"Levels\New_Format\SAExample.lvl";
-        //public static string levelPath = @"Levels\New_Format\SACrunch.lvl";
-        public static string levelPath = @"Levels\New_Format\SAAiMasTers.lvl";
-        //public static string levelPath = @"Levels\New_Format\SAExample2.lvl";
-        //public static string levelPath = @"Levels\New_Format\MAPullPush.lvl";
-        //public static string levelPath = @"Levels\New_Format\MAFiveWalls.lvl";
-        //public static string levelPath = @"Levels\New_Format\MAPullPush2.lvl";
-        //public static string levelPath = @"Levels\New_Format\SABahaMAS.lvl";
-        //public static string levelPath = @"Levels\New_Format\MACorridor.lvl";
-        //public static string levelPath = @"Levels\New_Format\SAlabyrinthOfStBertin.lvl"; //MABahaMAS.lvl";
-        //public static string levelPath = @"Levels\New_Format\MAKarlMarx.lvl";
-
-
-
         public static bool SkipConsoleRead = false;
 
-        public ServerCommunicator() { }
-        public ServerCommunicator(List<List<HighlevelMove>> highlevelMoves)
+        public void StartServer(string levelPath)
         {
-
-            List<HighlevelMove> allMoves = new List<HighlevelMove>();
-
-            foreach (List<HighlevelMove> list in highlevelMoves)
-                allMoves.AddRange(list);
-
-            NaiveSolver.plan = allMoves;
+            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300; Read-Host");
         }
 
-        public void Run(string[] args)
+        public void NonAsyncSolve(List<HighlevelLevelSolution> levelSolutions)
         {
-            if (args.Length == 0)
-                System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300");
-            else
+            foreach (HighlevelLevelSolution list in levelSolutions)
             {
-                PrintMap(); // Michaelius: With the new solver, everything messes up if I don't print this. DON'T ASK, I DON'T KNOW WHY
-
-                // Pick one!
-                //NonAsyncSolve();
-                //AsyncSolve();
+                var solver = new LessNaiveSolver(list.Level, list.SolutionMovesParts);
+                solver.Solve(); // A most convenient function.
             }
         }
 
-        public void NonAsyncSolve()
-        {
-            //var solver = new NaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)));
-            var solver = new LessNaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)), NaiveSolver.plan);
-            solver.Solve(); // A most convenient function.
-        }
-
-        public void AsyncSolve()
+        public void AsyncSolve(string levelPath)
         {
             Level level = Level.ReadLevel(File.ReadAllLines(levelPath));
             List<Level> levels = LevelSplitter.SplitLevel(level);
@@ -115,12 +77,12 @@ namespace BoxProblems
         public static void PrintMap()
         {
             Console.Error.WriteLine("C# Client initialized.");
-            Console.WriteLine(); // Input to trigger Java client to respond.
+            Console.WriteLine(""); // Input group name.
 
             string line;
             while ((line = Console.ReadLine()) != "#end")
-                Console.Error.WriteLine(line); // Print map input.
-            Console.Error.WriteLine(line + "\n End of map file. \n");
+            //    Console.Error.WriteLine(line); // Print map input.
+            //Console.Error.WriteLine(line + "\n End of map file. \n");
         }
 
         public void ExampleCommands()

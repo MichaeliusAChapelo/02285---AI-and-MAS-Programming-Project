@@ -113,7 +113,7 @@ namespace BoxProblems
 
         public static Level ReadLevel(string[] lines, string levelName)
         {
-            if (lines[0].Trim() == "#domain")
+            if (IsNewFormatLevel(lines))
             {
                 return ReadNewFormatLevel(lines);
             }
@@ -121,6 +121,11 @@ namespace BoxProblems
             {
                 return ReadOldFormatLevel(lines, levelName);
             }
+        }
+
+        public static bool IsNewFormatLevel(string[] lines)
+        {
+            return lines[0].Trim() == "#domain";
         }
 
         private static Level ReadOldFormatLevel(string[] lines, string levelName)

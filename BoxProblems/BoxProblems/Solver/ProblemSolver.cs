@@ -92,8 +92,14 @@ namespace BoxProblems.Solver
 
             int seenNodesCount = 0;
 
+            int nodesToSee = graph.Nodes.Count;
+            if (graph.Nodes.Any(x => x is BoxConflictNode boxNode && boxNode.Value.Ent.Pos == posToMakeWall))
+            {
+                nodesToSee--;
+            }
+
             List<List<INode>> graphGroups = new List<List<INode>>();
-            while (seenNodesCount < graph.Nodes.Count)
+            while (seenNodesCount < nodesToSee)
             {
                 List<INode> seenNodes = new List<INode>();
 

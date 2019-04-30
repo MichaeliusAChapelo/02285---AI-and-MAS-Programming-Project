@@ -231,7 +231,7 @@ namespace BoxProblems.Solver
                     cancelToken.ThrowIfCancellationRequested();
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
-
+                    sData.CurrentConflicts.AddFreeSpaceNodes(level);
                     Entity goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData.CurrentConflicts);
 
 
@@ -272,6 +272,17 @@ namespace BoxProblems.Solver
                             if (goalsWithHigherPriority.Count == 0)
                             {
                                 throw new Exception("level will be split by this action.");
+                            }
+                        }
+                        else
+                        {
+                            foreach (var layer in goalPriorityLinkedLayers)
+                            {
+                                foreach (var goal in goalsWithHigherPriority)
+                                {
+                                    layer.Goals.Remove(goal);
+                                }
+
                             }
                         }
 

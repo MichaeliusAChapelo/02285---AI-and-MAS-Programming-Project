@@ -61,13 +61,12 @@ namespace BoxRunner
             //string levelPath = "SAlabyrinthOfStBertin.lvl";
             //string levelPath = "MAKarlMarx.lvl";'
 
-
-            levelPath = GetLevelPath(levelPath);
             string convertedLevelPath = "temp.lvl";
 
             ServerCommunicator serverCom = new ServerCommunicator();
             if (args.Length == 0 && !ServerCommunicator.SkipConsoleRead)
             {
+                levelPath = GetLevelPath(levelPath);
                 ConvertFilesToCorrectFormat(levelPath, convertedLevelPath);
 
                 serverCom.StartServer(convertedLevelPath);

@@ -45,10 +45,12 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            string levelPath = "SABahaMAS.lvl";
+            ServerCommunicator.SkipConsoleRead = true;
+
+            //string levelPath = "SABahaMAS.lvl";
             //string levelPath = "MAExample.lvl";
             //string levelPath = "SAExample.lvl";
-            //string levelPath = "SACrunch.lvl";
+            string levelPath = "SACrunch.lvl";
             //string levelPath = "SAAiMasTers.lvl";
             //string levelPath = "SAExample2.lvl";
             //string levelPath = "MAPullPush.lvl";
@@ -64,7 +66,7 @@ namespace BoxRunner
             string convertedLevelPath = "temp.lvl";
 
             ServerCommunicator serverCom = new ServerCommunicator();
-            if (args.Length == 0)
+            if (args.Length == 0 && !ServerCommunicator.SkipConsoleRead)
             {
                 ConvertFilesToCorrectFormat(levelPath, convertedLevelPath);
 

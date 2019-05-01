@@ -369,6 +369,12 @@ namespace BoxProblems.Solver
             //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
             //}
 
+            foreach (var goal in level.Goals)
+            {
+                level.RemovePermanentWall(goal.Pos);
+                level.RemoveWall(goal.Pos);
+            }
+
             return new HighlevelLevelSolution(solution, sData.SolutionGraphs, level);
         }
 

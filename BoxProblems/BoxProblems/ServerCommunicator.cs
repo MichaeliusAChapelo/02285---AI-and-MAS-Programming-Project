@@ -16,7 +16,7 @@ namespace BoxProblems
 
         public void StartServer(string levelPath)
         {
-            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300; Read-Host");
+            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 25; Read-Host");
         }
 
         public void NonAsyncSolve(List<HighlevelLevelSolution> levelSolutions)

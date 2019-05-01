@@ -7,23 +7,23 @@ namespace BoxProblems.Solver
     public class HighlevelMove
     {
         internal State CurrentState;
-        internal Entity MoveThis;
+        internal int MoveThisIndex;
         internal Point ToHere;
-        internal Entity? UsingThisAgent;
+        internal int? UsingThisAgentIndex;
         internal int MoveNumber;
 
-        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent, int moveNumber)
+        internal HighlevelMove(State state, int moveThisIndex, Point toHere, int? usingThisAgentIndex, int moveNumber)
         {
             this.CurrentState = state;
-            this.MoveThis = moveThis;
+            this.MoveThisIndex = moveThisIndex;
             this.ToHere = toHere;
-            this.UsingThisAgent = usingThisAgent;
+            this.UsingThisAgentIndex = usingThisAgentIndex;
             this.MoveNumber = moveNumber;
         }
 
         public override string ToString()
         {
-            return $"{MoveThis} -> {ToHere} " + (UsingThisAgent.HasValue ? $"Using {UsingThisAgent}" : string.Empty);
+            return $"{MoveThisIndex} -> {ToHere} " + (UsingThisAgentIndex.HasValue ? $"Using {UsingThisAgentIndex}" : string.Empty);
         }
     }
 }

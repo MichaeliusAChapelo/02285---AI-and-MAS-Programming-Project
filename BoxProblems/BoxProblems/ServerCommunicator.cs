@@ -30,20 +30,6 @@ namespace BoxProblems
 
         public void AsyncSolve(string levelPath)
         {
-            Level level = Level.ReadLevel(File.ReadAllLines(levelPath));
-            List<Level> levels = LevelSplitter.SplitLevel(level);
-            NaiveSolver.totalAgentCount = level.AgentCount;
-
-            // This is the most disgusting data structure I've ever had the honour of writing.
-            var allResults = new ConcurrentBag<List<string[]>>();
-
-            Parallel.ForEach(levels, (currentLevel) =>
-            {
-                var solver = new NaiveSolver(currentLevel);
-                allResults.Add(solver.AsyncSolve());
-            });
-
-            AssembleCommands(level.AgentCount, allResults.ToList());
         }
 
         // Iterates over each solved level, picks out first command, assembles those commands and sends to server. Repeat until fully solved.

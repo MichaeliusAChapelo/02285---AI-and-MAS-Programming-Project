@@ -47,13 +47,12 @@ namespace BoxProblems
                 // Use the multiple solution paths to create a data structure mapping conflicts, then modify solutions.
 
                 // 5) Loop through commands
-                //int index = Array.IndexOf(Agents, plan.UsingThisAgent);
-                int index = Array.IndexOf(Agents, plan.UsingThisAgent);
+                int index = plan.UsingThisAgentIndex.HasValue ? plan.UsingThisAgentIndex.Value : plan.MoveThisIndex;
                 OutputCommands(commands, index);
 
                 // 6) Set agent positions proper.
                 //SetAgentPosition();
-                if (plan.UsingThisAgent == null)
+                if (plan.UsingThisAgentIndex == null)
                     Agents[index] = Agents[index].Move(plan.ToHere);
 
 
@@ -100,7 +99,7 @@ namespace BoxProblems
 
         public List<string> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState)
         {
-            var box = move.MoveThis;
+            var box = currentState.Entities[move.MoveThisIndex];
             //Plan.Remove(move);
 
             //Console.Error.WriteLine("MOVING TO LOCATION" + move.ToHere);
@@ -112,8 +111,8 @@ namespace BoxProblems
 
             List<string> result;
 
-            if (move.UsingThisAgent.HasValue)
-                result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));
+            if (move.UsingThisAgentIndex.HasValue)
+                result = CreateSolutionCommands(agent: currentState.Entities[move.UsingThisAgentIndex.Value], box, goal: new Entity(move.ToHere, box.Color, box.Type));
             else
                 result = MoveToLocation(box.Pos, move.ToHere);
 
@@ -211,7 +210,7 @@ namespace BoxProblems
 
             toBox.Remove(toBox.Last()); // Remove box' position from solution list
             for (int i = 1; i < toBox.Count; ++i)
-                commands.Add(ServerCommunicator.Move(NaiveSolver.PointToDirection(toBox[i - 1], toBox[i])));
+                commands.Add(ServerCommunicator.Move(PointToDirection(toBox[i - 1], toBox[i])));
             DistanceMapOffset = commands.Count;
             return toBox.Last(); // Return agent's destination, so next to box.
         }
@@ -227,21 +226,36 @@ namespace BoxProblems
         {
             var toDest = RunAStar(agentFrom, destination);
             for (int i = 1; i < toDest.Count; ++i)
-                commands.Add(ServerCommunicator.Move(NaiveSolver.PointToDirection(toDest[i - 1], toDest[i])));
+                commands.Add(ServerCommunicator.Move(PointToDirection(toDest[i - 1], toDest[i])));
         }
 
         private string Push(List<Point> toGoal, int index)
         {
-            Direction moveDirAgent = NaiveSolver.PointToDirection(toGoal[index - 2], toGoal[index - 1]);
-            Direction moveDirBox = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index]);
+            Direction moveDirAgent = PointToDirection(toGoal[index - 2], toGoal[index - 1]);
+            Direction moveDirBox = PointToDirection(toGoal[index - 1], toGoal[index]);
             return ServerCommunicator.Push(moveDirAgent, moveDirBox);
         }
 
         private string Pull(List<Point> toGoal, int index)
         {
-            Direction currDirBox = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index - 2]);
-            Direction moveDirAgent = NaiveSolver.PointToDirection(toGoal[index - 1], toGoal[index]);
+            Direction currDirBox = PointToDirection(toGoal[index - 1], toGoal[index - 2]);
+            Direction moveDirAgent = PointToDirection(toGoal[index - 1], toGoal[index]);
             return ServerCommunicator.Pull(moveDirAgent, currDirBox);
+        }
+
+        public static Direction PointToDirection(Point p1, Point p2)
+        {
+            Point delta = p2 - p1;
+
+            if (delta.X > 0)
+                return Direction.E;
+            if (delta.X < 0)
+                return Direction.W;
+            if (delta.Y < 0)
+                return Direction.N;
+            if (delta.Y > 0)
+                return Direction.S;
+            throw new Exception("Pair of points could not resolve to a direction.");
         }
 
         #endregion

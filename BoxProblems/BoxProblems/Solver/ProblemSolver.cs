@@ -406,14 +406,15 @@ namespace BoxProblems.Solver
                 solutionToSubProblem.AddRange(solveConflictMoves);
             }
 
+            int? agentIndex = null;
             if (!toMoveIsAgent)
             {
                 agentToUse = GetAgentToSolveProblem(sData.CurrentConflicts, toMove);
-                int agentIndex = sData.GetEntityIndex(agentToUse.Value);
+                agentIndex = sData.GetEntityIndex(agentToUse.Value);
 
                 sData.AddToFreePath(toMovePath);
                 List<HighlevelMove> solveAgentConflictMoves;
-                if (!TrySolveConflicts(agentIndex, toMove.Pos, out solveAgentConflictMoves, out _, sData, agentToUse, depth))
+                if (!TrySolveConflicts(agentIndex.Value, toMove.Pos, out solveAgentConflictMoves, out _, sData, agentToUse, depth))
                 {
                     return false;
                 }
@@ -432,7 +433,7 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
-            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
+            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMoveIndex, goal, agentIndex, counter));
             //Console.WriteLine(solutionToSubProblem.Last());
             return true;
         }

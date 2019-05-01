@@ -33,21 +33,21 @@ namespace BoxTests
         public void TestLevel(string levelPath) { TestLevel(levelPath, TimeoutThreshold); }
         public void TestLevel(string levelPath, int timeoutThreshold)
         {
-            ManualResetEvent mre = new ManualResetEvent(false);
-            Task task = Task.Factory.StartNew(() =>
-            {
-                var solver = new NaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)));
-                solver.Solve(); // A most convenient function.
-            });
+            //ManualResetEvent mre = new ManualResetEvent(false);
+            //Task task = Task.Factory.StartNew(() =>
+            //{
+            //    var solver = new NaiveSolver(Level.ReadLevel(File.ReadAllLines(levelPath)));
+            //    solver.Solve(); // A most convenient function.
+            //});
 
-            mre.WaitOne(timeoutThreshold);
-            if (!mre.WaitOne(0))
-            {
-                task.Dispose();
-                if (!NaiveSolver.Solved)
-                    Assert.Fail("Timeout");
-            }
-            task.Dispose();
+            //mre.WaitOne(timeoutThreshold);
+            //if (!mre.WaitOne(0))
+            //{
+            //    task.Dispose();
+            //    if (!NaiveSolver.Solved)
+            //        Assert.Fail("Timeout");
+            //}
+            //task.Dispose();
         }
     }
 }

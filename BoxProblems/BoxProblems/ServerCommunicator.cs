@@ -19,11 +19,11 @@ namespace BoxProblems
             System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 25; Read-Host");
         }
 
-        public void NonAsyncSolve(List<HighlevelLevelSolution> levelSolutions)
+        public void NonAsyncSolve(Level level, List<HighlevelLevelSolution> levelSolutions)
         {
             foreach (HighlevelLevelSolution list in levelSolutions)
             {
-                var solver = new LessNaiveSolver(list.Level, list.SolutionMovesParts);
+                var solver = new LessNaiveSolver(level, list.Level, list.SolutionMovesParts);
                 solver.Solve(); // A most convenient function.
             }
         }
@@ -74,17 +74,23 @@ namespace BoxProblems
             }
         }
 
-        public static void PrintMap()
+        public static void GiveGroupNameToServer()
         {
-            if (SkipConsoleRead) return;
+            Console.WriteLine("VisualKei");
+        }
 
-            Console.Error.WriteLine("C# Client initialized.");
-            Console.WriteLine("VisualKei"); // Input group name.
+        public static Level GetLevelFromServer()
+        {
+            List<string> levelStrings = new List<string>();
 
             string line;
-            while ((line = Console.ReadLine()) != "#end");
-            //    Console.Error.WriteLine(line); // Print map input.
-            //Console.Error.WriteLine(line + "\n End of map file. \n");
+            do
+            {
+                line = Console.ReadLine();
+                levelStrings.Add(line);
+            } while (line != "#end");
+
+            return Level.ReadLevel(levelStrings.ToArray());
         }
 
         public void ExampleCommands()
@@ -102,10 +108,11 @@ namespace BoxProblems
         public static string Command(string command)
         {
             Console.WriteLine(command);
+            Console.Error.WriteLine(command);
             if (SkipConsoleRead) return string.Empty;
             string response = Console.ReadLine();
 
-            Console.Error.WriteLine("COMMAND: " + command + "\nRESPONSE: " + response);
+            //Console.Error.WriteLine("COMMAND: " + command + "\nRESPONSE: " + response);
             return response;
         }
 

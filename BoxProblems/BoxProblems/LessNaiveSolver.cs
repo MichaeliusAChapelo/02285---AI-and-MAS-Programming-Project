@@ -17,12 +17,12 @@ namespace BoxProblems
         private Entity[] Agents;
         public static bool Solved { get; private set; }
 
-        public LessNaiveSolver(Level level, List<HighlevelMove> plan)
+        public LessNaiveSolver(Level wholeLevel, Level partialLevel, List<HighlevelMove> plan)
         {
-            this.Level = level;
+            this.Level = partialLevel;
             Solved = false;
             this.Plan = plan;
-            Agents = Level.GetAgents().ToArray();
+            Agents = wholeLevel.GetAgents().ToArray();
         }
 
         // GOD FUNCTION DEUX

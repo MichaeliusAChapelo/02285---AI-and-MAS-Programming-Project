@@ -45,16 +45,16 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipConsoleRead = true;
+            ServerCommunicator.SkipConsoleRead = false;
 
             //string levelPath = "SABahaMAS.lvl";
             //string levelPath = "MAExample.lvl";
             //string levelPath = "SAExample.lvl";
-            string levelPath = "SACrunch.lvl";
+            //string levelPath = "SACrunch.lvl";
             //string levelPath = "SAAiMasTers.lvl";
             //string levelPath = "SAExample2.lvl";
             //string levelPath = "MAPullPush.lvl";
-            //string levelPath = "MAFiveWalls.lvl";
+            string levelPath = "MAFiveWalls.lvl";
             //string levelPath = "MAPullPush2.lvl";
             //string levelPath = "SABahaMAS.lvl";
             //string levelPath = "MACorridor.lvl";
@@ -74,12 +74,22 @@ namespace BoxRunner
             }
             else
             {
-                ServerCommunicator.PrintMap(); // Michaelius: With the new solver, everything messes up if I don't print this. DON'T ASK, I DON'T KNOW WHY
+                ServerCommunicator.GiveGroupNameToServer();
 
-                var result = ProblemSolver.SolveLevel(convertedLevelPath, TimeSpan.FromHours(1), false);
+                Level level;
+                if (ServerCommunicator.SkipConsoleRead)
+                {
+                    level = Level.ReadLevel(File.ReadAllLines(convertedLevelPath));
+                }
+                else
+                {
+                    level = ServerCommunicator.GetLevelFromServer();
+                }
+
+                var result = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);
 
                 //new ServerCommunicator(superList).NonAsyncSolve(); // Solve locally for debugging purposes
-                serverCom.NonAsyncSolve(result);//.Run(args); // Uses heuristics to solve in server client.
+                serverCom.NonAsyncSolve(level, result);//.Run(args); // Uses heuristics to solve in server client.
 
                 return;
                 // Michaelius ENDO

@@ -72,7 +72,7 @@ namespace BoxProblems.Solver
             return SolveLevel(level, timeoutTime, parallelize);
         }
 
-        internal static List<HighlevelLevelSolution> SolveLevel(Level level, TimeSpan timeoutTime, bool parallelize)
+        public static List<HighlevelLevelSolution> SolveLevel(Level level, TimeSpan timeoutTime, bool parallelize)
         {
             var solutionPieces = new ConcurrentBag<HighlevelLevelSolution>();
             List<Level> levels = LevelSplitter.SplitLevel(level);

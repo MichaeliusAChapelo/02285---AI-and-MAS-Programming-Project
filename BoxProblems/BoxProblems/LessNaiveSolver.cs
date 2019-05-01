@@ -10,7 +10,7 @@ namespace BoxProblems
     internal class LessNaiveSolver
     {
         private readonly Level Level;
-        private State CurrentState;
+        //private State CurrentState;
         private List<HighlevelMove> Plan;
         //int[] Waits;
         //private int g = 0;
@@ -28,7 +28,7 @@ namespace BoxProblems
         // GOD FUNCTION DEUX
         public void Solve()
         {
-
+            State currentState = Level.InitialState;
             foreach (HighlevelMove plan in Plan)
             //while (Plan.Count != 0)
             {
@@ -41,7 +41,7 @@ namespace BoxProblems
                 // 2) Manhatten A* to solution; This time, try to break the search
                 // 3) Convert to high level moves to low level commands
                 // Includes U-turning boxes (from pull to push)
-                var commands = CreateOnlyFirstSolutionCommand(plan);
+                var commands = CreateOnlyFirstSolutionCommand(plan, currentState);
 
                 // 4) Conflicts
                 // Use the multiple solution paths to create a data structure mapping conflicts, then modify solutions.
@@ -55,6 +55,9 @@ namespace BoxProblems
                 //SetAgentPosition();
                 if (plan.UsingThisAgent == null)
                     Agents[index] = Agents[index].Move(plan.ToHere);
+
+
+                currentState = plan.CurrentState;
 
                 //sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
 
@@ -95,7 +98,7 @@ namespace BoxProblems
 
         #region Abstract Moves to Specific Commands
 
-        public List<string> CreateOnlyFirstSolutionCommand(HighlevelMove move)
+        public List<string> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState)
         {
             var box = move.MoveThis;
             //Plan.Remove(move);
@@ -104,11 +107,10 @@ namespace BoxProblems
             //Console.Error.WriteLine("");
 
             // Make all blockages into "fake" walls
-            foreach (Entity e in move.CurrentState.Entities)
+            foreach (Entity e in currentState.Entities)
                 Level.AddWall(e.Pos);
 
             List<string> result;
-
 
             if (move.UsingThisAgent.HasValue)
                 result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));

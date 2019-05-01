@@ -76,11 +76,13 @@ namespace BoxProblems
 
         public static void PrintMap()
         {
+            if (SkipConsoleRead) return;
+
             Console.Error.WriteLine("C# Client initialized.");
-            Console.WriteLine(""); // Input group name.
+            Console.WriteLine("VisualKei"); // Input group name.
 
             string line;
-            while ((line = Console.ReadLine()) != "#end")
+            while ((line = Console.ReadLine()) != "#end");
             //    Console.Error.WriteLine(line); // Print map input.
             //Console.Error.WriteLine(line + "\n End of map file. \n");
         }

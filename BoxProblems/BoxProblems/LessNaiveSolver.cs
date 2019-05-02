@@ -37,12 +37,12 @@ namespace BoxProblems
                 var commands = CreateOnlyFirstSolutionCommand(plan, currentState);
 
                 // 5) Loop through commands
-                int index = plan.UsingThisAgentIndex.HasValue ? plan.UsingThisAgentIndex.Value : plan.MoveThisIndex;
+                int index = Array.IndexOf(Agents, plan.UsingThisAgent);
                 OutputCommands(commands, index);
 
                 // 6) Set agent positions proper.
                 //SetAgentPosition();
-                if (plan.UsingThisAgentIndex == null)
+                if (plan.UsingThisAgent == null)
                     Agents[index] = Agents[index].Move(plan.ToHere);
 
 
@@ -73,7 +73,7 @@ namespace BoxProblems
 
         public List<string> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState)
         {
-            var box = currentState.Entities[move.MoveThisIndex];
+            var box = move.MoveThis;
 
             // Make all blockages into "fake" walls
             foreach (Entity e in currentState.Entities)
@@ -81,8 +81,8 @@ namespace BoxProblems
 
             List<string> result;
 
-            if (move.UsingThisAgentIndex.HasValue)
-                result = CreateSolutionCommands(agent: currentState.Entities[move.UsingThisAgentIndex.Value], box, goal: new Entity(move.ToHere, box.Color, box.Type));
+            if (move.UsingThisAgent.HasValue)
+                result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));
             else
                 result = MoveToLocation(box.Pos, move.ToHere);
 

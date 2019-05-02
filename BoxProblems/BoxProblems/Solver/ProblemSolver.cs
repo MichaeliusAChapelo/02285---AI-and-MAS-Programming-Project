@@ -11,6 +11,20 @@ using System.Threading.Tasks;
 
 namespace BoxProblems.Solver
 {
+    public class HighlevelLevelSolution
+    {
+        public readonly List<HighlevelMove> SolutionMovesParts;
+        public readonly List<BoxConflictGraph> SolutionGraphs;
+        public readonly Level Level;
+
+        public HighlevelLevelSolution(List<HighlevelMove> moves, List<BoxConflictGraph> graphs, Level level)
+        {
+            this.SolutionMovesParts = moves;
+            this.SolutionGraphs = graphs;
+            this.Level = level;
+        }
+    }
+
     public static partial class ProblemSolver
     {
         public static SolveStatistic GetSolveStatistics(string levelPath, TimeSpan timeoutTime, bool parallelize = false)
@@ -27,9 +41,10 @@ namespace BoxProblems.Solver
             Stopwatch timer = new Stopwatch();
             timer.Start();
 
+            List<HighlevelLevelSolution> solution = null;
             try
             {
-                SolveLevel(level, timeoutTime, parallelize);
+                solution = SolveLevel(level, timeoutTime, parallelize);
                 status = SolverStatus.SUCCESS;
             }
             catch (Exception e)
@@ -43,10 +58,10 @@ namespace BoxProblems.Solver
 
             timer.Stop();
 
-            return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath));
+            return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath), solution);
         }
 
-        public static List<(List<HighlevelMove> solutionMovesParts, List<BoxConflictGraph> solutionGraphs)> SolveLevel(string levelPath, TimeSpan timeoutTime, bool parallelize)
+        public static List<HighlevelLevelSolution> SolveLevel(string levelPath, TimeSpan timeoutTime, bool parallelize)
         {
             if (!File.Exists(levelPath))
             {
@@ -58,9 +73,9 @@ namespace BoxProblems.Solver
             return SolveLevel(level, timeoutTime, parallelize);
         }
 
-        internal static List<(List<HighlevelMove> solutionMovesParts, List<BoxConflictGraph> solutionGraphs)> SolveLevel(Level level, TimeSpan timeoutTime, bool parallelize)
+        public static List<HighlevelLevelSolution> SolveLevel(Level level, TimeSpan timeoutTime, bool parallelize)
         {
-            var solutionPieces = new ConcurrentBag<(List<HighlevelMove>, List<BoxConflictGraph>)>();
+            var solutionPieces = new ConcurrentBag<HighlevelLevelSolution>();
             List<Level> levels = LevelSplitter.SplitLevel(level);
 
             using (CancellationTokenSource cancelSource = new CancellationTokenSource(timeoutTime))
@@ -210,7 +225,7 @@ namespace BoxProblems.Solver
             return true;
         }
 
-        private static (List<HighlevelMove> solutionMoves, List<BoxConflictGraph> solutionGraphs) SolvePartialLevel(Level level, CancellationToken cancelToken)
+        private static HighlevelLevelSolution SolvePartialLevel(Level level, CancellationToken cancelToken)
         {
             List<HighlevelMove> solution = new List<HighlevelMove>();
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
@@ -355,7 +370,13 @@ namespace BoxProblems.Solver
             //    PrintLatestStateDiff(level, sData.SolutionGraphs, z);
             //}
 
-            return (solution, sData.SolutionGraphs);
+            foreach (var goal in level.Goals)
+            {
+                level.RemovePermanentWall(goal.Pos);
+                level.RemoveWall(goal.Pos);
+            }
+
+            return new HighlevelLevelSolution(solution, sData.SolutionGraphs, level);
         }
 
         private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth)
@@ -386,14 +407,15 @@ namespace BoxProblems.Solver
                 solutionToSubProblem.AddRange(solveConflictMoves);
             }
 
+            int? agentIndex = null;
             if (!toMoveIsAgent)
             {
                 agentToUse = GetAgentToSolveProblem(sData.CurrentConflicts, toMove);
-                int agentIndex = sData.GetEntityIndex(agentToUse.Value);
+                agentIndex = sData.GetEntityIndex(agentToUse.Value);
 
                 sData.AddToFreePath(toMovePath);
                 List<HighlevelMove> solveAgentConflictMoves;
-                if (!TrySolveConflicts(agentIndex, toMove.Pos, out solveAgentConflictMoves, out _, sData, agentToUse, depth))
+                if (!TrySolveConflicts(agentIndex.Value, toMove.Pos, out solveAgentConflictMoves, out _, sData, agentToUse, depth))
                 {
                     return false;
                 }
@@ -412,7 +434,7 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
-            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
+            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMoveIndex, goal, agentIndex, counter));
             //Console.WriteLine(solutionToSubProblem.Last());
             return true;
         }

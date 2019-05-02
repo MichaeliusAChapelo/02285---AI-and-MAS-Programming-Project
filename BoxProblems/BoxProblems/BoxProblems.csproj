@@ -55,15 +55,6 @@
     <None Update="Levels\New_Format\MAPullPush2.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Levels\New_Format\SAAiMasTers.lvl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Levels\New_Format\SABahaMAS.lvl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Levels\New_Format\SACrunch.lvl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="Levels\New_Format\SplitExample1.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

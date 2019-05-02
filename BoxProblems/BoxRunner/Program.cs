@@ -3,32 +3,92 @@ using BoxProblems.Graphing;
 using BoxProblems.Solver;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace BoxRunner
 {
     class Program
     {
-        static void Main(string[] args)
+        private static List<string> GetFilePathsFromFolderRecursively(string folderPath)
         {
-            if (args.Length == 0)
+            List<string> filepaths = new List<string>();
+            filepaths.AddRange(Directory.GetFiles(folderPath));
+
+            foreach (var direcotry in Directory.GetDirectories(folderPath))
             {
-                new ServerCommunicator().Run(args);
+                filepaths.AddRange(GetFilePathsFromFolderRecursively(direcotry));
+            }
+
+            return filepaths;
+        }
+
+        private static string GetLevelPath(string levelFileName)
+        {
+            List<string> files = GetFilePathsFromFolderRecursively("Levels");
+            return files.Single(x => Path.GetFileName(x) == levelFileName);
+        }
+
+        private static void ConvertFilesToCorrectFormat(string levelPath, string savePath)
+        {
+            string[] oldFormat = File.ReadAllLines(levelPath);
+            if (Level.IsNewFormatLevel(oldFormat))
+            {
+                File.WriteAllText(savePath, string.Join('\n', oldFormat));
             }
             else
             {
-                ServerCommunicator.PrintMap(); // Michaelius: With the new solver, everything messes up if I don't print this. DON'T ASK, I DON'T KNOW WHY
+                string[] newFormat = Level.ConvertToNewFormat(oldFormat, Path.GetFileNameWithoutExtension(levelPath));
+                File.WriteAllText(savePath, string.Join('\n', newFormat));
+            }
+        }
 
+        static void Main(string[] args)
+        {
+            ServerCommunicator.SkipConsoleRead = false;
 
-                string levelPath = ServerCommunicator.levelPath; // Go to ServerCommunicator to pick a level.
+            //string levelPath = "SABahaMAS.lvl";
+            //string levelPath = "MAExample.lvl";
+            //string levelPath = "SAExample.lvl";
+            //string levelPath = "SACrunch.lvl";
+            //string levelPath = "SAAiMasTers.lvl";
+            //string levelPath = "SAExample2.lvl";
+            //string levelPath = "MAPullPush.lvl";
+            string levelPath = "MAFiveWalls.lvl";
+            //string levelPath = "MAPullPush2.lvl";
+            //string levelPath = "SABahaMAS.lvl";
+            //string levelPath = "MACorridor.lvl";
+            //string levelPath = "SAlabyrinthOfStBertin.lvl";
+            //string levelPath = "MAKarlMarx.lvl";'
 
-                var result = ProblemSolver.SolveLevel(levelPath, TimeSpan.FromHours(1), false);
+            string convertedLevelPath = "temp.lvl";
 
-                var superList = result.Select(x => x.solutionMovesParts).ToList();
+            ServerCommunicator serverCom = new ServerCommunicator();
+            if (args.Length == 0 && !ServerCommunicator.SkipConsoleRead)
+            {
+                levelPath = GetLevelPath(levelPath);
+                ConvertFilesToCorrectFormat(levelPath, convertedLevelPath);
+
+                serverCom.StartServer(convertedLevelPath);
+            }
+            else
+            {
+                ServerCommunicator.GiveGroupNameToServer();
+
+                Level level;
+                if (ServerCommunicator.SkipConsoleRead)
+                {
+                    level = Level.ReadLevel(File.ReadAllLines(convertedLevelPath));
+                }
+                else
+                {
+                    level = ServerCommunicator.GetLevelFromServer();
+                }
+
+                var result = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);
 
                 //new ServerCommunicator(superList).NonAsyncSolve(); // Solve locally for debugging purposes
-                var fisk = new ServerCommunicator(superList);//.Run(args); // Uses heuristics to solve in server client.
-                fisk.NonAsyncSolve();
+                serverCom.NonAsyncSolve(level, result);//.Run(args); // Uses heuristics to solve in server client.
 
                 return;
                 // Michaelius ENDO

@@ -41,9 +41,10 @@ namespace BoxProblems.Solver
             Stopwatch timer = new Stopwatch();
             timer.Start();
 
+            List<HighlevelLevelSolution> solution = null;
             try
             {
-                SolveLevel(level, timeoutTime, parallelize);
+                solution = SolveLevel(level, timeoutTime, parallelize);
                 status = SolverStatus.SUCCESS;
             }
             catch (Exception e)
@@ -57,7 +58,7 @@ namespace BoxProblems.Solver
 
             timer.Stop();
 
-            return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath));
+            return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath), solution);
         }
 
         public static List<HighlevelLevelSolution> SolveLevel(string levelPath, TimeSpan timeoutTime, bool parallelize)

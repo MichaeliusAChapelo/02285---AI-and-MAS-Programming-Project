@@ -10,13 +10,15 @@ namespace BoxProblems.Solver
         public readonly Exception ErrorThrown;
         public SolverStatus Status;
         public string LevelName;
+        public List<HighlevelLevelSolution> Solution;
 
-        public SolveStatistic(long runTimeInMiliseconds, Exception error, SolverStatus status, string levelName)
+        public SolveStatistic(long runTimeInMiliseconds, Exception error, SolverStatus status, string levelName, List<HighlevelLevelSolution> solution)
         {
             this.RunTimeInMiliseconds = runTimeInMiliseconds;
             this.ErrorThrown = error;
             this.Status = status;
             this.LevelName = levelName;
+            this.Solution = solution;
         }
     }
 }

@@ -178,44 +178,46 @@ namespace BoxProblems.Solver
         {
             foreach (var group in graphGroups)
             {
-                HashSet<char> agents = new HashSet<char>();
-                Dictionary<char, int> boxes = new Dictionary<char, int>();
-                Dictionary<char, int> goals = new Dictionary<char, int>();
+                HashSet<int> agentColors = new HashSet<int>();
+                Dictionary<char, int> boxeTypes = new Dictionary<char, int>();
+                Dictionary<(int color, char type), int> goalTypeAndColor = new Dictionary<(int, char), int>();
                 foreach (var iNode in group)
                 {
                     BoxConflictNode boxNode = (BoxConflictNode)iNode;
                     char entityType = boxNode.Value.Ent.Type;
+                    int entityColor = boxNode.Value.Ent.Color;
                     switch (boxNode.Value.EntType)
                     {
                         case EntityType.AGENT:
-                            agents.Add(entityType);
+                            agentColors.Add(entityColor);
                             break;
                         case EntityType.BOX:
-                            if (!boxes.ContainsKey(entityType))
+                            if (!boxeTypes.ContainsKey(entityType))
                             {
-                                boxes.Add(entityType, 0);
+                                boxeTypes.Add(entityType, 0);
                             }
-                            boxes[entityType] += 1;
+                            boxeTypes[entityType] += 1;
                             break;
                         case EntityType.GOAL:
-                            if (!goals.ContainsKey(entityType))
+                            var goalKey = (entityColor, entityType);
+                            if (!goalTypeAndColor.ContainsKey(goalKey))
                             {
-                                goals.Add(entityType, 0);
+                                goalTypeAndColor.Add(goalKey, 0);
                             }
-                            goals[entityType] += 1;
+                            goalTypeAndColor[goalKey] += 1;
                             break;
                         default:
                             throw new Exception("Unknown entity type.");
                     }
                 }
 
-                foreach (var goalInfo in goals)
+                foreach (var goalInfo in goalTypeAndColor)
                 {
-                    if (!boxes.TryGetValue(goalInfo.Key, out int boxCount) || boxCount < goalInfo.Value)
+                    if (!boxeTypes.TryGetValue(goalInfo.Key.type, out int boxCount) || boxCount < goalInfo.Value)
                     {
                         return false;
                     }
-                    if (!agents.Contains(goalInfo.Key))
+                    if (!agentColors.Contains(goalInfo.Key.color))
                     {
                         return false;
                     }

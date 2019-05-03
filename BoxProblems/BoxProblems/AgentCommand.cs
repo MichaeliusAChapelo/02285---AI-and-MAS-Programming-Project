@@ -44,11 +44,11 @@ namespace BoxProblems
             switch (CType)
             {
                 case CommandType.MOVE:
-                    return $"Move({AgentDir.ToString()})";
+                    return $"Move({AgentDir})";
                 case CommandType.PULL:
-                    return $"Pull({AgentDir.ToString()},{BoxDir.ToString()})";
+                    return $"Pull({AgentDir},{BoxDir})";
                 case CommandType.PUSH:
-                    return $"Push({AgentDir.ToString()},{BoxDir.ToString()})";
+                    return $"Push({AgentDir},{BoxDir})";
                 default:
                     throw new Exception($"Command type not recognized: {CType}");
             }

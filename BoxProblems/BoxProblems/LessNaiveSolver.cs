@@ -39,7 +39,7 @@ namespace BoxProblems
                 var commands = CreateOnlyFirstSolutionCommand(plan, currentState);
 
                 // 5) Loop through commands
-                int index = Array.IndexOf(Agents, plan.UsingThisAgent);
+                int index = Array.IndexOf(Agents, plan.UsingThisAgent.HasValue ? plan.UsingThisAgent : plan.MoveThis);
 
                 // 6) Set agent positions proper.
                 //SetAgentPosition();

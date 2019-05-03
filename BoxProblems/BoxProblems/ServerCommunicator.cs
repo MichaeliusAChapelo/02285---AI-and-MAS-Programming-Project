@@ -16,7 +16,7 @@ namespace BoxProblems
 
         public void StartServer(string levelPath)
         {
-            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 25; Read-Host");
+            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 100; Read-Host");
         }
 
         public List<AgentCommands> NonAsyncSolve(Level level, List<HighlevelLevelSolution> levelSolutions)
@@ -50,6 +50,14 @@ namespace BoxProblems
             return Level.ReadLevel(levelStrings.ToArray());
         }
 
+        public void SendCommands(string[] commands)
+        {
+            foreach (var command in commands)
+            {
+                SendCommand(command);
+            }
+        }
+
         public static void SendCommand(string command)
         {
             Console.WriteLine(command);
@@ -75,13 +83,11 @@ namespace BoxProblems
                     Array.Fill(output, AgentCommand.NoOp());
                     output[agentCommands.AgentIndex] = command.ToString();
 
-                    SendCommand(output);
+                    SendCommand(CreateCommand(output));
                 }
             }
         }
 
-        internal static void CreateCommand(string[] commands) => SendCommand(String.Join(';', commands)); 
-        internal static void SendCommand(string[] commands) => SendCommand(String.Join(';', commands));
-        internal static void SendCommand(List<string> commands) => SendCommand(String.Join(';', commands));
+        internal static string CreateCommand(string[] commands) => String.Join(';', commands);
     }
 }

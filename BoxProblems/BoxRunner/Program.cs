@@ -48,13 +48,13 @@ namespace BoxRunner
             ServerCommunicator.SkipConsoleRead = false;
 
             //string levelPath = "SABahaMAS.lvl";
-            //string levelPath = "MAExample.lvl";
+            string levelPath = "MAExample.lvl";
             //string levelPath = "SAExample.lvl";
             //string levelPath = "SACrunch.lvl";
             //string levelPath = "SAAiMasTers.lvl";
             //string levelPath = "SAExample2.lvl";
             //string levelPath = "MAPullPush.lvl";
-            string levelPath = "MAFiveWalls.lvl";
+            //string levelPath = "MAFiveWalls.lvl";
             //string levelPath = "MAPullPush2.lvl";
             //string levelPath = "SABahaMAS.lvl";
             //string levelPath = "MACorridor.lvl";
@@ -87,7 +87,11 @@ namespace BoxRunner
 
                 var highLevelCommands = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);
                 var lowLevelCommands = serverCom.NonAsyncSolve(level, highLevelCommands);
-                serverCom.SendCommandsSequentially(lowLevelCommands, level);
+                //serverCom.SendCommandsSequentially(lowLevelCommands, level);
+
+                var finalCommands = CommandParallelizer.Parallelize(lowLevelCommands, level);
+                serverCom.SendCommands(finalCommands);
+
 
                 return;
                 // Michaelius ENDO

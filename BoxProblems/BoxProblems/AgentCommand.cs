@@ -39,6 +39,43 @@ namespace BoxProblems
             return new AgentCommand(CommandType.PUSH, agentDir, boxDir);
         }
 
+        public Point GetNextAgentPos(Point agentPos)
+        {
+            return agentPos + AgentDir.DirectionDelta();
+        }
+
+        public Point GetBoxPos(Point agentPos)
+        {
+            if (CType == CommandType.PULL)
+            {
+                return agentPos + BoxDir.DirectionDelta();
+            }
+            else if (CType == CommandType.PUSH)
+            {
+                return agentPos + AgentDir.DirectionDelta();
+            }
+            else
+            {
+                throw new Exception("Move command does not have a box attached to it.");
+            }
+        }
+
+        public Point GetNextBoxPos(Point boxPos)
+        {
+            if (CType == CommandType.PULL)
+            {
+                return boxPos + BoxDir.Opposite().DirectionDelta();
+            }
+            else if (CType == CommandType.PUSH)
+            {
+                return boxPos + BoxDir.DirectionDelta();
+            }
+            else
+            {
+                throw new Exception("Move command does not have a box attached to it.");
+            }
+        }
+
         public override string ToString()
         {
             switch (CType)

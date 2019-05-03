@@ -90,17 +90,26 @@ namespace BoxProblems
 
             var commands = new List<AgentCommand>();
 
+            bool OnlyPullToGoal = false;
+
             // Does agent need to move to box position first?
+            List<Point> toBox = null;
             Point agentPosNextToBox;
             if (Point.ManhattenDistance(agent.Pos, box.Pos) != 1)
-                agentPosNextToBox = MoveToBox(agent, box, commands);
+            {
+                toBox = RunAStar(agent.Pos, box.Pos);
+                agentPosNextToBox = MoveToBox(toBox, commands, goal, out OnlyPullToGoal);
+            }
             else
                 agentPosNextToBox = agent.Pos;
 
             var toGoal = RunAStar(box.Pos, goal.Pos);
             bool ShouldPush = !toGoal.Contains(agentPosNextToBox); // always true right now
+
             if (ShouldPush)
                 toGoal.Insert(0, agentPosNextToBox);
+
+            Point? newAgentPosition = null;
 
             // Strategy: Check if need to pull: If yes, keep pulling until I can U-turn into pushing. Then push until end.
             if (!ShouldPush)
@@ -108,34 +117,50 @@ namespace BoxProblems
                 List<Point> parteUn = new List<Point>();
                 List<Point> parteDeux = new List<Point>();
 
-                for (int i = 0; i < toGoal.Count; ++i)
-                    if (!IsCorridor(toGoal[i]))
-                    {
-                        Point turnTo = FindSpaceToTurn(toGoal, toGoal[i]);
-                        parteUn.AddRange(toGoal.Take(i + 1));
-                        parteUn.Add(turnTo);
+                if (OnlyPullToGoal)
+                {
+                    int index = toBox.IndexOf(goal.Pos);
 
-                        for (int j = 2; j < parteUn.Count; ++j)
-                            commands.Add(Pull(parteUn, j));
+                    if (index == -1)
+                        newAgentPosition = agent.Pos;
+                    else
+                        newAgentPosition = toBox[index - 1];
+                    toGoal.Add(newAgentPosition.Value);
 
-                        // Push
-                        parteDeux.Add(turnTo);
-                        parteDeux.AddRange(toGoal.Skip(i));
+                    for (int i = 2; i < toGoal.Count; ++i)
+                        commands.Add(Pull(toGoal, i));
+                }
+                else
+                    for (int i = 1; i < toGoal.Count; ++i)
+                        if (!IsCorridor(toGoal[i]))
+                        {
+                            Point turnTo = FindSpaceToTurn(toGoal, toGoal[i]);
+                            parteUn.AddRange(toGoal.Take(i + 1));
+                            parteUn.Add(turnTo);
 
-                        for (int j = 2; j < parteDeux.Count; ++j)
-                            commands.Add(Push(parteDeux, j));
-                        break;
-                    }
+                            for (int j = 2; j < parteUn.Count; ++j)
+                                commands.Add(Pull(parteUn, j));
+
+                            // Push
+                            parteDeux.Add(turnTo);
+                            parteDeux.AddRange(toGoal.Skip(i));
+
+                            for (int j = 2; j < parteDeux.Count; ++j)
+                                commands.Add(Push(parteDeux, j));
+                            break;
+                        }
+
             }
             else
                 for (int i = 2; i < toGoal.Count; i++)
                     commands.Add(Push(toGoal, i));
 
-            Point newAgentPosition = toGoal[toGoal.Count - 2];
+            if (!newAgentPosition.HasValue)
+                newAgentPosition = toGoal[toGoal.Count - 2];
 
             Level.AddWall(goal.Pos);
             //SetAgentPosition(agent, newAgentPosition); // Much more preferable, but troublesome. Wait till heuristics improve.
-            MoveToLocation(newAgentPosition, agent.Pos, commands); // thats just how it is rite now i aint making them heuristics dawg
+            MoveToLocation(newAgentPosition.Value, agent.Pos, commands); // thats just how it is rite now i aint making them heuristics dawg
 
             Level.ResetWalls();
 
@@ -144,13 +169,17 @@ namespace BoxProblems
 
         #region Solution Command Generation
 
-        private Point MoveToBox(Entity agent, Entity box, List<AgentCommand> commands)
+        private Point MoveToBox(List<Point> toBox, List<AgentCommand> commands, Entity goal, out bool OnlyPullToGoal)
         {
-            var toBox = RunAStar(agent.Pos, box.Pos);
-
             toBox.Remove(toBox.Last()); // Remove box' position from solution list
+
+            OnlyPullToGoal = false;
             for (int i = 1; i < toBox.Count; ++i)
+            {
+                if (toBox[i] == goal.Pos)
+                    OnlyPullToGoal = true;
                 commands.Add(AgentCommand.CreateMove(PointToDirection(toBox[i - 1], toBox[i])));
+            }
             return toBox.Last(); // Return agent's destination, so next to box.
         }
 
@@ -163,6 +192,8 @@ namespace BoxProblems
 
         private void MoveToLocation(Point agentFrom, Point destination, List<AgentCommand> commands)
         {
+            if (agentFrom == destination) return; //Jeez, dawg. This ain't cool.
+
             var toDest = RunAStar(agentFrom, destination);
             for (int i = 1; i < toDest.Count; ++i)
                 commands.Add(AgentCommand.CreateMove(PointToDirection(toDest[i - 1], toDest[i])));

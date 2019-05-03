@@ -47,8 +47,10 @@ namespace BoxRunner
         {
             ServerCommunicator.SkipConsoleRead = false;
 
-            //string levelPath = "SABahaMAS.lvl";
-            string levelPath = "MAExample.lvl";
+            string levelPath = "MABahaMAS.lvl";
+            //string levelPath = "MAExample.lvl";
+            //string levelPath = "friendofDFS.lvl";
+            //string levelPath = "SAKarlMarx.lvl";
             //string levelPath = "SAExample.lvl";
             //string levelPath = "SACrunch.lvl";
             //string levelPath = "SAAiMasTers.lvl";
@@ -78,6 +80,8 @@ namespace BoxRunner
                 Level level;
                 if (ServerCommunicator.SkipConsoleRead)
                 {
+                    levelPath = GetLevelPath(levelPath);
+                    ConvertFilesToCorrectFormat(levelPath, convertedLevelPath);
                     level = Level.ReadLevel(File.ReadAllLines(convertedLevelPath));
                 }
                 else

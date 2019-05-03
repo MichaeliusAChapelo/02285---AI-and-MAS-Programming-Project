@@ -43,9 +43,64 @@ namespace BoxRunner
             }
         }
 
+        private static void InteractiveConsole()
+        {
+            File.WriteAllText(communicatorPath, string.Empty);
+            Console.WriteLine("Type your commands here:");
+            List<string> history = new List<string>() { "Pull(E,N)", "Push(N,W)", "Pull(S,E)", "Push(E,N)" };
+            while (true)
+            {
+                var s = Console.ReadLine();
+
+                if (s == "save")
+                    File.WriteAllLines(savePath, history);
+                if (s == "load")
+                    File.WriteAllLines(communicatorPath, File.ReadAllLines(savePath));
+                else if (s.Contains("LRot"))
+                {
+                    var a = BoxSwimming.LeftHandBoxSwimming(s.Last());
+                    history.AddRange(a);
+                    File.WriteAllLines(communicatorPath, a);
+                }
+                else if (s.Contains("RRot"))
+                {
+                    var a = BoxSwimming.RightHandBoxSwimming(s.Last());
+                    history.AddRange(a);
+                    File.WriteAllLines(communicatorPath, a);
+                }
+                else
+                {
+                    history.Add(s);
+                    File.WriteAllText(communicatorPath, s);
+                }
+            }
+        }
+
+        private static void ServerReceiveInteractiveConsole(ServerCommunicator serverCom)
+        {
+            //serverCom.SendCommands(new string[4] { "Pull(E,N)", "Push(N,W)", "Pull(S,E)", "Push(E,N)" });
+            serverCom.SendCommands(new string[1] { "NoOp" });
+            string[] s;
+            while (true)
+            {
+                System.Threading.Thread.Sleep(1000);
+                s = File.ReadAllLines(communicatorPath);
+                if (s.Length == 0) continue;
+                if (s[0] == "end") break;
+
+                serverCom.SendCommands(s);
+                File.WriteAllText(communicatorPath, string.Empty);
+            }
+        }
+
+        // Set to suitable folders before enabling Interactive Console.
+        const string communicatorPath = @"C:\Meine Items\Coding Ambitions\8. Semester\02285 Box Problems\Box Problem Solver\Communicator.txt";
+        const string savePath = @"C:\Meine Items\Coding Ambitions\8. Semester\02285 Box Problems\Box Problem Solver\saved.txt";
+
         static void Main(string[] args)
         {
             ServerCommunicator.SkipConsoleRead = false;
+            bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
 
             //string levelPath = "MABahaMAS.lvl";
             //string levelPath = "MAExample.lvl";
@@ -74,6 +129,9 @@ namespace BoxRunner
                 ConvertFilesToCorrectFormat(levelPath, convertedLevelPath);
 
                 serverCom.StartServer(convertedLevelPath);
+
+                if (InteractiveConsoleEnable)
+                    InteractiveConsole();
             }
             else
             {
@@ -89,6 +147,12 @@ namespace BoxRunner
                 else
                 {
                     level = ServerCommunicator.GetLevelFromServer();
+                }
+
+                if (InteractiveConsoleEnable)
+                {
+                    ServerReceiveInteractiveConsole(serverCom);
+                    return;
                 }
 
                 var highLevelCommands = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);

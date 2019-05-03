@@ -131,7 +131,7 @@ namespace BoxProblems
                         commands.Add(Pull(toGoal, i));
                 }
                 else
-                    for (int i = 0; i < toGoal.Count; ++i)
+                    for (int i = 1; i < toGoal.Count; ++i)
                         if (!IsCorridor(toGoal[i]))
                         {
                             Point turnTo = FindSpaceToTurn(toGoal, toGoal[i]);

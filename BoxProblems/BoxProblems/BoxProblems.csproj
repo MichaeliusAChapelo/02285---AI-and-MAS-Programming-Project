@@ -55,6 +55,12 @@
     <None Update="Levels\New_Format\MAPullPush2.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Levels\New_Format\MAVisualKei.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Levels\New_Format\SAVisualKei.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Levels\New_Format\SplitExample1.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

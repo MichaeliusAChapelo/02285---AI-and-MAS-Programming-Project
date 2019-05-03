@@ -47,7 +47,7 @@ namespace BoxRunner
         {
             ServerCommunicator.SkipConsoleRead = false;
 
-            string levelPath = "MABahaMAS.lvl";
+            //string levelPath = "MABahaMAS.lvl";
             //string levelPath = "MAExample.lvl";
             //string levelPath = "friendofDFS.lvl";
             //string levelPath = "SAKarlMarx.lvl";
@@ -62,6 +62,7 @@ namespace BoxRunner
             //string levelPath = "MACorridor.lvl";
             //string levelPath = "SAlabyrinthOfStBertin.lvl";
             //string levelPath = "MAKarlMarx.lvl";'
+            string levelPath = "SAVisualKei.lvl";
 
             string convertedLevelPath = "temp.lvl";
 

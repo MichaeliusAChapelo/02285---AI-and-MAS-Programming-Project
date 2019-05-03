@@ -85,10 +85,9 @@ namespace BoxRunner
                     level = ServerCommunicator.GetLevelFromServer();
                 }
 
-                var result = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);
-
-                //new ServerCommunicator(superList).NonAsyncSolve(); // Solve locally for debugging purposes
-                serverCom.NonAsyncSolve(level, result);//.Run(args); // Uses heuristics to solve in server client.
+                var highLevelCommands = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);
+                var lowLevelCommands = serverCom.NonAsyncSolve(level, highLevelCommands);
+                serverCom.SendCommandsSequentially(lowLevelCommands, level);
 
                 return;
                 // Michaelius ENDO

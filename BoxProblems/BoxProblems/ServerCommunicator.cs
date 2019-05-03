@@ -16,48 +16,19 @@ namespace BoxProblems
 
         public void StartServer(string levelPath)
         {
-            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 25; Read-Host");
+            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 100; Read-Host");
         }
 
-        public void NonAsyncSolve(Level level, List<HighlevelLevelSolution> levelSolutions)
+        public List<AgentCommands> NonAsyncSolve(Level level, List<HighlevelLevelSolution> levelSolutions)
         {
+            List<AgentCommands> commands = new List<AgentCommands>();
             foreach (HighlevelLevelSolution list in levelSolutions)
             {
                 var solver = new LessNaiveSolver(level, list.Level, list.SolutionMovesParts);
-                solver.Solve(); // A most convenient function.
+                commands.AddRange(solver.Solve()); // A most convenient function.
             }
-        }
 
-        public void AsyncSolve(string levelPath)
-        {
-        }
-
-        // Iterates over each solved level, picks out first command, assembles those commands and sends to server. Repeat until fully solved.
-        public void AssembleCommands(int agentCount, List<List<string[]>> results)
-        {
-            var commands = new string[agentCount];
-            while (results.Count != 0)
-            {
-                for (int i = 0; i < commands.Length; ++i) commands[i] = NoOp(); // Default
-                for (int i = 0; i < results.Count; ++i)
-                {
-                    var result = results[i];
-                    if (result.Count == 0)
-                    {
-                        results.Remove(result);
-                        i--;
-                    }
-                    else
-                    {
-                        for (int j = 0; j < agentCount; ++j)
-                            if (result[0][j] != null)
-                                commands[j] = result[0][j];
-                        result.RemoveAt(0);
-                    }
-                }
-                if (results.Count != 0)
-                    Command(commands);
-            }
+            return commands;
         }
 
         public static void GiveGroupNameToServer()
@@ -79,40 +50,44 @@ namespace BoxProblems
             return Level.ReadLevel(levelStrings.ToArray());
         }
 
-        public void ExampleCommands()
+        public void SendCommands(string[] commands)
         {
-            for (int i = 0; i < 7; ++i)
-                Command(new string[] { Move(Direction.W), Move(Direction.E) }); // Accepts string arrays, functions with enum
-            for (int i = 0; i < 2; ++i)
-                Command(new List<string> { Move('S'), Move('N') }); // Accepts string lists, functions with chars
-            for (int i = 0; i < 7; ++i)
-                Command("Move(E);Move(W)"); // Accepts direct string commands.
-
-            Command("NoOp;" + NoOp());
+            foreach (var command in commands)
+            {
+                SendCommand(command);
+            }
         }
 
-        public static string Command(string command)
+        public static void SendCommand(string command)
         {
             Console.WriteLine(command);
             Console.Error.WriteLine(command);
-            if (SkipConsoleRead) return string.Empty;
+            if (SkipConsoleRead) return;
             string response = Console.ReadLine();
 
             //Console.Error.WriteLine("COMMAND: " + command + "\nRESPONSE: " + response);
-            return response;
+            if (response.Contains("false"))
+            {
+                throw new Exception("Sent illegal command to server.");
+            }
         }
 
-        internal static string Command(string[] commands) { return Command(String.Join(';', commands)); }
-        internal static string Command(List<string> commands) { return Command(String.Join(';', commands)); }
+        public void SendCommandsSequentially(List<AgentCommands> commands, Level level)
+        {
+            string[] output = new string[level.AgentCount];
 
-        internal static string NoOp() { return "NoOp"; }
-        internal static string Move(Direction agentDirection) { return "Move(" + agentDirection.ToString() + ")"; }
-        internal static string Push(Direction agentDirection, Direction boxDirection) { return "Push(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
-        internal static string Pull(Direction agentDirection, Direction boxDirection) { return "Pull(" + agentDirection.ToString() + "," + boxDirection.ToString() + ")"; }
+            foreach (AgentCommands agentCommands in commands)
+            {
+                foreach (var command in agentCommands.Commands)
+                {
+                    Array.Fill(output, AgentCommand.NoOp());
+                    output[agentCommands.AgentIndex] = command.ToString();
 
-        internal static string Move(char agentDirection) { return "Move(" + agentDirection + ")"; }
-        internal static string Push(char agentDirection, char boxDirection) { return "Push(" + agentDirection + "," + boxDirection + ")"; }
-        internal static string Pull(char agentDirection, char boxDirection) { return "Pull(" + agentDirection + "," + boxDirection + ")"; }
+                    SendCommand(CreateCommand(output));
+                }
+            }
+        }
 
+        internal static string CreateCommand(string[] commands) => String.Join(';', commands);
     }
 }

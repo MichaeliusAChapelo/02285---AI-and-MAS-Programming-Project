@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace BoxProblems
 {
-    internal class LessNaiveSolver
+    internal partial class LessNaiveSolver
     {
         private readonly Level Level;
         //private State CurrentState;
@@ -26,8 +26,10 @@ namespace BoxProblems
         }
 
         // GOD FUNCTION DEUX
-        public void Solve()
+        public List<AgentCommands> Solve()
         {
+            List<AgentCommands> solution = new List<AgentCommands>();
+
             State currentState = Level.InitialState;
             foreach (HighlevelMove plan in Plan)
             {
@@ -38,7 +40,6 @@ namespace BoxProblems
 
                 // 5) Loop through commands
                 int index = Array.IndexOf(Agents, plan.UsingThisAgent);
-                OutputCommands(commands, index);
 
                 // 6) Set agent positions proper.
                 //SetAgentPosition();
@@ -47,31 +48,19 @@ namespace BoxProblems
 
 
                 currentState = plan.CurrentState;
+                solution.Add(new AgentCommands(commands, index));
 
                 //sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
 
             }
             Solved = true;
-        }
 
-        // Temporary: Only moving one agent at a time.
-        public void OutputCommands(List<string> commands, int agentIndex)
-        {
-            string[] output = new string[Agents.Length];
-
-            foreach (string c in commands)
-            {
-                Array.Fill(output, ServerCommunicator.NoOp());
-                output[agentIndex] = c;
-
-                string response = ServerCommunicator.Command(output);
-                if (response.Contains("false")) throw new Exception("Sent illegal command to server.");
-            }
+            return solution;
         }
 
         #region Abstract Moves to Specific Commands
 
-        public List<string> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState)
+        public List<AgentCommand> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState)
         {
             var box = move.MoveThis;
 
@@ -79,7 +68,7 @@ namespace BoxProblems
             foreach (Entity e in currentState.Entities)
                 Level.AddWall(e.Pos);
 
-            List<string> result;
+            List<AgentCommand> result;
 
             if (move.UsingThisAgent.HasValue)
                 result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));
@@ -93,18 +82,18 @@ namespace BoxProblems
             throw new Exception("High Level Move did not specify which agent to use.");
         }
 
-        public List<string> CreateSolutionCommands(Entity agent, Entity box, Entity goal)
+        public List<AgentCommand> CreateSolutionCommands(Entity agent, Entity box, Entity goal)
         {
             Level.RemoveWall(agent.Pos);
             Level.RemoveWall(box.Pos);
             Level.RemoveWall(goal.Pos);
 
-            var commands = new List<string>();
+            var commands = new List<AgentCommand>();
 
             // Does agent need to move to box position first?
             Point agentPosNextToBox;
             if (Point.ManhattenDistance(agent.Pos, box.Pos) != 1)
-                agentPosNextToBox = MoveToBox(agent, box, ref commands);
+                agentPosNextToBox = MoveToBox(agent, box, commands);
             else
                 agentPosNextToBox = agent.Pos;
 
@@ -146,7 +135,7 @@ namespace BoxProblems
 
             Level.AddWall(goal.Pos);
             //SetAgentPosition(agent, newAgentPosition); // Much more preferable, but troublesome. Wait till heuristics improve.
-            MoveToLocation(newAgentPosition, agent.Pos, ref commands); // thats just how it is rite now i aint making them heuristics dawg
+            MoveToLocation(newAgentPosition, agent.Pos, commands); // thats just how it is rite now i aint making them heuristics dawg
 
             Level.ResetWalls();
 
@@ -155,42 +144,42 @@ namespace BoxProblems
 
         #region Solution Command Generation
 
-        private Point MoveToBox(Entity agent, Entity box, ref List<string> commands)
+        private Point MoveToBox(Entity agent, Entity box, List<AgentCommand> commands)
         {
             var toBox = RunAStar(agent.Pos, box.Pos);
 
             toBox.Remove(toBox.Last()); // Remove box' position from solution list
             for (int i = 1; i < toBox.Count; ++i)
-                commands.Add(ServerCommunicator.Move(PointToDirection(toBox[i - 1], toBox[i])));
+                commands.Add(AgentCommand.CreateMove(PointToDirection(toBox[i - 1], toBox[i])));
             return toBox.Last(); // Return agent's destination, so next to box.
         }
 
-        private List<string> MoveToLocation(Point agentFrom, Point destination)
+        private List<AgentCommand> MoveToLocation(Point agentFrom, Point destination)
         {
-            var commands = new List<string>();
-            MoveToLocation(agentFrom, destination, ref commands);
+            var commands = new List<AgentCommand>();
+            MoveToLocation(agentFrom, destination, commands);
             return commands;
         }
 
-        private void MoveToLocation(Point agentFrom, Point destination, ref List<string> commands)
+        private void MoveToLocation(Point agentFrom, Point destination, List<AgentCommand> commands)
         {
             var toDest = RunAStar(agentFrom, destination);
             for (int i = 1; i < toDest.Count; ++i)
-                commands.Add(ServerCommunicator.Move(PointToDirection(toDest[i - 1], toDest[i])));
+                commands.Add(AgentCommand.CreateMove(PointToDirection(toDest[i - 1], toDest[i])));
         }
 
-        private string Push(List<Point> toGoal, int index)
+        private AgentCommand Push(List<Point> toGoal, int index)
         {
             Direction moveDirAgent = PointToDirection(toGoal[index - 2], toGoal[index - 1]);
             Direction moveDirBox = PointToDirection(toGoal[index - 1], toGoal[index]);
-            return ServerCommunicator.Push(moveDirAgent, moveDirBox);
+            return AgentCommand.CreatePush(moveDirAgent, moveDirBox);
         }
 
-        private string Pull(List<Point> toGoal, int index)
+        private AgentCommand Pull(List<Point> toGoal, int index)
         {
             Direction currDirBox = PointToDirection(toGoal[index - 1], toGoal[index - 2]);
             Direction moveDirAgent = PointToDirection(toGoal[index - 1], toGoal[index]);
-            return ServerCommunicator.Pull(moveDirAgent, currDirBox);
+            return AgentCommand.CreatePull(moveDirAgent, currDirBox);
         }
 
         public static Direction PointToDirection(Point p1, Point p2)

@@ -28,38 +28,6 @@ namespace BoxProblems
             }
         }
 
-        public void AsyncSolve(string levelPath)
-        {
-        }
-
-        // Iterates over each solved level, picks out first command, assembles those commands and sends to server. Repeat until fully solved.
-        public void AssembleCommands(int agentCount, List<List<string[]>> results)
-        {
-            var commands = new string[agentCount];
-            while (results.Count != 0)
-            {
-                for (int i = 0; i < commands.Length; ++i) commands[i] = NoOp(); // Default
-                for (int i = 0; i < results.Count; ++i)
-                {
-                    var result = results[i];
-                    if (result.Count == 0)
-                    {
-                        results.Remove(result);
-                        i--;
-                    }
-                    else
-                    {
-                        for (int j = 0; j < agentCount; ++j)
-                            if (result[0][j] != null)
-                                commands[j] = result[0][j];
-                        result.RemoveAt(0);
-                    }
-                }
-                if (results.Count != 0)
-                    Command(commands);
-            }
-        }
-
         public static void GiveGroupNameToServer()
         {
             Console.WriteLine("VisualKei");

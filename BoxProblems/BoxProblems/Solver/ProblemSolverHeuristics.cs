@@ -14,7 +14,7 @@ namespace BoxProblems.Solver
             {
                 return goals.First();
             }
-            return GetEntityToSolveProblem(currentConflicts, null, goals);
+            return GetEntityToSolveProblem(currentConflicts,EntityType.BOX, null, goals);
         }
 
         private static Entity GetBoxToSolveProblem(BoxConflictGraph currentConflicts, Entity goal)
@@ -37,7 +37,7 @@ namespace BoxProblems.Solver
             {
                 return returnEntity;
             }
-                return GetEntityToSolveProblem(currentConflicts, goal);
+                return GetEntityToSolveProblem(currentConflicts, EntityType.BOX, goal);
         }
 
         private static Entity GetAgentToSolveProblem(BoxConflictGraph currentConflicts, Entity toMove)
@@ -59,10 +59,10 @@ namespace BoxProblems.Solver
             {
                 return returnEntity;
             }
-            return GetEntityToSolveProblem(currentConflicts, toMove);
+            return GetEntityToSolveProblem(currentConflicts, EntityType.AGENT, toMove);
         }
 
-        private static Entity GetEntityToSolveProblem(BoxConflictGraph currentConflicts, Entity? entity=null, HashSet<Entity> goals =null)
+        private static Entity GetEntityToSolveProblem(BoxConflictGraph currentConflicts, EntityType entitytype, Entity? entity=null, HashSet<Entity> goals =null)
         {
             int minimumConflict = int.MaxValue;
             Entity minimumConflictEntity = new Entity();
@@ -71,7 +71,7 @@ namespace BoxProblems.Solver
                 foreach (var goal in goals)
                 {
                     INode startnode = currentConflicts.GetNodeFromPosition(goal.Pos);
-                    (int numConflicts, Entity goalEntity)=calculateMinimumConflict(currentConflicts, startnode, goal);
+                    (int numConflicts, Entity goalEntity)=calculateMinimumConflict(currentConflicts, startnode,goal, entitytype);
                     if (minimumConflict>numConflicts)
                     {
                         minimumConflict = numConflicts;
@@ -86,22 +86,13 @@ namespace BoxProblems.Solver
             else
             {
                 INode startnode = currentConflicts.GetNodeFromPosition(entity.Value.Pos);
-                (minimumConflict, minimumConflictEntity) = calculateMinimumConflict(currentConflicts, startnode, (Entity)entity);
+                (minimumConflict, minimumConflictEntity) = calculateMinimumConflict(currentConflicts, startnode, entity.Value, entitytype);
             }
             return minimumConflictEntity;
 
         }
-        private static (int, Entity) calculateMinimumConflict(BoxConflictGraph currentConflicts, INode startnode, Entity entity )
+        private static (int, Entity) calculateMinimumConflict(BoxConflictGraph currentConflicts, INode startnode, Entity entity, EntityType bfsGoalEntType)
         {
-            EntityType bfsGoalEntType;
-            if (startnode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX)
-            {
-                bfsGoalEntType = EntityType.AGENT;
-            }
-            else
-            {
-                bfsGoalEntType = EntityType.BOX;
-            }
             var visitedNodes = new HashSet<INode>();
             var bfsQueue = new Queue<(INode node, int numConflicts)>();
             (INode node, int numConflicts) starttuple = (startnode, 0);

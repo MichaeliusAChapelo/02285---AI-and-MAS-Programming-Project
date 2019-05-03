@@ -3,49 +3,51 @@ hospital
 #levelname
 SALeo
 #colors
-orange: 0,L
+brown: L
+red: E
+orange: 0,O
 #initial
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 +++++++++++++++++++++++LLLL+++++++++++++++++++++++
-++++++++++++++++++++L+LLLLLLLLLLL+++++++++++++++++
-+++++++++++++++++++LLLLLLLLLLL+LLLLLL+++++++++++++
-++++++++++++++++++LLLLLLLLLLLLLLLLLLLL++++++++++++
-+++++++++++++++++LLLLLLLLLLLLLLLLLLL++++++++++++++
-++++++++++++++++LLLLLL+LLLLLLLLLLLLLLL++++++++++++
-++++++++++++++++LLLLL++LLLLLLLLLLLLLLLLLL+++++++++
-++++++++++++++++LLLL+++LLLLLLLLLLLLLLLLLLLL+++++++
-+++++++++++++++LLLL+L++LLLLLLLLLLLLLLLLLLLLL++++++
-+++++++++++LLLLLLLLLL++LLLLLLLLLLLLLL+++LL++++++++
-++++++++++LLLLLLLLLLL++LLLLLLLLLLLLLLLLLL+++++++++
-+++++++++LLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLL+++++++
-+++++++++LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL++++++
-++++++LLLL  LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL+++++
-++++LLLLL 0LLLLLL++LLLLLLLLLLLLLLLLLLLLLLLLLLL++++
-+++LLLLLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLLLLLLLLL+++
-++LLLLLLLLLLLLLLLL+LLLLLLLLLLLLLL+++++++++++LLL+++
-++LLLLLLLLLLLLLLLL++LLLLLLLL++LLLLLLLLLLLL++++++++
-++L+LLLLLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLLLLL++++++
-++L+LLLLLLLLLLLLLL++LLLLLLLLLLLLLLLLLLLLLLLLL+++++
-+++LLLLLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLLLLLLLL++++
-+++LLLLLLLLLLLLL+++LLLLLLLLLLLLLLLLLLLLLLLLLLLL+++
-++++++++LLLLLLLLL+LLLLLLLLLL+++++LLLLLLLLLLLLLL+++
-+++++++++LLLLLLLL+LLLLLL+LLLLLLLL+++++++++++++++++
-+++++LLLLLLLLLLLL+LLLLLLL+LLLLLLLLLLLLLLLLL+++++++
-+++++LLLLLLLLLLL+LLLLLLLLL++LLLLLLLLLLLLLLLLL+++++
-+++++LLLLLLLLLL+LLLLLLLLLLLL++LLLLLLLLLLLLLLLL++++
-+++++LLLLLLLLL++LLLLLLLLLLLLLL++++LLLLLLLLLLLL++++
-+++++++LLLLLL++LLLLLLLL+LLLLLLLLL++++++++++LLLL+++
-+++++++LLLL+++LLLLLLLLLL++LLLLLLLLLLL+++++++++++++
-+++++++++L++LLLLLLL+LLLLL++LLLLLLLLLL+++++++++++++
-+++++++++++LLLLLLLL+LLLLLLL++LLLLLLLL+++++++++++++
-++++++++++LLLLLLLLLL+LLLLLLL++LLLLLLL+++++++++++++
-++++++++++LLLLLL+LLL++LLLLLLLL+++LLLL+++++++++++++
-+++++++++LLLLLLL+LLLL++LLLLLLLL+++++L+++++++++++++
-+++++++++LLLLLLL++LLLL++LLLLLLL+++++++++++++++++++
-++++++++LLLL+LLLL+LLLLL++LLLLLL+++++++++++++++++++
-++++++++LLLL+LLLL++LLLLL+++LLLL+++++++++++++++++++
-+++++++LLLLL+LLLLL++LLL+++++++++++++++++++++++++++
-+++++++LLLLL++LLL++++LL+++++++++++++++++++++++++++
+++++++++++++++++++++L+LOOOOLLLLLL+++++++++++++++++
++++++++++++++++++++LLLOEEEEOOO+OOOLLL+++++++++++++
+++++++++++++++++++LLOLLLLLLEEEEEEOOOLL++++++++++++
++++++++++++++++++LLOELLLLLLLLLLLLELL++++++++++++++
+++++++++++++++++LLOELL+LLLLLLLLLLLLLLL++++++++++++
+++++++++++++++++LOELL++LLOLOOOOOOOOOOOLLL+++++++++
+++++++++++++++++LOLL+++LLO+LOOOEEEEEEEOOOLL+++++++
++++++++++++++++LOEL+L++LLO++LLOOOLLLLLEEEOLL++++++
++++++++++++OOOOOOLOOL++LOL++++LOOOOOL+++LL++++++++
+++++++++++OOOOOOOOOOL++LO+++LL+LOOEEOLLLL+++++++++
++++++++++OOOOOOOOOOOL+LOL+++LOL+LOLLEOOOOLL+++++++
++++++++++OOOOOOOOOEOOLOOOL+LOOL+LOOLLEEEEOOE++++++
+++++++LOOO0 OOOOOLLEOOEOOL+LOOL+LOOOLLLLLEEOE+++++
+++++LLOOO  OOOOLL++LEOEOOL+LOOOLLOOOOLLLLLLELE++++
++++LOOOOOOOOOLLLLL+LEOEOOL+LOOOOOOLLLLLLLLLEEEE+++
+++LLLOOOOOLLLLLLLL+LEOOEO+LOOOOOO+++++++++++EEE+++
+++LOOLLLLLLLLLLLLL++LEOEO+LO++OOOLLLLLLLEE++++++++
+++OO+ OOOOOOOOOLLLL+LEOE+LOOOOOOOOOLLLLLLEEE++++++
+++O++ OOOOOOOOOOLL++LEOO+OOOOOOOOOOOOOOOOLEEE+++++
++++   OOOOOOOOOOOO+LEOO+LOOOOOLLLLLLLLLOOOOEEE++++
++++    OOOOOOOOO+++LOOO+OOOOLLLLLLLLLLLLLLLOEEE+++
+++++++++OOOOOOOOO+LEOLOOOOOL+++++LLLLLLLLLLLLEE+++
++++++E++++++OOOOO+LEOLOO+OOOLLLLL+++++++++++++++++
++++++OOOOOOOOO OO+LEOLOOL+LLOOOOOLLLLLLLEEE+++++++
++++++ OOOOOOO  O+LEOLLOOLL++LLOOOOOOOOOOOOEEE+++++
++++++     L+   +LEOOLLOOOLLL++LLLLOOOOOOOOOOEE++++
++++++      L  ++LEOLLOOLOOLLLL++++LLLLLLLLLOOE++++
++++++++   LO ++LEOLLOOO+LLOOLLEEE++++++++++LLLE+++
++++++++    +++LEOOOOOOOL++LOLLLLLEEEE+++++++++++++
++++++++++ ++LLOEOOO+LOOLL++LLOLLLLLLE+++++++++++++
++++++++++++LOOOOOOO+LLOOLLL++LOOOLLLE+++++++++++++
+++++++++++LLOOOOLOOL+LLLOLLL++LLLOOOE+++++++++++++
+++++++++++LOOOOL+LOL++LLLLLLEE+++LLLE+++++++++++++
++++++++++LLOLOOL+LOLL++LLLLLLLE+++++L+++++++++++++
++++++++++LOLLOLL++LLLL++LLLLLLE+++++++++++++++++++
+++++++++LLOL+LLLL+LLLLE++LLLLLE+++++++++++++++++++
+++++++++LLLL+LLLL++LLLLE+++LLLE+++++++++++++++++++
++++++++LLLLL+LLLLL++LLE+++++++++++++++++++++++++++
++++++++LLLLL++LLL++++LE+++++++++++++++++++++++++++
 +++++++LLLLLL++L++++++++++++++++++++++++++++++++++
 +++++++LLLLL++++++++++++++++++++++++++++++++++++++
 +++++++LLLL+++++++++++++++++++++++++++++++++++++++
@@ -55,57 +57,55 @@ orange: 0,L
 ++++++++L+++++++++++++++++++++++++++++++++++++++++
 ++++++++L+++++++++++++++++++++++++++++++++++++++++
 ++++++++++++++++++++++++++++++++++++++++++++++++++
-
 #goal
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 +++++++++++++++++++++++LLLL+++++++++++++++++++++++
-++++++++++++++++++++L+LLLLLLLLLLL+++++++++++++++++
-+++++++++++++++++++LLLLLLLLLLL+LLLLLL+++++++++++++
-++++++++++++++++++LLLLLLLLLLLLLLLLLLLL++++++++++++
-+++++++++++++++++LLLLLLLLLLLLLLLLLLL++++++++++++++
-++++++++++++++++LLLLLL+LLLLLLLLLLLLLLL++++++++++++
-++++++++++++++++LLLLL++LLLLLLLLLLLLLLLLLL+++++++++
-++++++++++++++++LLLL+++LLLLLLLLLLLLLLLLLLLL+++++++
-+++++++++++++++LLLL+L++LLLLLLLLLLLLLLLLLLLLL++++++
-+++++++++++LLLLLLLLLL++LLLLLLLLLLLLLL+++LL++++++++
-++++++++++LLLLLLLLLLL++LLLLLLLLLLLLLLLLLL+++++++++
-+++++++++LLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLL+++++++
-+++++++++LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL++++++
-++++++LLLL  LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL+++++
-++++LLLLLL LLLLLL++LLLLLLLLLLLLLLLLLLLLLLLLLLL++++
-+++LLLLLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLLLLLLLLL+++
-++LLLLLLLLLLLLLLLL+LLLLLLLLLLLLLL+++++++++++LLL+++
-++LLLLLLLLLLLLLLLL++LLLLLLLL++LLLLLLLLLLLL++++++++
-++L+LLLLLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLLLLL++++++
-++L+LLLLLLLLLLLLLL++LLLLLLLLLLLLLLLLLLLLLLLLL+++++
-+++LLLLLLLLLLLLLLL+LLLLLLLLLLLLLLLLLLLLLLLLLLL++++
-+++LLLLLLLLLLLLL+++LLLLLLLLLLLLLLLLLLLLLLLLLLLL+++
-++++++++LLLLLLLLL+LLLLLLLLLL+++++LLLLLLLLLLLLLL+++
-+++++++++LLLLLLLL+LLLLLL+LLLLLLLL+++++++++++++++++
-+++++LLLLLLLLLLLL+LLLLLLL+LLLLLLLLLLLLLLLLL+++++++
-+++++LLLLLLLLLLL+LLLLLLLLL++LLLLLLLLLLLLLLLLL+++++
-+++++LLLLLLLLLL+LLLLLLLLLLLL++LLLLLLLLLLLLLLLL++++
-+++++LLLLLLLLL++LLLLLLLLLLLLLL++++LLLLLLLLLLLL++++
-+++++++LLLLLL++LLLLLLLL+LLLLLLLLL++++++++++LLLL+++
-+++++++LLLL+++LLLLLLLLLL++LLLLLLLLLLL+++++++++++++
-+++++++++L++LLLLLLL+LLLLL++LLLLLLLLLL+++++++++++++
-+++++++++++LLLLLLLL+LLLLLLL++LLLLLLLL+++++++++++++
-++++++++++LLLLLLLLLL+LLLLLLL++LLLLLLL+++++++++++++
-++++++++++LLLLLL+LLL++LLLLLLLL+++LLLL+++++++++++++
-+++++++++LLLLLLL+LLLL++LLLLLLLL+++++L+++++++++++++
-+++++++++LLLLLLL++LLLL++LLLLLLL+++++++++++++++++++
-++++++++LLLL+LLLL+LLLLL++LLLLLL+++++++++++++++++++
-++++++++LLLL+LLLL++LLLLL+++LLLL+++++++++++++++++++
-+++++++LLLLL+LLLLL++LLL+++++++++++++++++++++++++++
-+++++++LLLLL++LLL++++LL+++++++++++++++++++++++++++
+++++++++++++++++++++L+LOOOOLLLLLL+++++++++++++++++
++++++++++++++++++++LLLOEEEEOOO+OOOLLL+++++++++++++
+++++++++++++++++++LLOLLLLLLEEEEEEOOOLL++++++++++++
++++++++++++++++++LLOELLLLLLLLLLLLELL++++++++++++++
+++++++++++++++++LLOELL+LLLLLLLLLLLLLLL++++++++++++
+++++++++++++++++LOELL++LLOLOOOOOOOOOOOLLL+++++++++
+++++++++++++++++LOLL+++LLO+LOOOEEEEEEEOOOLL+++++++
++++++++++++++++LOEL+L++LLO++LLOOOLLLLLEEEOLL++++++
++++++++++++OOOOOOLOOL++LOL++++LOOOOOL+++LL++++++++
+++++++++++OOOOOOOOOOL++LO+++LL+LOOEEOLLLL+++++++++
++++++++++OOOOOOOOOOOL+LOL+++LOL+LOLLEOOOOLL+++++++
++++++++++OOOOOOOOOEOOLOOOL+LOOL+LOOLLEEEEOOE++++++
+++++++LOOOO OOOOOLLEOOEOOL+LOOL+LOOOLLLLLEEOE+++++
+++++LLOOO  OOOOLL++LEOEOOL+LOOOLLOOOOLLLLLLELE++++
++++LOOOOOOOOOLLLLL+LEOEOOL+LOOOOOOLLLLLLLLLEEEE+++
+++LLLOOOOOLLLLLLLL+LEOOEO+LOOOOOO+++++++++++EEE+++
+++LOOLLLLLLLLLLLLL++LEOEO+LO++OOOLLLLLLLEE++++++++
+++OO+ OOOOOOOOOLLLL+LEOE+LOOOOOOOOOLLLLLLEEE++++++
+++O++ OOOOOOOOOOLL++LEOO+OOOOOOOOOOOOOOOOLEEE+++++
++++   OOOOOOOOOOOO+LEOO+LOOOOOLLLLLLLLLOOOOEEE++++
++++    OOOOOOOOO+++LOOO+OOOOLLLLLLLLLLLLLLLOEEE+++
+++++++++OOOOOOOOO+LEOLOOOOOL+++++LLLLLLLLLLLLEE+++
++++++E++++++OOOOO+LEOLOO+OOOLLLLL+++++++++++++++++
++++++OOOOOOOOO OO+LEOLOOL+LLOOOOOLLLLLLLEEE+++++++
++++++ OOOOOOO  O+LEOLLOOLL++LLOOOOOOOOOOOOEEE+++++
++++++     L+   +LEOOLLOOOLLL++LLLLOOOOOOOOOOEE++++
++++++      L  ++LEOLLOOLOOLLLL++++LLLLLLLLLOOE++++
++++++++   LO ++LEOLLOOO+LLOOLLEEE++++++++++LLLE+++
++++++++    +++LEOOOOOOOL++LOLLLLLEEEE+++++++++++++
++++++++++ ++LLOEOOO+LOOLL++LLOLLLLLLE+++++++++++++
++++++++++++LOOOOOOO+LLOOLLL++LOOOLLLE+++++++++++++
+++++++++++LLOOOOLOOL+LLLOLLL++LLLOOOE+++++++++++++
+++++++++++LO0OOL+LOL++LLLLLLEE+++LLLE+++++++++++++
++++++++++LLOLOOL+LOLL++LLLLLLLE+++++L+++++++++++++
++++++++++LOLLOLL++LLLL++LLLLLLE+++++++++++++++++++
+++++++++LLOL+LLLL+LLLLE++LLLLLE+++++++++++++++++++
+++++++++LLLL+LLLL++LLLLE+++LLLE+++++++++++++++++++
++++++++LLLLL+LLLLL++LLE+++++++++++++++++++++++++++
++++++++LLLLL++LLL++++LE+++++++++++++++++++++++++++
 +++++++LLLLLL++L++++++++++++++++++++++++++++++++++
 +++++++LLLLL++++++++++++++++++++++++++++++++++++++
 +++++++LLLL+++++++++++++++++++++++++++++++++++++++
 +++++++LLLL+++++++++++++++++++++++++++++++++++++++
 +++++++LLL++++++++++++++++++++++++++++++++++++++++
-+++++++LL0++++++++++++++++++++++++++++++++++++++++
++++++++LLL++++++++++++++++++++++++++++++++++++++++
 ++++++++L+++++++++++++++++++++++++++++++++++++++++
 ++++++++L+++++++++++++++++++++++++++++++++++++++++
 ++++++++++++++++++++++++++++++++++++++++++++++++++
-
 #end

@@ -22,14 +22,32 @@ namespace ImageToLevel
             {
                 char[] str = new char[50];
                 for (int x = 0; x < b.Width; x++)
-                    if (b.GetPixel(x, y).R == 0)
-                        str[x] = '+';
-                    else str[x] = 'L';
+                    switch ((uint) b.GetPixel(x, y).ToArgb())
+                    {
+                        // 0xAARRGGBB
+                        case 0xFF000000: // Black
+                            str[x] = '+';
+                            break;
+
+                        case 0xFF7F3300: // Brown
+                            str[x] = 'L';
+                            break;
+
+                        case 0xFFFF6A00: // Orange
+                            str[x] = 'E';
+                            break;
+
+                        case 0xFFFF0000: // Red
+                            str[x] = 'O';
+                            break;
+
+                        case 0xFFFFFFFF: // White
+                            str[x] = ' ';
+                            break;
+                    }
                 content[y] = new string(str);
             }
-
             File.WriteAllLines(outputPath, content);
-
         }
     }
 

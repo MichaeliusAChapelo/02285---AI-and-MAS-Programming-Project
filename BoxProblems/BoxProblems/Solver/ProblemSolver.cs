@@ -265,7 +265,7 @@ namespace BoxProblems.Solver
                     sData.Level.AddPermanentWalll(goalToSolve.Pos);
                     sData.Level.AddWall(goalToSolve.Pos);
                     sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddGoalNodes(sData.Level);
+                    sData.CurrentConflicts.AddGoalNodes(sData.Level, goalToSolve);
                     sData.Level.RemovePermanentWall(goalToSolve.Pos);
                     sData.Level.RemoveWall(goalToSolve.Pos);
 

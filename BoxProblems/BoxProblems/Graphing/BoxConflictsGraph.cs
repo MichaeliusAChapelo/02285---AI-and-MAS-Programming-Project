@@ -90,7 +90,7 @@ namespace BoxProblems.Graphing
             }
         }
 
-        internal void AddGoalNodes(Level level)
+        internal void AddGoalNodes(Level level, Entity exceptThisGoal)
         {
             HashSet<Point> entityPositions = new HashSet<Point>();
             foreach (var node in Nodes)
@@ -109,6 +109,10 @@ namespace BoxProblems.Graphing
             foreach (var goal in level.Goals)
             {
                 if (level.IsWall(goal.Pos))
+                {
+                    continue;
+                }
+                if (goal == exceptThisGoal)
                 {
                     continue;
                 }

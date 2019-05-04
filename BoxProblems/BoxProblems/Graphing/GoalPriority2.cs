@@ -34,6 +34,19 @@ namespace BoxProblems.Graphing
                 nodeGraphs.Add(node, CreateDirectedEdgesToStart(node));
             }
 
+            Graph groupedGraph = Graph.CreateSimplifiedGraph<EmptyEdgeInfo>(goalGraph);
+
+            List<List<GoalNode>> boxGroups = new List<List<GoalNode>>();
+            foreach (var iNode in groupedGraph.Nodes)
+            {
+                var node = (Node<NodeGroup, EmptyEdgeInfo>)iNode;
+                var boxes = node.Value.Nodes.Cast<GoalNode>().Where(x => x.Value.EntType == EntityType.BOX);
+                if (boxes.Any())
+                {
+                    boxGroups.Add(boxes.ToList());
+                }
+            }
+
             HashSet<Entity> toIgnore = new HashSet<Entity>();
             while (toIgnore.Count < level.Goals.Length)
             {
@@ -58,16 +71,29 @@ namespace BoxProblems.Graphing
 
                     Dictionary<GoalNode, int> shortestPathsVisitedNodesCount = new Dictionary<GoalNode, int>();
                     int pathsCount = 0;
-                    int boxCount = 0;
-                    foreach (Entity box in level.GetBoxes())
+                    foreach (var boxGroup in boxGroups)
                     {
-                        if (box.Type == goal.Type)
+                        int boxesWithSameType = 0;
+                        foreach (var boxNode in boxGroup)
                         {
-                            GoalNode goalNode = goalGraph.GetNodeFromPosition(box.Pos);
-                            pathsCount += GetShortestPathsData(goalNode, nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore);
-                            boxCount++;
+                            if (boxNode.Value.Ent.Type == goal.Type)
+                            {
+                                boxesWithSameType++;
+                            }
+                        }
+                        if (boxesWithSameType > 0)
+                        {
+                            pathsCount += GetShortestPathsData(boxGroup.First(), nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore, boxesWithSameType);
                         }
                     }
+                    //foreach (Entity box in level.GetBoxes())
+                    //{
+                    //    if (box.Type == goal.Type)
+                    //    {
+                    //        GoalNode goalNode = goalGraph.GetNodeFromPosition(box.Pos);
+                    //        pathsCount += GetShortestPathsData(goalNode, nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore);
+                    //    }
+                    //}
 
                     foreach (var pathNode in shortestPathsVisitedNodesCount)
                     {
@@ -129,7 +155,7 @@ namespace BoxProblems.Graphing
             return childToParent;
         }
 
-        private int GetShortestPathsData(GoalNode goal, Dictionary<GoalNode, List<GoalNode>> childToParent, Dictionary<GoalNode, int> shortestPathsVisitedNodes, HashSet<Entity> toIgnore)
+        private int GetShortestPathsData(GoalNode goal, Dictionary<GoalNode, List<GoalNode>> childToParent, Dictionary<GoalNode, int> shortestPathsVisitedNodes, HashSet<Entity> toIgnore, int multiplier)
         {
             int shortestPathsCount = 1;
             Stack<GoalNode> backtrackPaths = new Stack<GoalNode>();
@@ -161,11 +187,11 @@ namespace BoxProblems.Graphing
                 if (pathEnd.Value.EntType == EntityType.GOAL)
                 {
                     shortestPathsVisitedNodes.TryAdd(pathEnd, 0);
-                    shortestPathsVisitedNodes[pathEnd] += validParentsCount;
+                    shortestPathsVisitedNodes[pathEnd] += validParentsCount * multiplier;
                 }
             }
 
-            return shortestPathsCount;
+            return shortestPathsCount * multiplier;
         }
 
         public LinkedList<GoalPriorityLayer> GetAsLinkedLayers()

@@ -99,7 +99,7 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipConsoleRead = false;
+            ServerCommunicator.SkipConsoleRead = true;
             bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
 
             //string levelPath = "MABahaMAS.lvl";
@@ -108,7 +108,7 @@ namespace BoxRunner
             //string levelPath = "SAKarlMarx.lvl";
             //string levelPath = "SAExample.lvl";
             //string levelPath = "SACrunch.lvl";
-            //string levelPath = "SAAiMasTers.lvl";
+            string levelPath = "MAVisualKei.lvl";
             //string levelPath = "SAExample2.lvl";
             //string levelPath = "MAPullPush.lvl";
             //string levelPath = "MAFiveWalls.lvl";
@@ -118,7 +118,7 @@ namespace BoxRunner
             //string levelPath = "SAlabyrinthOfStBertin.lvl";
             //string levelPath = "MAKarlMarx.lvl";'
             //string levelPath = "SAVisualKei.lvl";
-            string levelPath = "SALeo.lvl";
+            //string levelPath = "SAOptimal.lvl";
 
             string convertedLevelPath = "temp.lvl";
 

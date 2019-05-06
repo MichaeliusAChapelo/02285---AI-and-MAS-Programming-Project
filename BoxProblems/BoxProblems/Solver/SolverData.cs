@@ -75,32 +75,6 @@ namespace BoxProblems.Solver
             {
                 return Array.IndexOf(CurrentState.Entities, entity);
             }
-
-            public Entity? GetEntityAtPos(Point pos)
-            {
-                foreach (var entity in CurrentState.Entities)
-                {
-                    if (entity.Pos == pos)
-                    {
-                        return entity;
-                    }
-                }
-
-                return null;
-            }
-
-            public Entity? GetGoalEntityAtPos(Point pos)
-            {
-                foreach (var goal in Level.Goals)
-                {
-                    if (goal.Pos == pos)
-                    {
-                        return goal;
-                    }
-                }
-
-                return null;
-            }
         }
     }
 }

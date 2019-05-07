@@ -266,17 +266,22 @@ namespace BoxProblems.Solver
                 }
                 if (currentNode is FreeSpaceNode currentFreeSpaceNode)
                 {
-                    currentNumFreeSpaces += currentFreeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
-                    if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
+                    var newFreeSpacesCount = currentFreeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
+                    if(newFreeSpacesCount>0)
                     {
-                        if (currentExtraBoxes + currentRepeatBoxes < minExtraBoxes)
+                        currentNumFreeSpaces += newFreeSpacesCount;
+                        if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
                         {
-                            freeSpaceNodeToUse = currentFreeSpaceNode;
-                            minExtraBoxes = currentExtraBoxes + currentRepeatBoxes;
-                        }
-                        if (currentExtraBoxes == 0 && currentRepeatBoxes == 0)
-                        {
-                            break;
+                            if (currentExtraBoxes + currentRepeatBoxes < minExtraBoxes)
+                            {
+                                freeSpaceNodeToUse = currentFreeSpaceNode;
+                                minExtraBoxes = currentExtraBoxes + currentRepeatBoxes;
+                            }
+                            if (currentExtraBoxes == 0 && currentRepeatBoxes == 0)
+                            {
+                                break;
+                            }
+
                         }
 
                     }

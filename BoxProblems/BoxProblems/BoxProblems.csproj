@@ -40,6 +40,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PriorityQueue\PriorityQueue.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Levels\New_Format\MACorridor.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

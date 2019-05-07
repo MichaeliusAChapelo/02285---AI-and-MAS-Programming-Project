@@ -113,7 +113,7 @@ namespace BoxRunner
         {
             ServerCommunicator.SkipConsoleRead = false;
             bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
-            bool Parallelize = !ServerCommunicator.SkipConsoleRead;
+            bool Parallelize = true;
 
             //string levelPath = "MABahaMAS.lvl";
             //string levelPath = "MAExample.lvl";
@@ -126,13 +126,13 @@ namespace BoxRunner
             //string levelPath = "MAPullPush.lvl";
             //string levelPath = "MAFiveWalls.lvl";
             //string levelPath = "MAPullPush2.lvl";
-            //string levelPath = "SABahaMAS.lvl";
+            //string levelPath = "SAsoko3_32.lvl";
             //string levelPath = "MACorridor.lvl";
             //string levelPath = "SAlabyrinthOfStBertin.lvl";
             //string levelPath = "MAKarlMarx.lvl";'
             //string levelPath = "SAVisualKei.lvl";
             //string levelPath = "SALeo.lvl";
-            string levelPath = "MAFooBar.lvl";
+            string levelPath = "MAdashen.lvl";
 
             string convertedLevelPath = "temp.lvl";
 

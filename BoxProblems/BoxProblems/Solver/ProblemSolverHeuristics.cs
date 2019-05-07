@@ -145,7 +145,9 @@ namespace BoxProblems.Solver
             // Run greedy search on BoxConflictGraph
             while (priorityQueue.Count > 0)
             {
-                var tuple = priorityQueue.Dequeue();
+                var priResult = priorityQueue.DequeueWithPriority();
+                var tuple = priResult.Value;
+                int distanceTraveled = priResult.Priority;
                 var currentNode = tuple.node;
                 var currentNumConflicts = tuple.numConflicts;
                 if (visitedNodes.Contains(currentNode))
@@ -188,10 +190,9 @@ namespace BoxProblems.Solver
                 foreach (var edge in currentNode.GetNodeEnds())
                 {
                     if (edge is BoxConflictNode boxConflictNode)
-                    { 
-                        priorityQueue.Enqueue(
-                            ((boxConflictNode as BoxConflictNode), currentNumConflicts),
-                            distanceMap[boxConflictNode.Value.Ent.Pos.X, boxConflictNode.Value.Ent.Pos.Y]);
+                    {
+                        int distance = distanceMap[boxConflictNode.Value.Ent.Pos.X, boxConflictNode.Value.Ent.Pos.Y];
+                        priorityQueue.Enqueue((boxConflictNode, currentNumConflicts), distanceTraveled + distance);
                     }
                 }
 

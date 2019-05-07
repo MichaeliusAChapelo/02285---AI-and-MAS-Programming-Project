@@ -239,8 +239,6 @@ namespace BoxProblems.Solver
 
         private static HighlevelLevelSolution SolvePartialLevel(Level level, CancellationToken cancelToken)
         {
-            Console.WriteLine(level);
-
             List<HighlevelMove> solution = new List<HighlevelMove>();
             GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph);

@@ -1,4 +1,5 @@
 ﻿using BoxProblems.Graphing;
+using PriorityQueue;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,20 +9,20 @@ namespace BoxProblems.Solver
 {
     public static partial class ProblemSolver
     {
-        private static Entity GetGoalToSolve(HashSet<Entity> goals, GoalGraph goalGraph, BoxConflictGraph currentConflicts)
+        private static Entity GetGoalToSolve(HashSet<Entity> goals, GoalGraph goalGraph, SolverData sData)
         {
             if (goals.Count == 1)
             {
                 return goals.First();
             }
-            return GetEntityToSolveProblem(currentConflicts,EntityType.BOX, null, goals);
+            return GetEntityToSolveProblem(sData, EntityType.BOX, null, goals);
         }
 
-        private static Entity GetBoxToSolveProblem(BoxConflictGraph currentConflicts, Entity goal)
+        private static Entity GetBoxToSolveProblem(SolverData sData, Entity goal)
         {
             Entity returnEntity = new Entity();
             int numBoxes = 0;
-            foreach (var iNode in currentConflicts.Nodes)
+            foreach (var iNode in sData.CurrentConflicts.Nodes)
             {
                 if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Type)
                 {
@@ -37,32 +38,33 @@ namespace BoxProblems.Solver
             {
                 return returnEntity;
             }
-                return GetEntityToSolveProblem(currentConflicts, EntityType.BOX, goal);
+            return GetEntityToSolveProblem(sData, EntityType.BOX, goal);
         }
 
-        private static Entity GetAgentToSolveProblem(BoxConflictGraph currentConflicts, Entity toMove)
+        private static Entity GetAgentToSolveProblem(SolverData sData, Entity toMove)
         {
-            Entity returnEntity =new Entity();
+            Entity returnEntity = new Entity();
             int NumAgents = 0;
-            foreach (var iNode in currentConflicts.Nodes)
+            foreach (var iNode in sData.CurrentConflicts.Nodes)
             {
-                if(iNode is BoxConflictNode boxNode && boxNode.Value.EntType==EntityType.AGENT && boxNode.Value.Ent.Color== toMove.Color)
+                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.AGENT && boxNode.Value.Ent.Color == toMove.Color)
                 {
                     NumAgents += 1;
                     returnEntity = boxNode.Value.Ent;
                 }
             }
-            if (NumAgents == 0) {
+            if (NumAgents == 0)
+            {
                 throw new Exception("No agent exists that can solve this problem.");
             }
-            if (NumAgents==1)
+            if (NumAgents == 1)
             {
                 return returnEntity;
             }
-            return GetEntityToSolveProblem(currentConflicts, EntityType.AGENT, toMove);
+            return GetEntityToSolveProblem(sData, EntityType.AGENT, toMove);
         }
 
-        private static Entity GetEntityToSolveProblem(BoxConflictGraph currentConflicts, EntityType entitytype, Entity? entity=null, HashSet<Entity> goals =null)
+        private static Entity GetEntityToSolveProblem(SolverData sData, EntityType entitytype, Entity? entity = null, HashSet<Entity> goals = null)
         {
             int minimumConflict = int.MaxValue;
             Entity minimumConflictEntity = new Entity();
@@ -70,13 +72,14 @@ namespace BoxProblems.Solver
             {
                 foreach (var goal in goals)
                 {
-                    INode startnode = currentConflicts.GetNodeFromPosition(goal.Pos);
-                    (int numConflicts, Entity goalEntity)=calculateMinimumConflict(currentConflicts, startnode,goal, entitytype);
-                    if (minimumConflict>numConflicts)
+                    INode startnode = sData.CurrentConflicts.GetNodeFromPosition(goal.Pos);
+                    (int numConflicts, Entity goalEntity) = CalculateMinimumConflict(sData, startnode, goal, entitytype);
+                    if (minimumConflict > numConflicts)
                     {
                         minimumConflict = numConflicts;
                         minimumConflictEntity = goal;
-                        if (minimumConflict==0) {
+                        if (minimumConflict == 0)
+                        {
                             break;
                         }
                     }
@@ -85,23 +88,64 @@ namespace BoxProblems.Solver
             }
             else
             {
-                INode startnode = currentConflicts.GetNodeFromPosition(entity.Value.Pos);
-                (minimumConflict, minimumConflictEntity) = calculateMinimumConflict(currentConflicts, startnode, entity.Value, entitytype);
+                INode startnode = sData.CurrentConflicts.GetNodeFromPosition(entity.Value.Pos);
+                (minimumConflict, minimumConflictEntity) = CalculateMinimumConflict(sData, startnode, entity.Value, entitytype);
             }
             return minimumConflictEntity;
 
         }
-        private static (int, Entity) calculateMinimumConflict(BoxConflictGraph currentConflicts, INode startnode, Entity entity, EntityType bfsGoalEntType)
+
+        private static (int, Entity) CalculateMinimumConflict(SolverData sData, INode startNode, Entity entity, EntityType bfsGoalEntType)
         {
             var visitedNodes = new HashSet<INode>();
-            var bfsQueue = new Queue<(INode node, int numConflicts)>();
-            (INode node, int numConflicts) starttuple = (startnode, 0);
-            int minimumConflict=int.MaxValue;
+
+            var priorityQueue = new PriorityQueue<(INode node, int numConflicts), int>();
+
+            int minimumConflict = int.MaxValue;
             Entity minimumConflictEntity = new Entity();
-            bfsQueue.Enqueue(starttuple);
-            while (bfsQueue.Count>0)
+            short[,] distanceMap;
+
+            if (startNode is FreeSpaceNode)
             {
-                var tuple = bfsQueue.Dequeue();
+                distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, entity.Pos, false);
+
+                int currentNumConflicts = 0;
+                foreach (BoxConflictNode edge in startNode.GetNodeEnds()) // Add edge as BoxConflict 
+                {
+                    if (edge.Value.EntType == EntityType.BOX)
+                    {
+                        currentNumConflicts += 1;
+                    }
+                    if (edge.Value.EntType == bfsGoalEntType)
+                    {
+                        if (startNode is BoxConflictNode startBoxNode)
+                        {
+                            if ((bfsGoalEntType == EntityType.AGENT && edge.Value.Ent.Color == startBoxNode.Value.Ent.Color) || (bfsGoalEntType == EntityType.BOX && entity.Type == edge.Value.Ent.Type))
+                            {
+                                if (currentNumConflicts < minimumConflict)
+                                {
+                                    minimumConflict = currentNumConflicts;
+                                    minimumConflictEntity = edge.Value.Ent;
+                                }
+                            }
+                        }
+                    }
+                    priorityQueue.Enqueue(
+                        (edge, currentNumConflicts),
+                        distanceMap[edge.Value.Ent.Pos.X, edge.Value.Ent.Pos.Y]);
+                }
+            }
+            else
+            {
+                // startNode is not FreeSpaceNode
+                (INode node, int numConflicts) starttuple = (startNode, 0);
+                priorityQueue.Enqueue(starttuple, int.MaxValue);
+            }
+
+            // Run greedy search on BoxConflictGraph
+            while (priorityQueue.Count > 0)
+            {
+                var tuple = priorityQueue.Dequeue();
                 var currentNode = tuple.node;
                 var currentNumConflicts = tuple.numConflicts;
                 if (visitedNodes.Contains(currentNode))
@@ -115,35 +159,40 @@ namespace BoxProblems.Solver
                     {
                         currentNumConflicts += 1;
                     }
-                    if (currentBoxNode.Value.EntType == bfsGoalEntType) {
-                        if (startnode is BoxConflictNode startBoxNode)
+                    if (currentBoxNode.Value.EntType == bfsGoalEntType)
+                    {
+                        if (startNode is BoxConflictNode startBoxNode)
                         {
-                            if((bfsGoalEntType == EntityType.AGENT && currentBoxNode.Value.Ent.Color == startBoxNode.Value.Ent.Color) || (bfsGoalEntType == EntityType.BOX && entity.Type == currentBoxNode.Value.Ent.Type))
-                               {
-                                if (currentNumConflicts< minimumConflict)
+                            if ((bfsGoalEntType == EntityType.AGENT && currentBoxNode.Value.Ent.Color == startBoxNode.Value.Ent.Color) || (bfsGoalEntType == EntityType.BOX && entity.Type == currentBoxNode.Value.Ent.Type))
+                            {
+                                if (currentNumConflicts < minimumConflict)
                                 {
                                     minimumConflict = currentNumConflicts;
                                     minimumConflictEntity = currentBoxNode.Value.Ent;
                                 }
-                               }
+                            }
                         }
-                        if (startnode is FreeSpaceNode startFreeSpaceNode && entity.Type == currentBoxNode.Value.Ent.Type && currentNumConflicts< minimumConflict)
+                        if (startNode is FreeSpaceNode startFreeSpaceNode && entity.Type == currentBoxNode.Value.Ent.Type && currentNumConflicts < minimumConflict)
                         {
                             minimumConflict = currentNumConflicts;
                             minimumConflictEntity = currentBoxNode.Value.Ent;
                         }
-                        if (minimumConflict==0)
+                        if (minimumConflict == 0)
                         {
                             break;
                         }
                     }
                 }
 
-                    foreach (var edge in currentNode.GetNodeEnds())
+                distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, (currentNode as BoxConflictNode).Value.Ent.Pos, false);
+                foreach (var edge in currentNode.GetNodeEnds())
                 {
-                    var newNode = edge;
-                    (INode node, int numConflicts) newTuple = (newNode, currentNumConflicts);
-                    bfsQueue.Enqueue(newTuple);
+                    if (edge is BoxConflictNode boxConflictNode)
+                    { 
+                        priorityQueue.Enqueue(
+                            ((boxConflictNode as BoxConflictNode), currentNumConflicts),
+                            distanceMap[boxConflictNode.Value.Ent.Pos.X, boxConflictNode.Value.Ent.Pos.Y]);
+                    }
                 }
 
             }
@@ -152,7 +201,7 @@ namespace BoxProblems.Solver
 
         private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData, Dictionary<Point, int> freePath)
         {
-            
+
             //See if there is even 1 free space.
             int avaiableFreeSpacesCount = 0;
             foreach (var iNode in sData.CurrentConflicts.Nodes)
@@ -184,7 +233,7 @@ namespace BoxProblems.Solver
             }
             FreeSpaceNode freeSpaceNodeToUse = null;
             var visitedNodes = new HashSet<INode>();
-            (INode node,int extraBoxes,int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);
+            (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);
             var bfsQueue = new Queue<(INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes)>();
             int minExtraBoxes = int.MaxValue;
             bfsQueue.Enqueue(starttuple);
@@ -202,7 +251,7 @@ namespace BoxProblems.Solver
                 visitedNodes.Add(currentNode);
                 if (currentNode is BoxConflictNode currentBoxNode)
                 {
-                    if (currentBoxNode.Value.EntType==EntityType.BOX)
+                    if (currentBoxNode.Value.EntType == EntityType.BOX)
                     {
                         if (!freePath.ContainsKey(currentBoxNode.Value.Ent.Pos))
                         {
@@ -220,12 +269,12 @@ namespace BoxProblems.Solver
                     currentNumFreeSpaces += currentFreeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
                     if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
                     {
-                        if(currentExtraBoxes+currentRepeatBoxes< minExtraBoxes)
+                        if (currentExtraBoxes + currentRepeatBoxes < minExtraBoxes)
                         {
                             freeSpaceNodeToUse = currentFreeSpaceNode;
-                            minExtraBoxes = currentExtraBoxes+currentRepeatBoxes;
+                            minExtraBoxes = currentExtraBoxes + currentRepeatBoxes;
                         }
-                        if (currentExtraBoxes == 0 && currentRepeatBoxes ==0)
+                        if (currentExtraBoxes == 0 && currentRepeatBoxes == 0)
                         {
                             break;
                         }
@@ -239,15 +288,15 @@ namespace BoxProblems.Solver
                     (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) newTuple = (newNode, currentExtraBoxes, currentNumFreeSpaces, currentRepeatBoxes);
                     bfsQueue.Enqueue(newTuple);
                 }
-                if (bfsQueue.Count==0)
+                if (bfsQueue.Count == 0)
                 {
                     howFarIntoFreeSpace += currentExtraBoxes;
                 }
             }
 
-            if (freeSpaceNodeToUse==null)
+            if (freeSpaceNodeToUse == null)
             {
-               throw new Exception("Not enough free space is available");
+                throw new Exception("Not enough free space is available");
             }
             var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
             Point freeSpacePointToUse = potentialFreeSpacePoints.First();
@@ -260,7 +309,7 @@ namespace BoxProblems.Solver
                 {
                     minDistance = Math.Min(minDistance, distancesMap[p.Key.X, p.Key.Y]);
                 }
-                if (maxDistance<minDistance)
+                if (maxDistance < minDistance)
                 {
                     maxDistance = minDistance;
                     freeSpacePointToUse = FSP;

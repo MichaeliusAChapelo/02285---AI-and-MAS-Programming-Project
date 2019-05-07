@@ -285,7 +285,7 @@ namespace BoxProblems.Solver
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
                     sData.CurrentConflicts.AddFreeSpaceNodes(level);
-                    Entity goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData.CurrentConflicts);
+                    Entity goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData);
 
 
                     sData.Level.AddPermanentWalll(goalToSolve.Pos);
@@ -463,7 +463,7 @@ namespace BoxProblems.Solver
                     //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
-                    Entity box = GetBoxToSolveProblem(sData.CurrentConflicts, goalToSolve);
+                    Entity box = GetBoxToSolveProblem(sData, goalToSolve);
                     int boxIndex = sData.GetEntityIndex(box);
 
                     if (sData.CurrentConflicts.PositionHasNode(goalToSolve.Pos))
@@ -546,7 +546,7 @@ namespace BoxProblems.Solver
             Entity? agentToUse = null;
             if (!toMoveIsAgent)
             {
-                agentToUse = GetAgentToSolveProblem(sData.CurrentConflicts, toMove);
+                agentToUse = GetAgentToSolveProblem(sData, toMove);
             }
             List<HighlevelMove> solveConflictMoves;
             Point[] toMovePath;
@@ -563,7 +563,7 @@ namespace BoxProblems.Solver
 
             if (!toMoveIsAgent)
             {
-                agentToUse = GetAgentToSolveProblem(sData.CurrentConflicts, toMove);
+                agentToUse = GetAgentToSolveProblem(sData, toMove);
                 int agentIndex = sData.GetEntityIndex(agentToUse.Value);
 
                 sData.AddToFreePath(toMovePath);
@@ -742,7 +742,7 @@ namespace BoxProblems.Solver
                         {
                             conflicts.Add(boxconNode);
                         }
-                        
+
                     }
 
                     //toMove itself can't be a conflict to itself

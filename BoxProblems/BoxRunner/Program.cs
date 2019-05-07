@@ -47,7 +47,7 @@ namespace BoxRunner
         {
             File.WriteAllText(communicatorPath, string.Empty);
             Console.WriteLine("Type your commands here:");
-            List<string> history = new List<string>() { "Pull(E,N)", "Push(N,W)", "Pull(S,E)", "Push(E,N)" };
+            List<string> history = new List<string>();
             while (true)
             {
                 var s = Console.ReadLine();
@@ -56,15 +56,27 @@ namespace BoxRunner
                     File.WriteAllLines(savePath, history);
                 if (s == "load")
                     File.WriteAllLines(communicatorPath, File.ReadAllLines(savePath));
-                else if (s.Contains("LRot"))
+                else if (s.Contains("LFront"))
                 {
                     var a = BoxSwimming.LeftHandBoxSwimming(s.Last());
                     history.AddRange(a);
                     File.WriteAllLines(communicatorPath, a);
                 }
-                else if (s.Contains("RRot"))
+                else if (s.Contains("RFront"))
                 {
                     var a = BoxSwimming.RightHandBoxSwimming(s.Last());
+                    history.AddRange(a);
+                    File.WriteAllLines(communicatorPath, a);
+                }
+                else if (s.Contains("LRot"))
+                {
+                    var a = BoxSwimming.SwimLeft(s.Last());
+                    history.AddRange(a);
+                    File.WriteAllLines(communicatorPath, a);
+                }
+                else if (s.Contains("RRot"))
+                {
+                    var a = BoxSwimming.SwimRight(s.Last());
                     history.AddRange(a);
                     File.WriteAllLines(communicatorPath, a);
                 }
@@ -101,6 +113,7 @@ namespace BoxRunner
         {
             ServerCommunicator.SkipConsoleRead = false;
             bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
+            bool Parallelize = true;
 
             //string levelPath = "MABahaMAS.lvl";
             //string levelPath = "MAExample.lvl";
@@ -113,12 +126,13 @@ namespace BoxRunner
             //string levelPath = "MAPullPush.lvl";
             //string levelPath = "MAFiveWalls.lvl";
             //string levelPath = "MAPullPush2.lvl";
-            //string levelPath = "SABahaMAS.lvl";
+            //string levelPath = "SAsoko3_32.lvl";
             //string levelPath = "MACorridor.lvl";
             //string levelPath = "SAlabyrinthOfStBertin.lvl";
             //string levelPath = "MAKarlMarx.lvl";'
             //string levelPath = "SAVisualKei.lvl";
-            string levelPath = "SALeo.lvl";
+            //string levelPath = "SALeo.lvl";
+            string levelPath = "MAdashen.lvl";
 
             string convertedLevelPath = "temp.lvl";
 
@@ -157,10 +171,14 @@ namespace BoxRunner
 
                 var highLevelCommands = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);
                 var lowLevelCommands = serverCom.NonAsyncSolve(level, highLevelCommands);
-                //serverCom.SendCommandsSequentially(lowLevelCommands, level);
 
-                var finalCommands = CommandParallelizer.Parallelize(lowLevelCommands, level);
-                serverCom.SendCommands(finalCommands);
+                if (!Parallelize)
+                    serverCom.SendCommandsSequentially(lowLevelCommands, level);
+                else
+                {
+                    var finalCommands = CommandParallelizer.Parallelize(lowLevelCommands, level);
+                    serverCom.SendCommands(finalCommands);
+                }
 
 
                 return;

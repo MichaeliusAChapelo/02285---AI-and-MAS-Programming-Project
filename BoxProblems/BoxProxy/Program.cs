@@ -1,4 +1,5 @@
 ﻿using System;
+using ProcessCommunication;
 
 namespace BoxProxy
 {
@@ -6,7 +7,17 @@ namespace BoxProxy
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            if (args.Length != 1)
+            {
+                Console.Error.WriteLine("Expected one arguments as input");
+            }
+
+            TwoWayCommunication com = TwoWayCommunication.StartClientFirst(args[0]);
+            while (true)
+            {
+                Console.WriteLine(com.ReadLine());
+                com.WriteLine(Console.ReadLine());
+            }
         }
     }
 }

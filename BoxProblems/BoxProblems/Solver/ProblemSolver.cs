@@ -174,7 +174,7 @@ namespace BoxProblems.Solver
             return bestGroup;
         }
 
-        private static bool EveryGroupHasEverythingNeeded(List<List<INode>> graphGroups)
+        private static bool EveryGroupHasEverythingNeeded(List<List<INode>> graphGroups, List<INode> mainGroup, Entity goalEntity)
         {
             foreach (var group in graphGroups)
             {
@@ -214,7 +214,20 @@ namespace BoxProblems.Solver
                             throw new Exception("Unknown entity type.");
                     }
                 }
-
+                if (group==mainGroup)
+                {
+                    if (boxeTypes.ContainsKey(goalEntity.Type))
+                    {
+                        boxeTypes[goalEntity.Type] += 1;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                var goalTuple = (goalEntity.Color, goalEntity.Type);
+                goalTypeAndColor.TryAdd(goalTuple,0);
+                goalTypeAndColor[goalTuple] += 1;
                 foreach (var goalInfo in goalTypeAndColor)
                 {
                     if (!boxeTypes.TryGetValue(goalInfo.Key.type, out int boxCount) || boxCount < goalInfo.Value)
@@ -286,7 +299,7 @@ namespace BoxProblems.Solver
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
-                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups))
+                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups,mainGroup, goalToSolve))
                     {
 
                         List<Entity> goalsWithHigherPriority = new List<Entity>();
@@ -332,11 +345,50 @@ namespace BoxProblems.Solver
                                 sData.Level.RemoveWall(goalToSolve.Pos);
                                 sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
                                 sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
-
+                                var newGraphGroups = GetGraphGroups(sData.CurrentConflicts, new Point(-1,-1));
+                                var newMainGroup = GetMainGraphGroup(newGraphGroups);
+                                bool ignoreGroup = true;
                                 foreach (var group in graphGroups)
                                 {
                                     if (group != mainGroup)
                                     {
+                                        ignoreGroup = true;
+                                        if (group.First() is BoxConflictNode boxnode)
+                                        {
+                                            foreach (var newNode in newMainGroup)
+                                            {
+                                                if (newNode is BoxConflictNode newBoxNode && newBoxNode.Value.Ent==boxnode.Value.Ent)
+                                                {
+                                                    ignoreGroup = false;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (group.First() is FreeSpaceNode freeNode)
+                                        {
+                                            Point freeSpacePoint = freeNode.Value.FreeSpaces.First();
+                                            int freeSpaceCount = 0;
+                                            foreach (var point in freeNode.Value.FreeSpaces)
+                                            {
+
+                                                foreach (var newNode in newMainGroup)
+                                                {
+                                                    if (newNode is FreeSpaceNode newFreeNode && !newFreeNode.Value.FreeSpaces.Contains(freeSpacePoint))
+                                                    {
+                                                        freeSpaceCount += 1;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            if (freeSpaceCount==freeNode.Value.FreeSpaces.Count)
+                                            {
+                                                ignoreGroup = false;
+                                            }
+                                        }
+                                        if (ignoreGroup)
+                                        {
+                                            continue;
+                                        }
                                         foreach (var iNode in group)
                                         {
                                             if (iNode is FreeSpaceNode)

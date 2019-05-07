@@ -5,7 +5,12 @@ using System.Text;
 
 namespace BoxProblems.Graphing
 {
-    internal class BoxConflictNode : Node<EntityNodeInfo, EmptyEdgeInfo>
+    internal readonly struct DistanceEdgeInfo
+    {
+
+    }
+
+    internal class BoxConflictNode : Node<EntityNodeInfo, DistanceEdgeInfo>
     {
         public BoxConflictNode(EntityNodeInfo value) : base(value)
         {

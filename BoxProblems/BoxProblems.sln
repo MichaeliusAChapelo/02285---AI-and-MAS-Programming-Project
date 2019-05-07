@@ -17,6 +17,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PriorityQueue", "PriorityQu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageToLevel", "ImageToLevel\ImageToLevel.csproj", "{896DB84E-3BA6-4429-AB73-7985CB952E8B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxProxy", "BoxProxy\BoxProxy.csproj", "{53F70B49-AAE7-4F9F-8DBD-F886B87B8840}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCommunication", "ProcessCommunication\ProcessCommunication.csproj", "{986DF830-EBB2-4970-9546-57E491C7A58A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{896DB84E-3BA6-4429-AB73-7985CB952E8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{896DB84E-3BA6-4429-AB73-7985CB952E8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{896DB84E-3BA6-4429-AB73-7985CB952E8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53F70B49-AAE7-4F9F-8DBD-F886B87B8840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53F70B49-AAE7-4F9F-8DBD-F886B87B8840}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53F70B49-AAE7-4F9F-8DBD-F886B87B8840}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53F70B49-AAE7-4F9F-8DBD-F886B87B8840}.Release|Any CPU.Build.0 = Release|Any CPU
+		{986DF830-EBB2-4970-9546-57E491C7A58A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{986DF830-EBB2-4970-9546-57E491C7A58A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{986DF830-EBB2-4970-9546-57E491C7A58A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{986DF830-EBB2-4970-9546-57E491C7A58A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

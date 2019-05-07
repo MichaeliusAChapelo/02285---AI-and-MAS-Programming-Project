@@ -68,10 +68,16 @@ namespace BoxProblems
             foreach (Entity e in currentState.Entities)
                 Level.AddWall(e.Pos);
 
+            Level.RemoveWall(box.Pos);
+            Level.RemoveWall(move.ToHere);
+
             List<AgentCommand> result;
 
             if (move.UsingThisAgent.HasValue)
+            {
+                Level.RemoveWall(move.UsingThisAgent.Value.Pos);
                 result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));
+            }
             else
                 result = MoveToLocation(box.Pos, move.ToHere);
 
@@ -84,10 +90,6 @@ namespace BoxProblems
 
         public List<AgentCommand> CreateSolutionCommands(Entity agent, Entity box, Entity goal)
         {
-            Level.RemoveWall(agent.Pos);
-            Level.RemoveWall(box.Pos);
-            Level.RemoveWall(goal.Pos);
-
             var commands = new List<AgentCommand>();
 
             bool OnlyPullToGoal = false;
@@ -229,7 +231,7 @@ namespace BoxProblems
         }
 
         #endregion
-        private static readonly Point[] NeighboursPoints = new Point[4] { new Point(1, 0), new Point(-1, 0), new Point(0, 1), new Point(0, -1) };
+        internal static readonly Point[] NeighboursPoints = new Point[4] { new Point(0, 1), new Point(-1, 0), new Point(1, 0), new Point(0, -1) };
 
         public List<Point> RunAStar(Point start, Point end)
         {

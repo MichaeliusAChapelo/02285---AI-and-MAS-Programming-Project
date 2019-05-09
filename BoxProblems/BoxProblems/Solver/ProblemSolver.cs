@@ -246,9 +246,9 @@ namespace BoxProblems.Solver
 
         private static List<Point> GetSpacesInGraphGroup(List<INode> graphGroup, Level level)
         {
-            Func<Point, GraphSearcher.GoalFound<Point>> foundFreeSpace = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
+            var foundFreeSpace = new Func<(Point pos, int distance), GraphSearcher.GoalFound<Point>>(x =>
             {
-                return new GraphSearcher.GoalFound<Point>(x, !level.Walls[x.X, x.Y]);
+                return new GraphSearcher.GoalFound<Point>(x.pos, !level.IsWall(x.pos));
             });
             Point start;
             INode firstNode = graphGroup.First();

@@ -7,7 +7,12 @@ namespace BoxProblems.Graphing
 {
     internal readonly struct DistanceEdgeInfo
     {
+        public readonly int Distance;
 
+        public DistanceEdgeInfo(int distance)
+        {
+            this.Distance = distance;
+        }
     }
 
     internal class BoxConflictNode : Node<EntityNodeInfo, DistanceEdgeInfo>
@@ -39,7 +44,7 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal class FreeSpaceNode : Node<FreeSpaceNodeInfo, EmptyEdgeInfo>
+    internal class FreeSpaceNode : Node<FreeSpaceNodeInfo, DistanceEdgeInfo>
     {
         public FreeSpaceNode(FreeSpaceNodeInfo value) : base(value)
         {
@@ -107,9 +112,9 @@ namespace BoxProblems.Graphing
                 }
             }
 
-            Func<Point, GraphSearcher.GoalFound<Point>> goalCondition = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
+            var goalCondition = new Func<(Point pos, int distance), GraphSearcher.GoalFound<(Point pos, int distance)>>(x =>
             {
-                return new GraphSearcher.GoalFound<Point>(x, entityPositions.Contains(x));
+                return new GraphSearcher.GoalFound<(Point, int)>(x, entityPositions.Contains(x.pos));
             });
             foreach (var goal in level.Goals)
             {
@@ -124,12 +129,12 @@ namespace BoxProblems.Graphing
 
                 BoxConflictNode node = new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL));
 
-                List<Point> edges = GraphSearcher.GetReachedGoalsBFS(level, goal.Pos, goalCondition);
+                List<(Point pos, int distance)> edges = GraphSearcher.GetReachedGoalsBFS(level, goal.Pos, goalCondition);
                 foreach (var edge in edges.Distinct())
                 {
-                    BoxConflictNode end = (BoxConflictNode)GetNodeFromPosition(edge);
-                    node.AddEdge(new Edge<EmptyEdgeInfo>(end, new EmptyEdgeInfo()));
-                    end.AddEdge(new Edge<EmptyEdgeInfo>(node, new EmptyEdgeInfo()));
+                    BoxConflictNode end = (BoxConflictNode)GetNodeFromPosition(edge.pos);
+                    node.AddEdge(new Edge<DistanceEdgeInfo>(end, new DistanceEdgeInfo(edge.distance)));
+                    end.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo(edge.distance)));
                 }
 
                 Nodes.Add(node);
@@ -181,9 +186,9 @@ namespace BoxProblems.Graphing
             //find all connecting spaces which makes up the free space node.
             //
 
-            Func<Point, GraphSearcher.GoalFound<Point>> foundFreeSpace = new Func<Point, GraphSearcher.GoalFound<Point>>(x =>
+            var foundFreeSpace = new Func<(Point pos, int distance), GraphSearcher.GoalFound<Point>>(x =>
             {
-                return new GraphSearcher.GoalFound<Point>(x, !level.Walls[x.X, x.Y]);
+                return new GraphSearcher.GoalFound<Point>(x.pos, !level.IsWall(x.pos));
             });
             HashSet<Point> alreadySeenSpaces = new HashSet<Point>();
             List<FreeSpaceNode> freeSpaceNodes = new List<FreeSpaceNode>();
@@ -231,9 +236,9 @@ namespace BoxProblems.Graphing
                 }
             }
 
-            Func<Point, GraphSearcher.GoalFound<INode>> foundNode = new Func<Point, GraphSearcher.GoalFound<INode>>(x =>
+            var foundNode = new Func<(Point pos, int distance), GraphSearcher.GoalFound<INode>>(x =>
             {
-                if (PositionToNode.TryGetValue(x, out INode node))
+                if (PositionToNode.TryGetValue(x.pos, out INode node))
                 {
                     return new GraphSearcher.GoalFound<INode>(node, true);
                 }
@@ -248,14 +253,14 @@ namespace BoxProblems.Graphing
                     if (neighbour != freeSpaceNode)
                     {
                         //Bidirectional edges
-                        freeSpaceNode.AddEdge(new Edge<EmptyEdgeInfo>(neighbour, new EmptyEdgeInfo()));
+                        freeSpaceNode.AddEdge(new Edge<DistanceEdgeInfo>(neighbour, new DistanceEdgeInfo()));
                         if (neighbour is BoxConflictNode boxNode)
                         {
-                            boxNode.AddEdge(new Edge<EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                            boxNode.AddEdge(new Edge<DistanceEdgeInfo>(freeSpaceNode, new DistanceEdgeInfo()));
                         }
                         else if (neighbour is FreeSpaceNode freeNode)
                         {
-                            freeNode.AddEdge(new Edge<EmptyEdgeInfo>(freeSpaceNode, new EmptyEdgeInfo()));
+                            freeNode.AddEdge(new Edge<DistanceEdgeInfo>(freeSpaceNode, new DistanceEdgeInfo()));
                         }
                     }
                 }

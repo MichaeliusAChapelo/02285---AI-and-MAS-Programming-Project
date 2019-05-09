@@ -11,6 +11,10 @@ namespace BoxProblems
         public readonly int Width;
         public readonly int Height;
 
+        public DistanceBFSData()
+        {
+        }
+
         public DistanceBFSData(int width, int height)
         {
             this.World = new Direction[width * height];

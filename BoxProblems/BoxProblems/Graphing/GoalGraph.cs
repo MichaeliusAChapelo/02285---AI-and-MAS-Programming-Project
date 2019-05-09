@@ -22,7 +22,7 @@ namespace BoxProblems.Graphing
 
     }
 
-    internal class GoalNode : Node<EntityNodeInfo, EmptyEdgeInfo>
+    internal class GoalNode : Node<EntityNodeInfo, DistanceEdgeInfo>
     {
         public GoalNode(EntityNodeInfo value) : base(value)
         {

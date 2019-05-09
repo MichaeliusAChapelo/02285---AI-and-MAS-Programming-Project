@@ -19,7 +19,7 @@ namespace BoxProblems
 
         }
 
-        public static List<T> GetReachedGoalsBFS<T>(Level level, Point start, Func<Point, GoalFound<T>> goalCondition)
+        public static List<T> GetReachedGoalsBFS<T>(Level level, Point start, Func<(Point pos, int depth), GoalFound<T>> goalCondition)
         {
             Direction[] world = new Direction[level.Width * level.Height];
             Array.Fill(world, Direction.NONE);
@@ -44,7 +44,7 @@ namespace BoxProblems
                 }
                 depthNodeCount--;
 
-                var foundGoalInfo = goalCondition(leafNode);
+                var foundGoalInfo = goalCondition((leafNode, depth));
                 if (foundGoalInfo.IsGoal)
                 {
                     reachedGoals.Add(foundGoalInfo.Value);

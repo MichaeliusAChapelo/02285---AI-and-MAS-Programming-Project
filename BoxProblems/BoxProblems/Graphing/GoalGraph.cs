@@ -57,7 +57,7 @@ namespace BoxProblems.Graphing
     {
         private readonly Dictionary<Point, GoalNode> PositionToNode = new Dictionary<Point, GoalNode>();
 
-        public GoalGraph(State state, Level level)
+        public GoalGraph(GraphSearchData gsData, State state, Level level)
         {
             foreach (var box in state.GetBoxes(level))
             {
@@ -68,7 +68,7 @@ namespace BoxProblems.Graphing
                 AddNode(new GoalNode(new EntityNodeInfo(goal, EntityType.GOAL)));
             }
 
-            GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.BOX);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.BOX);
         }
 
         public void AddNode(GoalNode node)

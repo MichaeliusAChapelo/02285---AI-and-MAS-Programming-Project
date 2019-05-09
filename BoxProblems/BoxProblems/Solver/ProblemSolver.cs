@@ -244,7 +244,7 @@ namespace BoxProblems.Solver
             return true;
         }
 
-        private static List<Point> GetSpacesInGraphGroup(List<INode> graphGroup, Level level)
+        private static List<Point> GetSpacesInGraphGroup(GraphSearchData gsData, List<INode> graphGroup, Level level)
         {
             var foundFreeSpace = new Func<(Point pos, int distance), GraphSearcher.GoalFound<Point>>(x =>
             {
@@ -260,16 +260,16 @@ namespace BoxProblems.Solver
             {
                 start = ((FreeSpaceNode)firstNode).Value.FreeSpaces.First();
             }
-            return GraphSearcher.GetReachedGoalsBFS(level, start , foundFreeSpace);
+            return GraphSearcher.GetReachedGoalsBFS(gsData, level, start , foundFreeSpace);
         }
 
         private static HighlevelLevelSolution SolvePartialLevel(Level level, CancellationToken cancelToken)
         {
             List<HighlevelMove> solution = new List<HighlevelMove>();
-            GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
+            SolverData sData = new SolverData(level, cancelToken);
+            GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph);
             //Console.WriteLine(priority);
-            SolverData sData = new SolverData(level, cancelToken);
             HashSet<Entity> solvedGoals = new HashSet<Entity>();
 
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
@@ -283,16 +283,16 @@ namespace BoxProblems.Solver
                 {
                     cancelToken.ThrowIfCancellationRequested();
 
-                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddFreeSpaceNodes(level);
+                    sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
+                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, level);
                     Entity goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData);
 
 
                     sData.Level.AddPermanentWalll(goalToSolve.Pos);
                     sData.Level.AddWall(goalToSolve.Pos);
-                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddGoalNodes(sData.Level, goalToSolve);
-                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
+                    sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
+                    sData.CurrentConflicts.AddGoalNodes(sData.gsData, sData.Level, goalToSolve);
+                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
                     sData.Level.RemovePermanentWall(goalToSolve.Pos);
                     sData.Level.RemoveWall(goalToSolve.Pos);
 
@@ -333,7 +333,7 @@ namespace BoxProblems.Solver
                                 {
                                     if (group != mainGroup)
                                     {
-                                        List<Point> freeSpacesInGroup = GetSpacesInGraphGroup(group, sData.Level);
+                                        List<Point> freeSpacesInGroup = GetSpacesInGraphGroup(sData.gsData, group, sData.Level);
                                         foreach (var space in freeSpacesInGroup)
                                         {
                                             sData.FreePath.TryAdd(space, 0);
@@ -343,8 +343,8 @@ namespace BoxProblems.Solver
                                 }
                                 sData.FreePath.Add(goalToSolve.Pos,1);
                                 sData.Level.RemoveWall(goalToSolve.Pos);
-                                sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
-                                sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
+                                sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
+                                sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
                                 var newGraphGroups = GetGraphGroups(sData.CurrentConflicts, new Point(-1,-1));
                                 var newMainGroup = GetMainGraphGroup(newGraphGroups);
                                 bool ignoreGroup = true;
@@ -432,9 +432,9 @@ namespace BoxProblems.Solver
                         break;
                     }
 
-                    sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, level, sData.RemovedEntities);
+                    sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
                     //sData.CurrentConflicts.AddGoalNodes(sData.Level, goalToSolve);
-                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
+                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
                     //sData.CurrentConflicts.RemoveGoalNodes();
                     //sData.CurrentConflicts.AddFreeSpaceNodes(level);
 
@@ -445,7 +445,7 @@ namespace BoxProblems.Solver
                     {
                         if (group != mainGroup)
                         {
-                            List<Point> freeSpacesInGroup = GetSpacesInGraphGroup(group, sData.Level).Distinct().ToList();
+                            List<Point> freeSpacesInGroup = GetSpacesInGraphGroup(sData.gsData, group, sData.Level).Distinct().ToList();
                             foreach (var space in freeSpacesInGroup)
                             {
                                 freeSpaceInSplitGroups.TryAdd(space, 0);
@@ -584,8 +584,8 @@ namespace BoxProblems.Solver
             sData.CurrentState = sData.CurrentState.GetCopy();
             sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
 
-            sData.CurrentConflicts = new BoxConflictGraph(sData.CurrentState, sData.Level, sData.RemovedEntities);
-            sData.CurrentConflicts.AddFreeSpaceNodes(sData.Level);
+            sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, sData.Level, sData.RemovedEntities);
+            sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
             //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);

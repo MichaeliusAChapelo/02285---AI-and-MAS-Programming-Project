@@ -7,7 +7,7 @@ namespace BoxProblems.Graphing
 {
     internal static class GraphCreator
     {
-        public static void CreateGraphIgnoreEntityType(Graph graph, Level level, EntityType notAHindrance)
+        public static void CreateGraphIgnoreEntityType(GraphSearchData gsData, Graph graph, Level level, EntityType notAHindrance)
         {
             foreach (var inode in graph.Nodes)
             {
@@ -37,7 +37,7 @@ namespace BoxProblems.Graphing
                 level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
                 potentialGoals.Remove(node.Value.Ent.Pos);
 
-                var reachedGoals = GraphSearcher.GetReachedGoalsBFS(level, node.Value.Ent.Pos, goalCondition);
+                var reachedGoals = GraphSearcher.GetReachedGoalsBFS(gsData, level, node.Value.Ent.Pos, goalCondition);
 
                 foreach (var reached in reachedGoals)
                 {

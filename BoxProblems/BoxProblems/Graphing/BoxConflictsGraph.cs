@@ -61,7 +61,7 @@ namespace BoxProblems.Graphing
         private readonly Dictionary<Point, INode> PositionToNode = new Dictionary<Point, INode>();
         internal readonly State CreatedFromThisState;
 
-        internal BoxConflictGraph(State state, Level level, HashSet<Entity> removedEntities)
+        internal BoxConflictGraph(GraphSearchData gsData, State state, Level level, HashSet<Entity> removedEntities)
         {
             CreatedFromThisState = state;
 
@@ -82,7 +82,7 @@ namespace BoxProblems.Graphing
                 AddNode(new BoxConflictNode(new EntityNodeInfo(agent, EntityType.AGENT)));
             }
 
-            GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.GOAL);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.GOAL);
         }
 
         internal void AddNode(BoxConflictNode node)
@@ -100,7 +100,7 @@ namespace BoxProblems.Graphing
             }
         }
 
-        internal void AddGoalNodes(Level level, Entity exceptThisGoal)
+        internal void AddGoalNodes(GraphSearchData gsData, Level level, Entity exceptThisGoal)
         {
             HashSet<Point> entityPositions = new HashSet<Point>();
             foreach (var node in Nodes)
@@ -129,7 +129,7 @@ namespace BoxProblems.Graphing
 
                 BoxConflictNode node = new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL));
 
-                List<(Point pos, int distance)> edges = GraphSearcher.GetReachedGoalsBFS(level, goal.Pos, goalCondition);
+                List<(Point pos, int distance)> edges = GraphSearcher.GetReachedGoalsBFS(gsData, level, goal.Pos, goalCondition);
                 foreach (var edge in edges.Distinct())
                 {
                     BoxConflictNode end = (BoxConflictNode)GetNodeFromPosition(edge.pos);
@@ -165,7 +165,7 @@ namespace BoxProblems.Graphing
             return PositionToNode.ContainsKey(pos);
         }
 
-        internal void AddFreeSpaceNodes(Level level)
+        internal void AddFreeSpaceNodes(GraphSearchData gsData, Level level)
         {
             //
             //All entities need to be made into walls so the only freepsace is space 
@@ -202,7 +202,7 @@ namespace BoxProblems.Graphing
                         //The list has a duplicate in it.
                         //It's currently handled by inserting it
                         //into a hashset.
-                        var freeSpacesFound = GraphSearcher.GetReachedGoalsBFS(level, new Point(x, y), foundFreeSpace);
+                        var freeSpacesFound = GraphSearcher.GetReachedGoalsBFS(gsData, level, new Point(x, y), foundFreeSpace);
 
                         //A single free space can't be part of multiple nodes
                         alreadySeenSpaces.UnionWith(freeSpacesFound);
@@ -246,7 +246,7 @@ namespace BoxProblems.Graphing
             });
             foreach (var freeSpaceNode in freeSpaceNodes)
             {
-                var nodesFound = GraphSearcher.GetReachedGoalsBFS(level, freeSpaceNode.Value.FreeSpaces.First(), foundNode);
+                var nodesFound = GraphSearcher.GetReachedGoalsBFS(gsData, level, freeSpaceNode.Value.FreeSpaces.First(), foundNode);
                 foreach (var neighbour in nodesFound.ToHashSet())
                 {
                     //The search may find itself and such edges are not necessary

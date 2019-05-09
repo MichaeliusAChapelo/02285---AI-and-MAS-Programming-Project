@@ -41,18 +41,6 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal class GoalEdge : Edge<EmptyEdgeInfo>
-    {
-        public GoalEdge(GoalNode end, EmptyEdgeInfo value) : base(end, value)
-        {
-        }
-
-        public override string ToString()
-        {
-            return string.Empty;
-        }
-    }
-
     internal sealed class GoalGraph : Graph
     {
         private readonly Dictionary<Point, GoalNode> PositionToNode = new Dictionary<Point, GoalNode>();

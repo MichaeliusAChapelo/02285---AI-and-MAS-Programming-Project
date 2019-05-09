@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BoxProblems.Graphing
 {
-    internal class Edge<E>
+    internal readonly struct Edge<E>
     {
         public readonly INode End;
         public readonly E Value;

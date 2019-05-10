@@ -551,7 +551,7 @@ namespace BoxProblems.Solver
                     }
 
 
-                    //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+                    
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
                     Entity box = GetBoxToSolveProblem(sData, goalToSolve);
@@ -597,8 +597,10 @@ namespace BoxProblems.Solver
                     level.AddPermanentWalll(goalToSolve.Pos);
                     sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, box.Color, box.Type));
                     currentLayer.Goals.Remove(goalToSolve);
+                    //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     Debug.Assert(sData.FreePath.Count == freeSpaceInSplitGroups.Count, "Expecting FreePath to be empty after each problem has been solved.");
                     Debug.Assert(sData.SolutionGraphs.Count == solution.Count, "asda");
+                    sData.FreePath.Clear();
                 }
 
                 if (goToNextLayer)

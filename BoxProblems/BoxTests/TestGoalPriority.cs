@@ -236,7 +236,8 @@ namespace BoxTests
             levelPriorityString = levelPriorityString.Substring(2, levelPriorityString.Length - 2);
 
             Level level = TestTools.StringToOldFormatLevel(levelString);
-            GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
+            GraphSearchData gsData = new GraphSearchData(level);
+            GoalGraph goalGraph = new GoalGraph(gsData, level.InitialState, level);
             var actualGoalPriority = new GoalPriority(level, goalGraph);
             var actualPriorityString = actualGoalPriority.ToLevelString(level);
 

@@ -103,11 +103,10 @@ namespace BoxProblems.Solver
 
             int minimumConflict = int.MaxValue;
             Entity minimumConflictEntity = new Entity();
-            short[,] distanceMap;
 
             if (startNode is FreeSpaceNode)
             {
-                distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, entity.Pos, false);
+                var distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, entity.Pos, false);
 
                 int currentNumConflicts = 0;
                 foreach (BoxConflictNode edge in startNode.GetNodeEnds()) // Add edge as BoxConflict 
@@ -130,9 +129,9 @@ namespace BoxProblems.Solver
                             }
                         }
                     }
-                    priorityQueue.Enqueue(
-                        (edge, currentNumConflicts),
-                        distanceMap[edge.Value.Ent.Pos.X, edge.Value.Ent.Pos.Y]);
+                    int distance = distanceMap[edge.Value.Ent.Pos.X, edge.Value.Ent.Pos.Y];
+                    priorityQueue.Enqueue((edge, currentNumConflicts), distance);
+                    visitedNodes.Add(edge);
                 }
             }
             else
@@ -140,19 +139,17 @@ namespace BoxProblems.Solver
                 // startNode is not FreeSpaceNode
                 (INode node, int numConflicts) starttuple = (startNode, 0);
                 priorityQueue.Enqueue(starttuple, int.MaxValue);
+                visitedNodes.Add(startNode);
             }
 
             // Run greedy search on BoxConflictGraph
             while (priorityQueue.Count > 0)
             {
-                var tuple = priorityQueue.Dequeue();
+                var priResult = priorityQueue.DequeueWithPriority();
+                var tuple = priResult.Value;
                 var currentNode = tuple.node;
                 var currentNumConflicts = tuple.numConflicts;
-                if (visitedNodes.Contains(currentNode))
-                {
-                    continue;
-                }
-                visitedNodes.Add(currentNode);
+
                 if (currentNode is BoxConflictNode currentBoxNode)
                 {
                     if (currentBoxNode.Value.EntType == EntityType.BOX)
@@ -184,14 +181,16 @@ namespace BoxProblems.Solver
                     }
                 }
 
-                distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, (currentNode as BoxConflictNode).Value.Ent.Pos, false);
-                foreach (var edge in currentNode.GetNodeEnds())
+                var boxNode = (BoxConflictNode)currentNode;
+                foreach (var edge in boxNode.Edges)
                 {
-                    if (edge is BoxConflictNode boxConflictNode)
-                    { 
-                        priorityQueue.Enqueue(
-                            ((boxConflictNode as BoxConflictNode), currentNumConflicts),
-                            distanceMap[boxConflictNode.Value.Ent.Pos.X, boxConflictNode.Value.Ent.Pos.Y]);
+                    if (edge.End is BoxConflictNode boxConflictNode)
+                    {
+                        if (!visitedNodes.Contains(boxConflictNode))
+                        {
+                            visitedNodes.Add(boxConflictNode);
+                            priorityQueue.Enqueue((boxConflictNode, currentNumConflicts), priResult.Priority + edge.Value.Distance);
+                        }
                     }
                 }
 

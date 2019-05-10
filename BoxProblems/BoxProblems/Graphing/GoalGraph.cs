@@ -22,7 +22,7 @@ namespace BoxProblems.Graphing
 
     }
 
-    internal class GoalNode : Node<EntityNodeInfo, EmptyEdgeInfo>
+    internal class GoalNode : Node<EntityNodeInfo, DistanceEdgeInfo>
     {
         public GoalNode(EntityNodeInfo value) : base(value)
         {
@@ -41,23 +41,11 @@ namespace BoxProblems.Graphing
         }
     }
 
-    internal class GoalEdge : Edge<EmptyEdgeInfo>
-    {
-        public GoalEdge(GoalNode end, EmptyEdgeInfo value) : base(end, value)
-        {
-        }
-
-        public override string ToString()
-        {
-            return string.Empty;
-        }
-    }
-
     internal sealed class GoalGraph : Graph
     {
         private readonly Dictionary<Point, GoalNode> PositionToNode = new Dictionary<Point, GoalNode>();
 
-        public GoalGraph(State state, Level level)
+        public GoalGraph(GraphSearchData gsData, State state, Level level)
         {
             foreach (var box in state.GetBoxes(level))
             {
@@ -68,7 +56,7 @@ namespace BoxProblems.Graphing
                 AddNode(new GoalNode(new EntityNodeInfo(goal, EntityType.GOAL)));
             }
 
-            GraphCreator.CreateGraphIgnoreEntityType(this, level, EntityType.BOX);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.BOX);
         }
 
         public void AddNode(GoalNode node)

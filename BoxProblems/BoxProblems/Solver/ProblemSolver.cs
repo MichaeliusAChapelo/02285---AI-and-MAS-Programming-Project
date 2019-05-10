@@ -26,12 +26,12 @@ namespace BoxProblems.Solver
     }
     internal class GroupInformation
     {
-        public readonly Dictionary<int,int> agentColors;
+        public readonly Dictionary<int, int> agentColors;
         public readonly Dictionary<char, int> boxeTypes;
         public readonly Dictionary<(int color, char type), int> goalTypeAndColor;
         internal GroupInformation(List<INode> group)
         {
-            this.agentColors = new Dictionary<int,int>();
+            this.agentColors = new Dictionary<int, int>();
             this.boxeTypes = new Dictionary<char, int>();
             this.goalTypeAndColor = new Dictionary<(int, char), int>();
             foreach (var iNode in group)
@@ -106,7 +106,7 @@ namespace BoxProblems.Solver
 
             timer.Stop();
 
-            return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath), solution);
+            return new SolveStatistic(timer.ElapsedMilliseconds, error, status, Path.GetFileNameWithoutExtension(levelPath), solution, level);
         }
 
         public static List<HighlevelLevelSolution> SolveLevel(string levelPath, TimeSpan timeoutTime, bool parallelize)
@@ -647,7 +647,7 @@ namespace BoxProblems.Solver
                 solutionToSubProblem.AddRange(solveConflictMoves);
             }
 
-            int? agentIndex = null; 
+            int? agentIndex = null;
             Point[] pathToBox = null;
             if (!toMoveIsAgent)
             {
@@ -675,6 +675,8 @@ namespace BoxProblems.Solver
             Point? newAgentPos = null;
             if (agentIndex.HasValue) // then set agent pos
             {
+                agentToUse = sData.CurrentState.Entities[agentIndex.Value];
+
                 // 1) Calculate agent's position when next to box.
 
                 bool onlyPullToGoal = false;

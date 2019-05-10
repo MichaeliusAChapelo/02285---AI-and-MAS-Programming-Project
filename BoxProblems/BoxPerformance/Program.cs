@@ -36,6 +36,20 @@ namespace BoxPerformance
             {
                 var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(10), false);
 
+                if (statistic.Status == SolverStatus.SUCCESS)
+                {
+                    try
+                    {
+                        var sc = new ServerCommunicator();
+                        sc.NonAsyncSolve(statistic.Level, statistic.Solution);
+                    }
+                    catch (Exception e)
+                    {
+                        statistic.Status = SolverStatus.ERROR;
+                        statistic.ErrorThrown = e;
+                    }
+                }
+
                 Console.WriteLine($"{statistic.Status.ToString()} {Path.GetFileName(x)} Time: {statistic.RunTimeInMiliseconds}");
                 statisticsBag.Add(statistic);
             });

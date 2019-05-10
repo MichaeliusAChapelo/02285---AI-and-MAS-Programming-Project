@@ -38,7 +38,6 @@ namespace BoxProblems
                 var commands = CreateOnlyFirstSolutionCommand(plan, currentState);
 
                 currentState = plan.CurrentState;
-                solution.Add(new AgentCommands(commands, agentIndex));
 
                 solution.Add(new AgentCommands(commands, agentIndex));
             }

@@ -198,7 +198,7 @@ namespace BoxProblems.Solver
             return (minimumConflict, minimumConflictEntity);
         }
 
-        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData, Dictionary<Point, int> freePath)
+        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData)
         {
 
             //See if there is even 1 free space.
@@ -207,7 +207,7 @@ namespace BoxProblems.Solver
             {
                 if (iNode is FreeSpaceNode freeSpaceNode)
                 {
-                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => !freePath.ContainsKey(x) ? 1 : 0);
+                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => (!sData.FreePath.ContainsKey(x) || !sData.RoutesUsed.ContainsKey(x)) ? 1 : 0);
                 }
             }
             if (avaiableFreeSpacesCount < 1)
@@ -219,7 +219,7 @@ namespace BoxProblems.Solver
             INode startnode = sData.CurrentConflicts.GetNodeFromPosition(conflict.Pos); //Had to initalize it to something
             int howFarIntoFreeSpace = -1;// -1 for the box that should be moved into the goal as it is always on the path;
             var boxes = sData.Level.GetBoxes();
-            foreach (var p in freePath)
+            foreach (var p in sData.RoutesUsed)
             {
                 if (sData.CurrentConflicts.PositionHasNode(p.Key))
                 {
@@ -253,7 +253,7 @@ namespace BoxProblems.Solver
                 {
                     if (currentBoxNode.Value.EntType == EntityType.BOX)
                     {
-                        if (!freePath.ContainsKey(currentBoxNode.Value.Ent.Pos))
+                        if (!sData.RoutesUsed.ContainsKey(currentBoxNode.Value.Ent.Pos))
                         {
                             currentExtraBoxes += 1;
                         }
@@ -266,7 +266,7 @@ namespace BoxProblems.Solver
                 }
                 if (currentNode is FreeSpaceNode currentFreeSpaceNode)
                 {
-                    var newFreeSpacesCount = currentFreeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
+                    var newFreeSpacesCount = currentFreeSpaceNode.Value.FreeSpaces.Where(x => (!sData.FreePath.ContainsKey(x) || !sData.RoutesUsed.ContainsKey(x))).Count();
                     if(newFreeSpacesCount>0)
                     {
                         currentNumFreeSpaces += newFreeSpacesCount;
@@ -304,14 +304,14 @@ namespace BoxProblems.Solver
             {
                 throw new Exception("Not enough free space is available");
             }
-            var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).ToList();
+            var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => (!sData.FreePath.ContainsKey(x) || !sData.RoutesUsed.ContainsKey(x))).ToList();
             Point freeSpacePointToUse = potentialFreeSpacePoints.First();
             int maxDistance = int.MinValue;
             foreach (var FSP in potentialFreeSpacePoints)
             {
                 var distancesMap = Precomputer.GetDistanceMap(sData.Level.Walls, FSP, false);
                 int minDistance = int.MaxValue;
-                foreach (var p in freePath)
+                foreach (var p in sData.RoutesUsed)
                 {
                     int distance = distancesMap[p.Key.X, p.Key.Y];
                     minDistance = Math.Min(minDistance, distance == 0 ? int.MaxValue : distance);

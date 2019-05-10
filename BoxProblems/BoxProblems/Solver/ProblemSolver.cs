@@ -484,7 +484,7 @@ namespace BoxProblems.Solver
                                             {
                                                 continue;
                                             }
-                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData, sData.FreePath);
+                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData);
                                             sData.AddToFreePath(freeSpace);
                                             List<HighlevelMove> boxOnGoalSolution;
                                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxNode.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0))
@@ -563,7 +563,7 @@ namespace BoxProblems.Solver
                         if (nodeOnGoal is BoxConflictNode boxOnGoal && boxOnGoal.Value.EntType != EntityType.GOAL)
                         {
                             int boxOnGoalIndex = sData.GetEntityIndex(boxOnGoal.Value.Ent);
-                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxOnGoal.Value.Ent, sData, sData.FreePath);
+                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxOnGoal.Value.Ent, sData);
                             sData.AddToFreePath(freeSpace);
                             List<HighlevelMove> boxOnGoalSolution;
                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxOnGoal.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0))
@@ -659,7 +659,7 @@ namespace BoxProblems.Solver
                 agentToUse = GetAgentToSolveProblem(sData, toMove);
                 agentIndex = sData.GetEntityIndex(agentToUse.Value);
 
-                sData.AddToFreePath(toMovePath);
+                sData.AddToRoutesUsed(toMovePath);
                 List<HighlevelMove> solveAgentConflictMoves;
                 if (!TrySolveConflicts(agentIndex.Value, toMove.Pos, out solveAgentConflictMoves, out pathToBox, sData, agentToUse, depth))
                 {
@@ -671,7 +671,7 @@ namespace BoxProblems.Solver
                     //solutionToSubProblem.InsertRange(0, solveAgentConflictMoves);
                     solutionToSubProblem.AddRange(solveAgentConflictMoves);
                 }
-                sData.RemoveFromFreePath(toMovePath);
+                sData.RemoveFromRoutesUsed(toMovePath);
             }
 
             sData.CurrentState = sData.CurrentState.GetCopy();
@@ -755,7 +755,7 @@ namespace BoxProblems.Solver
                     break;
                 }
 
-                sData.AddToFreePath(toMovePath);
+                sData.AddToRoutesUsed(toMovePath);
 
                 bool toMoveMoved = false;
                 do
@@ -769,7 +769,7 @@ namespace BoxProblems.Solver
                         continue;
                     }
 
-                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData, sData.FreePath);
+                    Point freeSpace = GetFreeSpaceToMoveConflictTo(conflict.Value.Ent, sData);
                     sData.AddToFreePath(freeSpace);
 
                     //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
@@ -794,7 +794,7 @@ namespace BoxProblems.Solver
                     conflicts = GetConflicts(toMove, goal, sData.CurrentConflicts);
                 } while (conflicts != null && conflicts.Count > 0);
 
-                sData.RemoveFromFreePath(toMovePath);
+                sData.RemoveFromRoutesUsed(toMovePath);
                 if (!toMoveMoved)
                 {
                     break;

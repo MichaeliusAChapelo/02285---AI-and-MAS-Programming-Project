@@ -14,7 +14,7 @@ namespace BoxProblems.Graphing
                 var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)inode;
                 if (node.Value.EntType != notAHindrance)
                 {
-                    level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;
+                    level.AddWall(node.Value.Ent.Pos);
                 }
             }
             //Console.WriteLine(level.WorldToString(level.GetWallsAsWorld()));
@@ -34,7 +34,7 @@ namespace BoxProblems.Graphing
             for (int i = 0; i < graph.Nodes.Count; i++)
             {
                 var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)graph.Nodes[i];
-                level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
+                level.RemoveWall(node.Value.Ent.Pos);
                 potentialGoals.Remove(node.Value.Ent.Pos);
 
                 var reachedGoals = GraphSearcher.GetReachedGoalsBFS(gsData, level, node.Value.Ent.Pos, goalCondition);
@@ -52,7 +52,7 @@ namespace BoxProblems.Graphing
                 
                 if (node.Value.EntType != notAHindrance)
                 {
-                    level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;
+                    level.AddWall(node.Value.Ent.Pos);
                 }
             }
 

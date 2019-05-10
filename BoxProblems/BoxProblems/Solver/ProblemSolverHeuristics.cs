@@ -302,16 +302,17 @@ namespace BoxProblems.Solver
             {
                 throw new Exception("Not enough free space is available");
             }
-            var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x));
+            var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).ToList();
             Point freeSpacePointToUse = potentialFreeSpacePoints.First();
-            int maxDistance = 0;
+            int maxDistance = int.MinValue;
             foreach (var FSP in potentialFreeSpacePoints)
             {
                 var distancesMap = Precomputer.GetDistanceMap(sData.Level.Walls, FSP, false);
                 int minDistance = int.MaxValue;
                 foreach (var p in freePath)
                 {
-                    minDistance = Math.Min(minDistance, distancesMap[p.Key.X, p.Key.Y]);
+                    int distance = distancesMap[p.Key.X, p.Key.Y];
+                    minDistance = Math.Min(minDistance, distance == 0 ? int.MaxValue : distance);
                 }
                 if (maxDistance < minDistance)
                 {

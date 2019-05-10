@@ -204,6 +204,7 @@ namespace BoxProblems.Solver
 
         private static List<INode> GetMainGraphGroup(List<List<INode>> graphGroups)
         {
+
             var bestGroup = graphGroups.First();
             int bestGoalCount = int.MinValue;
             foreach (var group in graphGroups)
@@ -221,6 +222,27 @@ namespace BoxProblems.Solver
                     bestGroup = group;
                     bestGoalCount = goalsCount;
                 }
+            }
+            if (bestGoalCount==0)
+            {
+                int bestFreeSpaceCount = int.MinValue;
+                foreach (var group in graphGroups)
+                {
+                    int freeSpaceCount = 0;
+                    foreach (var node in group)
+                    {
+                        if (node is FreeSpaceNode freeSpaceNode)
+                        {
+                            freeSpaceCount += freeSpaceNode.Value.FreeSpaces.Count;
+                        }
+                    }
+                    if (freeSpaceCount > bestFreeSpaceCount)
+                    {
+                        bestGroup = group;
+                        bestFreeSpaceCount = freeSpaceCount;
+                    }
+                }
+
             }
 
             return bestGroup;

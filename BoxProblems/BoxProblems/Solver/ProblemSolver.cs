@@ -297,6 +297,7 @@ namespace BoxProblems.Solver
                     sData.Level.RemoveWall(goalToSolve.Pos);
 
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
+                    PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups,mainGroup, goalToSolve))
@@ -395,8 +396,13 @@ namespace BoxProblems.Solver
                                             {
                                                 continue;
                                             }
+                                            
                                             BoxConflictNode boxNode = (BoxConflictNode)iNode;
                                             int boxOnGoalIndex = sData.GetEntityIndex(boxNode.Value.Ent);
+                                            if (boxOnGoalIndex==-1)
+                                            {
+                                                continue;
+                                            }
                                             Point freeSpace = GetFreeSpaceToMoveConflictTo(goalToSolve, sData, sData.FreePath);
                                             sData.AddToFreePath(freeSpace);
                                             List<HighlevelMove> boxOnGoalSolution;

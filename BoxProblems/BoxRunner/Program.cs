@@ -122,7 +122,6 @@ namespace BoxRunner
             //string levelPath = "SAExample.lvl";
             //string levelPath = "SACrunch.lvl";
             //string levelPath = "SAAiMasTers.lvl";
-            //string levelPath = "SAExample2.lvl";
             //string levelPath = "MAPullPush.lvl";
             //string levelPath = "MAFiveWalls.lvl";
             //string levelPath = "MAPullPush2.lvl";
@@ -132,7 +131,10 @@ namespace BoxRunner
             //string levelPath = "MAKarlMarx.lvl";'
             //string levelPath = "SAVisualKei.lvl";
             //string levelPath = "SALeo.lvl";
-            string levelPath = "MAdashen.lvl";
+            //string levelPath = "SAOmnics.lvl";
+            string levelPath = "SAGeneralAI.lvl";
+            //Not enough free space
+            //string levelPath = "SAGroupOne.lvl";
 
             string convertedLevelPath = "temp.lvl";
 
@@ -180,7 +182,7 @@ namespace BoxRunner
                     serverCom.SendCommands(finalCommands);
                 }
 
-
+                Console.Read();
                 return;
                 // Michaelius ENDO
             }

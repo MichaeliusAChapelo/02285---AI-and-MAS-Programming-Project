@@ -133,9 +133,9 @@ namespace BoxProblems.Solver
                     Parallel.ForEach(levels, x =>
                     {
                         var solution = SolvePartialLevel(x, cancelSource.Token);
-                        var optimizedSolution = HighlevelMoveSolutionOptimizer(solution);
+                        solution = HighLevelOptimizer.Optimize(solution);
                         //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(optimizedSolution);
+                        solutionPieces.Add(solution);
                     });
                 }
                 else
@@ -143,9 +143,9 @@ namespace BoxProblems.Solver
                     foreach (var x in levels)
                     {
                         var solution = SolvePartialLevel(x, cancelSource.Token);
-                        var optimizedSolution = HighlevelMoveSolutionOptimizer(solution); 
+                        solution = HighLevelOptimizer.Optimize(solution);
                         //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(optimizedSolution);
+                        solutionPieces.Add(solution);
                     }
                 }
             }
@@ -154,52 +154,6 @@ namespace BoxProblems.Solver
             return solutionPieces.ToList();
         }
 
-        private static HighlevelLevelSolution HighlevelMoveSolutionOptimizer(HighlevelLevelSolution solution)
-        {
-            List<HighlevelMove> solutionMoves = solution.SolutionMovesParts;
-            var optimizedSolution = new List<HighlevelMove>();
-            int counter = 0; 
-            for(int i = 0; i < solutionMoves.Count()-1; i++)
-            {
-                if (solutionMoves[i].MoveThis.Type == solutionMoves[i+1].MoveThis.Type && solutionMoves[i].ToHere == solutionMoves[i+1].MoveThis.Pos)
-                {
-                    optimizedSolution.Add(new HighlevelMove(solutionMoves[i + 1].CurrentState, solutionMoves[i].MoveThis, solutionMoves[i + 1].ToHere, solutionMoves[i].UsingThisAgent, counter));
-                    i++; 
-                }
-                else
-                {
-                    optimizedSolution.Add(new HighlevelMove(solutionMoves[i].CurrentState, solutionMoves[i].MoveThis, solutionMoves[i].ToHere, solutionMoves[i].UsingThisAgent, counter));
-                }   
-                counter++; 
-            }
-            optimizedSolution.Add(solutionMoves.Last());
-            return (new HighlevelLevelSolution(optimizedSolution, solution.SolutionGraphs, solution.Level)); 
-        }
-        //private static void WriteToFile(HighlevelLevelSolution solution)
-        //{
-        //    string fileName = @"C:\Users\theis\Desktop\MultiAgent\Project\HighlevelMoves.txt";
-        //    try
-        //    {
-        //        // Check if file already exists. If yes, delete it.     
-        //        if (File.Exists(fileName))
-        //        {
-        //            File.Delete(fileName);
-        //        }
-        //
-        //        // Create a new file     
-        //        using (StreamWriter sw = File.CreateText(fileName))
-        //        {
-        //            foreach (HighlevelMove move in solution.SolutionMovesParts)
-        //            {
-        //                sw.WriteLine("Move# " + move.MoveNumber + " From " + move.MoveThis + " to " + move.ToHere + " with agent " + move.UsingThisAgent);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception Ex)
-        //    {
-        //        Console.WriteLine(Ex.ToString());
-        //    }
-        //}
         private static List<List<INode>> GetGraphGroups(BoxConflictGraph graph, Point posToMakeWall)
         {
             HashSet<INode> exploredSet = new HashSet<INode>();
@@ -639,7 +593,6 @@ namespace BoxProblems.Solver
             {
                 throw new Exception("sub problem depth limit reached.");
             }
-            int counter = sData.Counter++;
 
             Entity toMove = sData.GetEntity(toMoveIndex);
             solutionToSubProblem = new List<HighlevelMove>();
@@ -687,7 +640,7 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
-            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, counter));
+            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse));
             //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
             return true;

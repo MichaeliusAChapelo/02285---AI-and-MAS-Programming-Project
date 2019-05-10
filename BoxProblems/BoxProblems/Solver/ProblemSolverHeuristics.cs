@@ -235,6 +235,7 @@ namespace BoxProblems.Solver
             (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);
             var bfsQueue = new Queue<(INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes)>();
             int minExtraBoxes = int.MaxValue;
+            int totalExtraBoxes = 0;
             bfsQueue.Enqueue(starttuple);
             while (bfsQueue.Count > 0)
             {
@@ -275,6 +276,7 @@ namespace BoxProblems.Solver
                             {
                                 freeSpaceNodeToUse = currentFreeSpaceNode;
                                 minExtraBoxes = currentExtraBoxes + currentRepeatBoxes;
+                                totalExtraBoxes = currentExtraBoxes;
                             }
                             if (currentExtraBoxes == 0 && currentRepeatBoxes == 0)
                             {
@@ -294,7 +296,7 @@ namespace BoxProblems.Solver
                 }
                 if (bfsQueue.Count == 0)
                 {
-                    howFarIntoFreeSpace += currentExtraBoxes;
+                    howFarIntoFreeSpace += totalExtraBoxes;
                 }
             }
 

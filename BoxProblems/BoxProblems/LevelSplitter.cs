@@ -13,23 +13,26 @@ namespace BoxProblems
 
             foreach (Entity box in level.GetBoxes())
             {
-                level.Walls[box.Pos.X, box.Pos.Y] = true;
+                level.AddWall(box.Pos);
             }
 
             GraphSearchData gsData = new GraphSearchData(level);
-            List<Entity> goalEntities = new List<Entity>();
-            goalEntities.AddRange(level.GetBoxes().ToArray());
+            Dictionary<Point, Entity> goalEntities = new Dictionary<Point, Entity>();
+            foreach (var box in level.GetBoxes())
+            {
+                goalEntities.Add(box.Pos, box);
+            }
             while (true)
             {
                 bool foundNewBox = false;
                 foreach (Entity agent in level.GetAgents())
                 {
                     HashSet<Point> goals = new HashSet<Point>();
-                    foreach (Entity box in goalEntities)
+                    foreach (var box in goalEntities)
                     {
-                        if (agent.Color == box.Color)
+                        if (agent.Color == box.Value.Color)
                         {
-                            goals.Add(box.Pos);
+                            goals.Add(box.Key);
                         }
                     }
                     List<Point> newBoxesFound = GraphSearcher.GetReachedGoalsBFS(gsData, level, agent.Pos, x => new GraphSearcher.GoalFound<Point>(x.pos, goals.Contains(x.pos)));
@@ -37,11 +40,11 @@ namespace BoxProblems
                     {
                         foundNewBox = true;
                     }
-
-                    goalEntities.RemoveAll(x => newBoxesFound.Contains(x.Pos));
+                    
                     foreach (Point foundBoxPos in newBoxesFound)
                     {
-                        level.Walls[foundBoxPos.X, foundBoxPos.Y] = false;
+                        level.RemoveWall(foundBoxPos);
+                        goalEntities.Remove(foundBoxPos);
                     }
                 }
 

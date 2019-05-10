@@ -38,10 +38,8 @@ namespace BoxProblems
                 var commands = CreateOnlyFirstSolutionCommand(plan, currentState);
 
                 currentState = plan.CurrentState;
+
                 solution.Add(new AgentCommands(commands, agentIndex));
-
-                //sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
-
             }
             Solved = true;
 
@@ -89,7 +87,6 @@ namespace BoxProblems
             var box = plan.MoveThis;
 
             int agentIndex = Array.IndexOf(Agents, agent);
-            //if (agentIndex == -1) throw new Exception("WRONG NUMBER");
 
             var commands = new List<AgentCommand>();
 
@@ -171,11 +168,14 @@ namespace BoxProblems
                 newAgentPosition = toGoal[toGoal.Count - 2];
 
             Level.AddWall(goal.Pos);
-            //SetAgentPosition(agent, newAgentPosition); // Much more preferable, but troublesome. Wait till heuristics improve.
+
+            if (newAgentPosition != plan.AgentFinalPos)
+            {
+                commands.AddRange(MoveToLocation(newAgentPosition.Value, plan.AgentFinalPos.Value));
+                newAgentPosition = plan.AgentFinalPos;
+            }
 
             Agents[agentIndex] = agent.Move(newAgentPosition.Value);
-
-            //MoveToLocation(newAgentPosition.Value, agent.Pos, commands); // thats just how it is rite now i aint making them heuristics dawg
 
             Level.ResetWalls();
 

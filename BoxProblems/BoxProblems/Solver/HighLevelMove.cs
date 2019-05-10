@@ -24,7 +24,7 @@ namespace BoxProblems.Solver
 
         public override string ToString()
         {
-            return $"{MoveThis} -> {ToHere} " + (UsingThisAgent.HasValue ? $"Using {UsingThisAgent}" : string.Empty);
+            return $"{MoveThis} -> {ToHere} " + (UsingThisAgent.HasValue ? $"Using {UsingThisAgent} to {AgentFinalPos}" : string.Empty);
         }
     }
 }

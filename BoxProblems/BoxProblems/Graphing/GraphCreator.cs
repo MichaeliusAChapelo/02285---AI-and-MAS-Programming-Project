@@ -17,46 +17,71 @@ namespace BoxProblems.Graphing
                     level.AddWall(node.Value.Ent.Pos);
                 }
             }
-            //Console.WriteLine(level.WorldToString(level.GetWallsAsWorld()));
-     
+
             Dictionary<Point, Node<EntityNodeInfo, DistanceEdgeInfo>> potentialGoals = new Dictionary<Point, Node<EntityNodeInfo, DistanceEdgeInfo>>();
             foreach (var inode in graph.Nodes)
             {
                 var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)inode;
                 potentialGoals.Add(node.Value.Ent.Pos, node);
             }
-            var goalCondition = new Func<(Point pos, int distance), GraphSearcher.GoalFound<(Node<EntityNodeInfo, DistanceEdgeInfo> node, int distance)>>(x =>
+            var goalCondition = new Func<(Point pos, int distance), GraphSearcher.GoalFound<Node<EntityNodeInfo, DistanceEdgeInfo>>>(x =>
             {
                 bool isGoal = potentialGoals.TryGetValue(x.pos, out Node<EntityNodeInfo, DistanceEdgeInfo> value);
-                return new GraphSearcher.GoalFound<(Node<EntityNodeInfo, DistanceEdgeInfo>, int)>((value, x.distance), isGoal);
+                return new GraphSearcher.GoalFound<Node<EntityNodeInfo, DistanceEdgeInfo>>(value, isGoal);
             });
 
-            for (int i = 0; i < graph.Nodes.Count; i++)
+            HashSet<(INode, INode)> seenConnections = new HashSet<(INode, INode)>();
+            for (int y = 0; y < level.Height; y++)
             {
-                var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)graph.Nodes[i];
-                level.RemoveWall(node.Value.Ent.Pos);
-                potentialGoals.Remove(node.Value.Ent.Pos);
-
-                var reachedGoals = GraphSearcher.GetReachedGoalsBFS(gsData, level, node.Value.Ent.Pos, goalCondition);
-
-                foreach (var reached in reachedGoals)
+                for (int x = 0; x < level.Width; x++)
                 {
-                    if (node.Value.EntType == notAHindrance &&
-                        reached.node.Value.EntType == notAHindrance)
+                    Point pos = new Point(x, y);
+
+                    //always search from a free space
+                    if (potentialGoals.ContainsKey(pos) || level.IsWall(pos))
                     {
                         continue;
                     }
-                    node.AddEdge(new Edge<DistanceEdgeInfo>(reached.node, new DistanceEdgeInfo(reached.distance)));
-                    reached.node.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo(reached.distance)));
-                }
-                
-                if (node.Value.EntType != notAHindrance)
-                {
-                    level.AddWall(node.Value.Ent.Pos);
+
+                    var reached = GraphSearcher.GetReachedGoalsBFS(gsData, level, pos, goalCondition);
+                    //fullyConnectedGroups.Add(reached);
+
+                    for (int z = 0; z < reached.Count; z++)
+                    {
+                        for (int q = z; q < reached.Count; q++)
+                        {
+                            var startNode = reached[z];
+                            var endNode = reached[q];
+
+                            if (seenConnections.Contains((startNode, endNode)))
+                            {
+                                continue;
+                            }
+
+                            startNode.AddEdge(new Edge<DistanceEdgeInfo>(endNode, new DistanceEdgeInfo()));
+                            endNode.AddEdge(new Edge<DistanceEdgeInfo>(startNode, new DistanceEdgeInfo()));
+
+                            seenConnections.Add((startNode, endNode));
+                            seenConnections.Add((endNode, startNode));
+                        }
+                    }
                 }
             }
-
             level.ResetWalls();
+
+            foreach (var iNode in graph.Nodes)
+            {
+                var startNode = (Node<EntityNodeInfo, DistanceEdgeInfo>)iNode;
+
+                short[,] distancesMap = Precomputer.GetDistanceMap(level.Walls, startNode.Value.Ent.Pos, false);
+
+                for (int i = 0; i < startNode.Edges.Count; i++)
+                {
+                    var endNode = (Node<EntityNodeInfo, DistanceEdgeInfo>)startNode.Edges[i].End;
+                    int distance = distancesMap[endNode.Value.Ent.Pos.X, endNode.Value.Ent.Pos.Y];
+                    startNode.Edges[i] = new Edge<DistanceEdgeInfo>(endNode, new DistanceEdgeInfo(distance));
+                }
+            }
         }
     }
 }

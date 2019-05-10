@@ -496,7 +496,7 @@ namespace BoxProblems.Solver
                                             {
                                                 continue;
                                             }
-                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(goalToSolve, sData, sData.FreePath);
+                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData, sData.FreePath);
                                             sData.AddToFreePath(freeSpace);
                                             List<HighlevelMove> boxOnGoalSolution;
                                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxNode.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0))
@@ -571,7 +571,7 @@ namespace BoxProblems.Solver
                         if (nodeOnGoal is BoxConflictNode boxOnGoal && boxOnGoal.Value.EntType != EntityType.GOAL)
                         {
                             int boxOnGoalIndex = sData.GetEntityIndex(boxOnGoal.Value.Ent);
-                            Point freeSpace = GetFreeSpaceToMoveConflictTo(goalToSolve, sData, sData.FreePath);
+                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxOnGoal.Value.Ent, sData, sData.FreePath);
                             sData.AddToFreePath(freeSpace);
                             List<HighlevelMove> boxOnGoalSolution;
                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxOnGoal.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0))
@@ -590,7 +590,7 @@ namespace BoxProblems.Solver
                     var storeConflicts = sData.CurrentConflicts;
                     var storeState = sData.CurrentState;
                     List<HighlevelMove> solutionMoves;
-                    //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+
                     if (!TrySolveSubProblem(boxIndex, goalToSolve.Pos, false, out solutionMoves, sData, 0))
                     {
                         sData.CurrentConflicts = storeConflicts;

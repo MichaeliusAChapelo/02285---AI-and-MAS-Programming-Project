@@ -207,7 +207,7 @@ namespace BoxProblems.Solver
             {
                 if (iNode is FreeSpaceNode freeSpaceNode)
                 {
-                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Where(x => !freePath.ContainsKey(x)).Count();
+                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => !freePath.ContainsKey(x) ? 1 : 0);
                 }
             }
             if (avaiableFreeSpacesCount < 1)

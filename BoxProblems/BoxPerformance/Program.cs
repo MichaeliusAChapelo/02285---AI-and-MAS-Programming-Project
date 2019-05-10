@@ -41,7 +41,8 @@ namespace BoxPerformance
                     try
                     {
                         var sc = new ServerCommunicator();
-                        sc.NonAsyncSolve(statistic.Level, statistic.Solution);
+                        var commands = sc.NonAsyncSolve(statistic.Level, statistic.Solution);
+                        CommandParallelizer.Parallelize(commands, statistic.Level);
                     }
                     catch (Exception e)
                     {

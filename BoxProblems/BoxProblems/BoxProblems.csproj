@@ -22,7 +22,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="webdrivers\windows\chromedriver.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="webpage\cytoscape-cose-bilkent.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -37,6 +37,10 @@
 
   <ItemGroup>
     <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PriorityQueue\PriorityQueue.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +60,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Levels\New_Format\MAVisualKei.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Levels\New_Format\SALeo.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Levels\New_Format\SAVisualKei.lvl">

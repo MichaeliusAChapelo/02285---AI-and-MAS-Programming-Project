@@ -12,6 +12,7 @@ namespace BoxProblems.Solver
             public readonly Dictionary<Point, int> FreePath = new Dictionary<Point, int>();
             public List<BoxConflictGraph> SolutionGraphs = new List<BoxConflictGraph>();
             public readonly HashSet<Entity> RemovedEntities = new HashSet<Entity>();
+            public readonly GraphSearchData gsData;
             public readonly Level Level;
             public readonly CancellationToken CancelToken;
             public BoxConflictGraph CurrentConflicts;
@@ -23,6 +24,7 @@ namespace BoxProblems.Solver
                 this.Level = level;
                 this.CancelToken = cancelToken;
                 this.CurrentState = level.InitialState;
+                this.gsData = new GraphSearchData(level);
             }
 
             public void AddToFreePath(Point[] path)

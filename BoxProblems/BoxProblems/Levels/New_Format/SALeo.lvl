@@ -1,0 +1,111 @@
+#domain
+hospital
+#levelname
+SALeo
+#colors
+brown: L
+red: E
+orange: 0,O
+#initial
+++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++LLLL+++++++++++++++++++++++
+++++++++++++++++++++L+LOOOOLLLLLL+++++++++++++++++
++++++++++++++++++++LLLOEEEEOOO+OOOLLL+++++++++++++
+++++++++++++++++++LLOLLLLLLEEEEEEOOOLL++++++++++++
++++++++++++++++++LLOELLLLLLLLLLLLELL++++++++++++++
+++++++++++++++++LLOELL+LLLLLLLLLLLLLLL++++++++++++
+++++++++++++++++LOELL++LLOLOOOOOOOOOOOLLL+++++++++
+++++++++++++++++LOLL+++LLO+LOOOEEEEEEEOOOLL+++++++
++++++++++++++++LOEL+L++LLO++LLOOOLLLLLEEEOLL++++++
++++++++++++OOOOOOLOOL++LOL++++LOOOOOL+++LL++++++++
+++++++++++OOOOOOOOOOL++LO+++LL+LOOEEOLLLL+++++++++
++++++++++OOOOOOOOOOOO+LOL+++LOL+LOLLEOOOOLL+++++++
++++++++++OOOOOOOOOOOOOOOOL+LOOL+LOOLLEEEEOOE++++++
+++++++LOOO0 OOOOOLLOOOOOOL+LOOL+LOOOLLLLLEEOE+++++
+++++LLOOO  OOOOLL++LEOOOOL+LOOOLLOOOOLLLLLLELE++++
++++LOOOOOOOOOLLLLL+LEOOOOL+LOOOOOOLLLLLLLLLEEEE+++
+++LLLOOOOOLLLLLLLL+LEOOEO+LOOOOOO+++++++++++EEE+++
+++LOOLLLLLLLLLLLLL++LOOEO+LO++OOOLLLLLLLEE++++++++
+++OO+ OOOOOOOOOLLLL+LOOE+LOOOOOOOOOLLLLLLEEE++++++
+++O++ OOOOOOOOOOLL++LOOO+OOOOOOOOOOOOOOOOLEEE+++++
++++   OOOOOOOOOOOO+LOOO+LOOOOOLLLLLLLLLOOOOEEE++++
++++    OOOOOOOOO+++OOOO+OOOOLLLLLLLLLLLLLLLOEEE+++
+++++++++OOOOOOOOO+LOOOOOOOOL+++++LLLLLLLLLLLLEE+++
++++++E++++++OOOOO+LOOLOO+OOOLLLLL+++++++++++++++++
++++++OOOOOOOOO OO+LOOLOOL+LLOOOOOLLLLLLLEEE+++++++
++++++ OOOOOOO  O+LOOOLOOLL++LLOOOOOOOOOOOOEEE+++++
++++++     L+   +LOOOOLOOOLLL++LLLLOOOOOOOOOOEE++++
++++++      L  ++LOOOLOOLOOLLLL++++LLLLLLLLLOOE++++
++++++++   LO ++LOOOLOOO+LLOOLLEEE++++++++++LLLE+++
++++++++    +++LEOOOOOOOL++LOLLLLLEEEE+++++++++++++
++++++++++ ++LLOOOOO+LOOLL++LLOLLLLLLE+++++++++++++
++++++++++++LOOOOOOO+LLOOLLL++LOOOLLLE+++++++++++++
+++++++++++LLOOOOLOOL+LLLOLLL++LLLOOOE+++++++++++++
+++++++++++LOOOOL+LOL++LLLLLLEE+++LLLE+++++++++++++
++++++++++LLOLOOL+LOLL++LLLLLLLE+++++L+++++++++++++
++++++++++LOLLOLL++LLLL++LLLLLLE+++++++++++++++++++
+++++++++LLOL+LLLL+LLLLE++LLLLLE+++++++++++++++++++
+++++++++LLLL+LLLL++LLLLE+++LLLE+++++++++++++++++++
++++++++LLLLL+LLLLL++LLE+++++++++++++++++++++++++++
++++++++LLLLL++LLL++++LE+++++++++++++++++++++++++++
++++++++LLLLLL++L++++++++++++++++++++++++++++++++++
++++++++LLLLL++++++++++++++++++++++++++++++++++++++
++++++++LLLL+++++++++++++++++++++++++++++++++++++++
++++++++LLLL+++++++++++++++++++++++++++++++++++++++
++++++++LLL++++++++++++++++++++++++++++++++++++++++
++++++++LLL++++++++++++++++++++++++++++++++++++++++
+++++++++L+++++++++++++++++++++++++++++++++++++++++
+++++++++L+++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++
+#goal
+++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++LLLL+++++++++++++++++++++++
+++++++++++++++++++++L+LOOOOLLLLLL+++++++++++++++++
++++++++++++++++++++LLLOEEEEOOO+OOOLLL+++++++++++++
+++++++++++++++++++LLOLLLLLLEEEEEEOOOLL++++++++++++
++++++++++++++++++LLOELLLLLLLLLLLLELL++++++++++++++
+++++++++++++++++LLOELL+LLLLLLLLLLLLLLL++++++++++++
+++++++++++++++++LOELL++LLOLOOOOOOOOOOOLLL+++++++++
+++++++++++++++++LOLL+++LLO+LOOOEEEEEEEOOOLL+++++++
++++++++++++++++LOEL+L++LLO++LLOOOLLLLLEEEOLL++++++
++++++++++++OOOOOOLOOL++LOL++++LOOOOOL+++LL++++++++
+++++++++++OOOOOOOOOOL++LO+++LL+LOOEEOLLLL+++++++++
++++++++++OOOOOOOOOOOO+LOL+++LOL+LOLLEOOOOLL+++++++
++++++++++OOOOOOOOOOOOOOOOL+LOOL+LOOLLEEEEOOE++++++
+++++++LOOOOOOOOOOLLOOOOOOL+LOOL+LOOOLLLLLEEOE+++++
+++++LLOOO  OOOOLL++LEOOOOL+LOOOLLOOOOLLLLLLELE++++
++++LOOOOOOOOOLLLLL+LEOOOOL+LOOOOOOLLLLLLLLLEEEE+++
+++LLLOOOOOLLLLLLLL+LEOOEO+LOOOOOO+++++++++++EEE+++
+++LOOLLLLLLLLLLLLL++LOOEO+LO++OOOLLLLLLLEE++++++++
+++OO+ OOOOOOOOOLLLL+LOOE+LOOOOOOOOOLLLLLLEEE++++++
+++O++ OOOOOOOOOOLL++LOOO+OOOOOOOOOOOOOOOOLEEE+++++
++++   OOOOOOOOOOOO+LOOO+LOOOOOLLLLLLLLLOOOOEEE++++
++++    OOOOOOOOO+++OOOO+OOOOLLLLLLLLLLLLLLLOEEE+++
+++++++++OOOOOOOOO+LOOOOOOOOL+++++LLLLLLLLLLLLEE+++
++++++E++++++OOOOO+LOOLOO+OOOLLLLL+++++++++++++++++
++++++OOOOOOOOO OO+LOOLOOL+LLOOOOOLLLLLLLEEE+++++++
++++++ OOOOOOO  O+LOOOLOOLL++LLOOOOOOOOOOOOEEE+++++
++++++     L+   +LOOOOLOOOLLL++LLLLOOOOOOOOOOEE++++
++++++      L  ++LOOOLOOLOOLLLL++++LLLLLLLLLOOE++++
++++++++   LO ++LOOOLOOO+LLOOLLEEE++++++++++LLLE+++
++++++++    +++LEOOOOOOOL++LOLLLLLEEEE+++++++++++++
++++++++++ ++LLOOOOO+LOOLL++LLOLLLLLLE+++++++++++++
++++++++++++LOOOOOOO+LLOOLLL++LOOOLLLE+++++++++++++
+++++++++++LLOOOOLOOL+LLLOLLL++LLLOOOE+++++++++++++
+++++++++++LOO OL+LOL++LLLLLLEE+++LLLE+++++++++++++
++++++++++LLOL0OL+LOLL++LLLLLLLE+++++L+++++++++++++
++++++++++LOLLOLL++LLLL++LLLLLLE+++++++++++++++++++
+++++++++LLOL+LLLL+LLLLE++LLLLLE+++++++++++++++++++
+++++++++LLLL+LLLL++LLLLE+++LLLE+++++++++++++++++++
++++++++LLLLL+LLLLL++LLE+++++++++++++++++++++++++++
++++++++LLLLL++LLL++++LE+++++++++++++++++++++++++++
++++++++LLLLLL++L++++++++++++++++++++++++++++++++++
++++++++LLLLL++++++++++++++++++++++++++++++++++++++
++++++++LLLL+++++++++++++++++++++++++++++++++++++++
++++++++LLLL+++++++++++++++++++++++++++++++++++++++
++++++++LLL++++++++++++++++++++++++++++++++++++++++
++++++++LLL++++++++++++++++++++++++++++++++++++++++
+++++++++L+++++++++++++++++++++++++++++++++++++++++
+++++++++L+++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++
+#end

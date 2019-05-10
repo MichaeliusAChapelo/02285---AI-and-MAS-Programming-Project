@@ -297,7 +297,7 @@ namespace BoxProblems.Solver
                     sData.Level.RemoveWall(goalToSolve.Pos);
 
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
-                    PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+                    //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups,mainGroup, goalToSolve))

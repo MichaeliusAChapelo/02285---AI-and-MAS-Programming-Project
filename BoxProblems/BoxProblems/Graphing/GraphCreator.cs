@@ -47,9 +47,9 @@ namespace BoxProblems.Graphing
                         continue;
                     }
                     node.AddEdge(new Edge<DistanceEdgeInfo>(reached.node, new DistanceEdgeInfo(reached.distance)));
+                    reached.node.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo(reached.distance)));
                 }
-
-                potentialGoals.Add(node.Value.Ent.Pos, node);
+                
                 if (node.Value.EntType != notAHindrance)
                 {
                     level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = true;

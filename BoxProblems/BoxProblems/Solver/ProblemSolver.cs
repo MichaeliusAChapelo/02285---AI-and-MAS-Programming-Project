@@ -379,9 +379,10 @@ namespace BoxProblems.Solver
                     //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
-                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve))
+                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && 
+                        !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve) &&
+                        mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
                     {
-
                         List<Entity> goalsWithHigherPriority = new List<Entity>();
                         foreach (var group in graphGroups)
                         {
@@ -525,24 +526,28 @@ namespace BoxProblems.Solver
                     //sData.CurrentConflicts.AddFreeSpaceNodes(level);
 
 
-                    sData.Level.AddWall(goalToSolve.Pos);
                     Dictionary<Point, int> freeSpaceInSplitGroups = new Dictionary<Point, int>();
-                    foreach (var group in graphGroups)
+                    if (mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
                     {
-                        if (group != mainGroup)
+                        sData.Level.AddWall(goalToSolve.Pos);
+                        foreach (var group in graphGroups)
                         {
-                            List<Point> freeSpacesInGroup = GetSpacesInGraphGroup(sData.gsData, group, sData.Level).Distinct().ToList();
-                            foreach (var space in freeSpacesInGroup)
+                            if (group != mainGroup)
                             {
-                                freeSpaceInSplitGroups.TryAdd(space, 0);
-                                freeSpaceInSplitGroups[space] += 1;
+                                List<Point> freeSpacesInGroup = GetSpacesInGraphGroup(sData.gsData, group, sData.Level).Distinct().ToList();
+                                foreach (var space in freeSpacesInGroup)
+                                {
+                                    freeSpaceInSplitGroups.TryAdd(space, 0);
+                                    freeSpaceInSplitGroups[space] += 1;
+                                }
                             }
                         }
-                    }
-                    sData.Level.RemoveWall(goalToSolve.Pos);
-                    foreach (var freespace in freeSpaceInSplitGroups)
-                    {
-                        sData.FreePath.TryAdd(freespace.Key, freespace.Value);
+
+                        sData.Level.RemoveWall(goalToSolve.Pos);
+                        foreach (var freespace in freeSpaceInSplitGroups)
+                        {
+                            sData.FreePath.TryAdd(freespace.Key, freespace.Value);
+                        }
                     }
 
 

@@ -152,6 +152,7 @@ namespace BoxProblems.Solver
 
         private static List<INode> GetMainGraphGroup(List<List<INode>> graphGroups)
         {
+
             var bestGroup = graphGroups.First();
             int bestGoalCount = int.MinValue;
             foreach (var group in graphGroups)
@@ -169,6 +170,27 @@ namespace BoxProblems.Solver
                     bestGroup = group;
                     bestGoalCount = goalsCount;
                 }
+            }
+            if (bestGoalCount==0)
+            {
+                int bestFreeSpaceCount = int.MinValue;
+                foreach (var group in graphGroups)
+                {
+                    int freeSpaceCount = 0;
+                    foreach (var node in group)
+                    {
+                        if (node is FreeSpaceNode freeSpaceNode)
+                        {
+                            freeSpaceCount += freeSpaceNode.Value.FreeSpaces.Count;
+                        }
+                    }
+                    if (freeSpaceCount > bestFreeSpaceCount)
+                    {
+                        bestGroup = group;
+                        bestFreeSpaceCount = freeSpaceCount;
+                    }
+                }
+
             }
 
             return bestGroup;
@@ -297,7 +319,7 @@ namespace BoxProblems.Solver
                     sData.Level.RemoveWall(goalToSolve.Pos);
 
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
-                    PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+                    //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && !EveryGroupHasEverythingNeeded(graphGroups,mainGroup, goalToSolve))

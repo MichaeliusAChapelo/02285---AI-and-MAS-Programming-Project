@@ -20,6 +20,7 @@ namespace BoxProblems.Solver
             List<HighlevelMove> solutionMoves = solution.SolutionMovesParts;
             var optimizedSolution = new List<HighlevelMove>();
             int counter = 0;
+            bool finalMoveWasEdited = false;
             for (int i = 0; i < solutionMoves.Count - 1; i++)
             {
                 //check that the same thing is moved twice in a row
@@ -31,6 +32,8 @@ namespace BoxProblems.Solver
                     {
                         optimizedSolution.Add(new HighlevelMove(solutionMoves[i + 1].CurrentState, solutionMoves[i].MoveThis, solutionMoves[i + 1].ToHere, solutionMoves[i].UsingThisAgent, solutionMoves[i + 1].AgentFinalPos));
                         i++;
+                        if (i == solutionMoves.Count - 1)
+                            finalMoveWasEdited = true;
                     }
                 }
                 else
@@ -39,7 +42,7 @@ namespace BoxProblems.Solver
                 }
                 counter++;
             }
-            if (solutionMoves.Count > 0)
+            if (solutionMoves.Count > 0 && !finalMoveWasEdited)
             {
                 optimizedSolution.Add(solutionMoves.Last());
             }

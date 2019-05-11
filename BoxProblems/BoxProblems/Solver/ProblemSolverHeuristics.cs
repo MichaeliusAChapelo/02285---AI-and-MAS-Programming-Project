@@ -320,7 +320,7 @@ namespace BoxProblems.Solver
                 {
                     maxDistance = minDistance;
                     freeSpacePointToUse = FSP;
-                    if (maxDistance >= howFarIntoFreeSpace)
+                    if (maxDistance >= howFarIntoFreeSpace + 1)
                     {
                         break;
                     }

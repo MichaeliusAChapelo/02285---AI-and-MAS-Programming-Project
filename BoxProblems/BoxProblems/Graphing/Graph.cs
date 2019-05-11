@@ -86,6 +86,11 @@ namespace BoxProblems.Graphing
 
             return groupedGraph;
         }
+
+        internal virtual INode TryGetNodeAtPos(Point pos)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     internal readonly struct NodeGroup

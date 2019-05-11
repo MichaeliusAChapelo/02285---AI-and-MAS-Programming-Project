@@ -13,6 +13,11 @@ namespace BoxProblems.Graphing
         {
             this.Distance = distance;
         }
+
+        public override string ToString()
+        {
+            return $"Distance: {Distance}";
+        }
     }
 
     internal class BoxConflictNode : Node<EntityNodeInfo, DistanceEdgeInfo>
@@ -163,6 +168,12 @@ namespace BoxProblems.Graphing
         internal bool PositionHasNode(Point pos)
         {
             return PositionToNode.ContainsKey(pos);
+        }
+
+        internal override INode TryGetNodeAtPos(Point pos)
+        {
+            PositionToNode.TryGetValue(pos, out INode node);
+            return node;
         }
 
         internal void AddFreeSpaceNodes(GraphSearchData gsData, Level level)

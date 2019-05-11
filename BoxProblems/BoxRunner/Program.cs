@@ -111,7 +111,7 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipConsoleRead = false;
+            ServerCommunicator.SkipConsoleRead = true;
             bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
             bool Parallelize = true;
 
@@ -132,7 +132,7 @@ namespace BoxRunner
             //string levelPath = "SAVisualKei.lvl";
             //string levelPath = "SALeo.lvl";
             //string levelPath = "SAOmnics.lvl";
-            string levelPath = "SAGeneralAI.lvl";
+            string levelPath = "SAEasyPeasy.lvl";
             //Not enough free space
             //string levelPath = "SAGroupOne.lvl";
 

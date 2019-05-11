@@ -14,5 +14,10 @@ namespace BoxProblems.Graphing
             this.End = end;
             this.Value = value;
         }
+
+        public override string ToString()
+        {
+            return $"End: {End.ToString()} {Value.ToString()}";
+        }
     }
 }

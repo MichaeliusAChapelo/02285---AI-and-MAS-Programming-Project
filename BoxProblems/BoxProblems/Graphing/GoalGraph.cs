@@ -69,5 +69,11 @@ namespace BoxProblems.Graphing
         {
             return PositionToNode[pos];
         }
+
+        internal override INode TryGetNodeAtPos(Point pos)
+        {
+            PositionToNode.TryGetValue(pos, out GoalNode node);
+            return node;
+        }
     }
 }

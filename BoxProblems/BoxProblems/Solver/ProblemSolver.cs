@@ -684,38 +684,67 @@ namespace BoxProblems.Solver
             {
                 agentToUse = sData.CurrentState.Entities[agentIndex.Value];
 
-                // 1) Calculate agent's position when next to box.
-
-                bool onlyPullToGoal = false;
-                Point agentPosNextToBox;
-
-                if (Point.ManhattenDistance(agentToUse.Value.Pos, toMove.Pos) != 1)
+                List<Point> possibleAgentPositions = new List<Point>();
+                foreach (var dirDelta in Direction.NONE.DirectionDeltas())
                 {
-                    if (pathToBox.Contains(toMovePath.Last()))
-                        onlyPullToGoal = true;
+                    Point possibleAgentPos = goal + dirDelta;
 
-                    // Last is box, second last is agent's pos next to box.
-                    agentPosNextToBox = pathToBox[pathToBox.Length - 2];
+                    //Can't place the agent inside a wall
+                    if (sData.Level.IsWall(possibleAgentPos))
+                    {
+                        continue;
+                    }
+
+                    //Don't place the agent at an illegal position
+                    if (sData.FreePath.ContainsKey(possibleAgentPos))
+                    {
+                        continue;
+                    }
+
+                    //Can't place the box on another agent or box
+                    INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
+                    if (nodeAtPos is BoxConflictNode boxNode && 
+                        (boxNode.Value.EntType == EntityType.AGENT || 
+                         boxNode.Value.EntType == EntityType.BOX) && 
+                        boxNode.Value.Ent != toMove && 
+                        boxNode.Value.Ent != agentToUse.Value)
+                    {
+                        continue;
+                    }
+
+                    possibleAgentPositions.Add(possibleAgentPos);
                 }
-                else
-                    agentPosNextToBox = agentToUse.Value.Pos; // already next to box.
 
-
-                // 2) Find agent's final position.
-                bool ShouldPush = !toMovePath.Contains(agentPosNextToBox);
-
-
-                if (!ShouldPush && onlyPullToGoal)
+                if (possibleAgentPositions.Count == 0)
                 {
-                    int indexOfGoalPosInToBoxPath = Array.IndexOf(pathToBox, goal);
-                    if (indexOfGoalPosInToBoxPath == -1)
-                        newAgentPos = agentToUse.Value.Pos; // friendofDFS case
-                    else
-                        newAgentPos = pathToBox[indexOfGoalPosInToBoxPath - 1];
+                    throw new Exception("No agent position found.");
                 }
 
-                if (!newAgentPos.HasValue)
-                    newAgentPos = toMovePath[toMovePath.Length - 2]; // last is goal, second last is agentPos
+                //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
+                bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
+
+                //If the agent starts by pushing then it should also try to end by pushing
+                //as turning around to pull is more moves
+                bool isPushPossible = false;
+                if (startPush)
+                {
+                    foreach (var endAgentPos in possibleAgentPositions)
+                    {
+                        //If the box path contains the agents end position then the agent must've pushed the box
+                        if (toMovePath.Contains(endAgentPos))
+                        {
+                            newAgentPos = endAgentPos;
+                            isPushPossible = true;
+                            break;
+                        }
+                    }
+                }
+
+                //If push wasn't possible then chose one of the possible pull positions
+                if (!isPushPossible)
+                {
+                    newAgentPos = possibleAgentPositions.First();
+                }
 
                 sData.CurrentState.Entities[agentIndex.Value] = sData.CurrentState.Entities[agentIndex.Value].Move(newAgentPos.Value);
             }

@@ -10,20 +10,21 @@ namespace BoxProblems.Solver
         internal Entity MoveThis;
         internal Point ToHere;
         internal Entity? UsingThisAgent;
-        internal int MoveNumber;
+        internal Point? AgentFinalPos;
 
-        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent, int moveNumber)
+
+        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent, Point? agentFinalPos)
         {
             this.CurrentState = state;
             this.MoveThis = moveThis;
             this.ToHere = toHere;
             this.UsingThisAgent = usingThisAgent;
-            this.MoveNumber = moveNumber;
+            this.AgentFinalPos = agentFinalPos;
         }
 
         public override string ToString()
         {
-            return $"{MoveThis} -> {ToHere} " + (UsingThisAgent.HasValue ? $"Using {UsingThisAgent}" : string.Empty);
+            return $"{MoveThis} -> {ToHere} " + (UsingThisAgent.HasValue ? $"Using {UsingThisAgent} to {AgentFinalPos}" : string.Empty);
         }
     }
 }

@@ -23,6 +23,7 @@ namespace BoxProblems
                 else if (box.Pos == left) agentLeftBox = true;
                 else if (box.Pos == frontLeft) agentFrontLeftBox = true;
                 else if (box.Pos == backLeft) agentBackLeftBox = true;
+                else if (agentFrontBox && agentFrontLeftBox && agentLeftBox && agentBackLeftBox) break;
 
             return agentFrontBox && agentFrontLeftBox && agentLeftBox && agentBackLeftBox;
         }
@@ -44,6 +45,7 @@ namespace BoxProblems
                 else if (box.Pos == Right) agentRightBox = true;
                 else if (box.Pos == frontRight) agentFrontRightBox = true;
                 else if (box.Pos == backRight) agentBackRightBox = true;
+                else if (agentFrontBox && agentFrontRightBox && agentRightBox && agentBackRightBox) break;
 
             return agentFrontBox && agentFrontRightBox && agentRightBox && agentBackRightBox;
         }

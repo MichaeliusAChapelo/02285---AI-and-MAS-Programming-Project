@@ -33,25 +33,13 @@ namespace BoxProblems
             State currentState = Level.InitialState;
             foreach (HighlevelMove plan in Plan)
             {
-                // 2) Manhatten A* to solution; This time, try to break the search
-                // 3) Convert to high level moves to low level commands
-                // Includes U-turning boxes (from pull to push)
+                int agentIndex = Array.IndexOf(Agents, plan.UsingThisAgent.HasValue ? plan.UsingThisAgent : plan.MoveThis);
+
                 var commands = CreateOnlyFirstSolutionCommand(plan, currentState);
 
-                // 5) Loop through commands
-                int index = Array.IndexOf(Agents, plan.UsingThisAgent.HasValue ? plan.UsingThisAgent : plan.MoveThis);
-
-                // 6) Set agent positions proper.
-                //SetAgentPosition();
-                if (plan.UsingThisAgent == null)
-                    Agents[index] = Agents[index].Move(plan.ToHere);
-
-
                 currentState = plan.CurrentState;
-                solution.Add(new AgentCommands(commands, index));
 
-                //sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
-
+                solution.Add(new AgentCommands(commands, agentIndex));
             }
             Solved = true;
 
@@ -76,10 +64,15 @@ namespace BoxProblems
             if (move.UsingThisAgent.HasValue)
             {
                 Level.RemoveWall(move.UsingThisAgent.Value.Pos);
-                result = CreateSolutionCommands(agent: move.UsingThisAgent.Value, box, goal: new Entity(move.ToHere, box.Color, box.Type));
+                result = CreateSolutionCommands(move, goal: new Entity(move.ToHere, box.Color, box.Type));
             }
             else
+            {
+                int agentIndex = Array.IndexOf(Agents, move.MoveThis);
+                Agents[agentIndex] = move.MoveThis.Move(move.ToHere);
                 result = MoveToLocation(box.Pos, move.ToHere);
+
+            }
 
 
             Level.ResetWalls();
@@ -88,8 +81,13 @@ namespace BoxProblems
             throw new Exception("High Level Move did not specify which agent to use.");
         }
 
-        public List<AgentCommand> CreateSolutionCommands(Entity agent, Entity box, Entity goal)
+        public List<AgentCommand> CreateSolutionCommands(HighlevelMove plan, Entity goal)
         {
+            var agent = plan.UsingThisAgent.Value;
+            var box = plan.MoveThis;
+
+            int agentIndex = Array.IndexOf(Agents, agent);
+
             var commands = new List<AgentCommand>();
 
             bool OnlyPullToGoal = false;
@@ -105,10 +103,17 @@ namespace BoxProblems
             else
                 agentPosNextToBox = agent.Pos;
 
-            var toGoal = RunAStar(box.Pos, goal.Pos);
+
+            var toGoal = RunAStar(box.Pos, plan.AgentFinalPos.Value);
+            if (!toGoal.Contains(goal.Pos))
+                toGoal.Add(goal.Pos);
+
             bool ShouldPush = !toGoal.Contains(agentPosNextToBox); // always true right now
 
-            if (ShouldPush)
+            //Console.WriteLine(Level.WorldToString(Level.GetWallsAsWorld()));
+
+
+            if (ShouldPush && !toGoal.Contains(agentPosNextToBox))
                 toGoal.Insert(0, agentPosNextToBox);
 
             Point? newAgentPosition = null;
@@ -121,13 +126,15 @@ namespace BoxProblems
 
                 if (OnlyPullToGoal)
                 {
+
                     int index = toBox.IndexOf(goal.Pos);
 
                     if (index == -1)
                         newAgentPosition = agent.Pos;
                     else
                         newAgentPosition = toBox[index - 1];
-                    toGoal.Add(newAgentPosition.Value);
+                    if (!toGoal.Contains(newAgentPosition.Value))
+                        toGoal.Add(newAgentPosition.Value);
 
                     for (int i = 2; i < toGoal.Count; ++i)
                         commands.Add(Pull(toGoal, i));
@@ -161,8 +168,14 @@ namespace BoxProblems
                 newAgentPosition = toGoal[toGoal.Count - 2];
 
             Level.AddWall(goal.Pos);
-            //SetAgentPosition(agent, newAgentPosition); // Much more preferable, but troublesome. Wait till heuristics improve.
-            MoveToLocation(newAgentPosition.Value, agent.Pos, commands); // thats just how it is rite now i aint making them heuristics dawg
+
+            if (newAgentPosition != plan.AgentFinalPos)
+            {
+                commands.AddRange(MoveToLocation(newAgentPosition.Value, plan.AgentFinalPos.Value));
+                newAgentPosition = plan.AgentFinalPos;
+            }
+
+            Agents[agentIndex] = agent.Move(newAgentPosition.Value);
 
             Level.ResetWalls();
 
@@ -189,6 +202,7 @@ namespace BoxProblems
         {
             var commands = new List<AgentCommand>();
             MoveToLocation(agentFrom, destination, commands);
+
             return commands;
         }
 
@@ -235,6 +249,8 @@ namespace BoxProblems
 
         public List<Point> RunAStar(Point start, Point end)
         {
+            if (start == end) return new List<Point>() { end }; //Jeez, dawg. This ain't cool.
+
             return Precomputer.GetPath(Level, start, end, false).ToList();
         }
 

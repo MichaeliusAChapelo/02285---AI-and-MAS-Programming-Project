@@ -376,7 +376,7 @@ namespace BoxProblems.Solver
                     sData.Level.RemoveWall(goalToSolve.Pos);
 
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
-                    //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+                    //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && 
@@ -901,50 +901,6 @@ namespace BoxProblems.Solver
             }
 
             throw new Exception("Found no path from  entity to goal.");
-        }
-
-        private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs)
-        {
-            PrintLatestStateDiff(level, graphs, graphs.Count - 1);
-        }
-
-        private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs, int index)
-        {
-            if (index == -1)
-            {
-                Console.WriteLine(level.ToString());
-            }
-            else if (index == 0)
-            {
-                Console.WriteLine(level.StateToString(graphs[index].CreatedFromThisState));
-            }
-            else
-            {
-                State last = graphs[index].CreatedFromThisState;
-                State sLast = graphs[index - 1].CreatedFromThisState;
-
-                string[] lastStateStrings = level.StateToString(last).Split(Environment.NewLine);
-                string[] sLastStateStrings = level.StateToString(sLast).Split(Environment.NewLine);
-
-                for (int y = 0; y < lastStateStrings.Length; y++)
-                {
-                    for (int x = 0; x < lastStateStrings[y].Length; x++)
-                    {
-                        if (lastStateStrings[y][x] != sLastStateStrings[y][x])
-                        {
-                            Console.BackgroundColor = ConsoleColor.Red;
-                        }
-                        else
-                        {
-                            Console.BackgroundColor = ConsoleColor.Black;
-                        }
-                        Console.Write(lastStateStrings[y][x]);
-                    }
-                    Console.WriteLine();
-                }
-            }
-
-            Console.ReadLine();
         }
     }
 }

@@ -200,6 +200,130 @@ namespace BoxTests
         }
 
         [TestMethod]
+        public void TestAgentToBoxPushPullBent()
+        {
+            string levelString = @"
+++++++++++++
++0++++++++++
++ ++++++++++
++ ++++++++++
++   B    GF+
++++++++ ++++
+++++++++++++";
+
+            List<AgentCommand> commands = new List<AgentCommand>()
+            {
+                AgentCommand.CreateMove(Direction.S),
+                AgentCommand.CreateMove(Direction.S),
+                AgentCommand.CreateMove(Direction.S),
+                AgentCommand.CreateMove(Direction.E),
+                AgentCommand.CreateMove(Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.S),
+                AgentCommand.CreatePull(Direction.E, Direction.S),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+            };
+
+            VerifyMoveBoxToGoalCreator(levelString, commands);
+        }
+
+        [TestMethod]
+        public void TestAgentToPullPushBent()
+        {
+            string levelString = @"
+++++++++++++
++B       FG+
+++++ ++ ++++
+++++ +++++++
+++++0+++++++
+++++++++++++
+++++++++++++";
+
+            List<AgentCommand> commands = new List<AgentCommand>()
+            {
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.W),
+                AgentCommand.CreateMove(Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.S, Direction.W),
+                AgentCommand.CreatePush(Direction.N, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+            };
+
+            VerifyMoveBoxToGoalCreator(levelString, commands);
+        }
+
+        [TestMethod]
+        public void TestAgentToPushPushBent()
+        {
+            string levelString = @"
+++++++++++++
++0++++++++++
++ ++++++++++
++ ++++++++++
++   B    FG+
+++++++++++++";
+
+            List<AgentCommand> commands = new List<AgentCommand>()
+            {
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.E),
+                AgentCommand.CreateMove(Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+            };
+
+            VerifyMoveBoxToGoalCreator(levelString, commands);
+        }
+
+        [TestMethod]
+        public void TestAgentToPullPullBent()
+        {
+            string levelString = @"
+++++++++++++
+++++0+++++++
+++++ +++++++
+++++ +++++++
++B       GF+
+++++++++++++";
+
+            List<AgentCommand> commands = new List<AgentCommand>()
+            {
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.W),
+                AgentCommand.CreateMove(Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+            };
+
+            VerifyMoveBoxToGoalCreator(levelString, commands);
+        }
+
+        [TestMethod]
         public void TestAgentMoveStraightPath()
         {
             string levelString = @"

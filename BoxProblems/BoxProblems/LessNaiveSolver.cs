@@ -153,7 +153,7 @@ namespace BoxProblems
             }
             else
             {
-                PushOnPath(firstPart, agent.Pos, commands);
+                PushOnPath(firstPart, agentNextToBox, commands);
                 if (secondPart != null)
                 {
                     firstPartAgentEndPos = firstPart[firstPart.Count - 2];

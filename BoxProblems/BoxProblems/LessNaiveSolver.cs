@@ -85,10 +85,11 @@ namespace BoxProblems
 
             var agentToBox = RunAStar(agent.Pos, box.Pos);
             MoveToBox(agentToBox, commands);
+            Point agentNextToBox = agentToBox[agentToBox.Count - 2];
 
             var boxToAgentEnd = RunAStar(box.Pos, agentEndPos);
 
-            bool startPull = boxToAgentEnd.Contains(agent.Pos);
+            bool startPull = boxToAgentEnd.Contains(agentNextToBox);
             bool endPull = boxToAgentEnd.Contains(goalPos);
 
             List<Point> firstPart = null;
@@ -308,11 +309,14 @@ namespace BoxProblems
 
         private void MoveToBox(List<Point> toBox, List<AgentCommand> commands)
         {
-            toBox.RemoveAt(toBox.Count - 1); // Remove box' position from solution list
-
-            for (int i = 1; i < toBox.Count; ++i)
+            for (int i = 0; i < toBox.Count - 2; ++i)
             {
-                commands.Add(AgentCommand.CreateMove(PointsToDirection(toBox[i - 1], toBox[i])));
+                Point agentPos = toBox[i];
+                Point nextAgentPos = toBox[i + 1];
+
+                Direction agentDir = PointsToDirection(agentPos, nextAgentPos);
+
+                commands.Add(AgentCommand.CreateMove(agentDir));
             }
         }
 

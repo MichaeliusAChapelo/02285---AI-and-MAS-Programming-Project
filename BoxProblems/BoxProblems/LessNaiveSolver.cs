@@ -84,11 +84,11 @@ namespace BoxProblems
             var box = plan.MoveThis;
 
             var agentToBox = RunAStar(agent.Pos, box.Pos);
-            var agentPos = MoveToBox(agentToBox, commands);
+            MoveToBox(agentToBox, commands);
 
             var boxToAgentEnd = RunAStar(box.Pos, agentEndPos);
 
-            bool startPull = boxToAgentEnd.Contains(agentPos);
+            bool startPull = boxToAgentEnd.Contains(agent.Pos);
             bool endPull = boxToAgentEnd.Contains(goalPos);
 
             List<Point> firstPart = null;
@@ -306,7 +306,7 @@ namespace BoxProblems
 
         #region Solution Command Generation
 
-        private Point MoveToBox(List<Point> toBox, List<AgentCommand> commands)
+        private void MoveToBox(List<Point> toBox, List<AgentCommand> commands)
         {
             toBox.RemoveAt(toBox.Count - 1); // Remove box' position from solution list
 
@@ -314,7 +314,6 @@ namespace BoxProblems
             {
                 commands.Add(AgentCommand.CreateMove(PointsToDirection(toBox[i - 1], toBox[i])));
             }
-            return toBox.Last(); // Return agent's destination, so next to box.
         }
 
         private List<AgentCommand> MoveToLocation(Point agentFrom, Point destination)

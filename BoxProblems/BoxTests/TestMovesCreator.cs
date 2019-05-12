@@ -327,6 +327,25 @@ namespace BoxTests
         }
 
         [TestMethod]
+        public void TestAgentToPushPushUTurn()
+        {
+            string levelString = @"
+++++++
++  0 +
++ BFG+
+++++++";
+
+            List<AgentCommand> commands = new List<AgentCommand>()
+            {
+                AgentCommand.CreateMove(Direction.W),
+                AgentCommand.CreatePush(Direction.S, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+            };
+
+            VerifyMoveBoxToGoalCreator(levelString, commands);
+        }
+
+        [TestMethod]
         public void TestAgentMoveStraightPath()
         {
             string levelString = @"

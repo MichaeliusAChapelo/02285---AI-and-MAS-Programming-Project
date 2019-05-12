@@ -61,7 +61,7 @@ namespace BoxProblems
         public static void SendCommand(string command)
         {
             Console.WriteLine(command);
-            Console.Error.WriteLine(command);
+            Console.Error.WriteLine("Debug: " + command);
             if (SkipConsoleRead) return;
             string response = Console.ReadLine();
 

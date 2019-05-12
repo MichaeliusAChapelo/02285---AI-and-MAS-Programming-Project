@@ -10,19 +10,14 @@ namespace BoxProblems
     internal partial class LessNaiveSolver
     {
         private readonly Level Level;
-        //private State CurrentState;
         private List<HighlevelMove> Plan;
-        //int[] Waits;
-        //private int g = 0;
         private Entity[] Agents;
-        public static bool Solved { get; private set; }
 
         public LessNaiveSolver(Level wholeLevel, Level partialLevel, List<HighlevelMove> plan)
         {
             this.Level = partialLevel;
-            Solved = false;
             this.Plan = plan;
-            Agents = wholeLevel.GetAgents().ToArray();
+            this.Agents = wholeLevel.GetAgents().ToArray();
         }
 
         // GOD FUNCTION DEUX
@@ -45,7 +40,6 @@ namespace BoxProblems
 
                 solution.Add(new AgentCommands(commands, agentIndex));
             }
-            Solved = true;
 
             return solution;
         }

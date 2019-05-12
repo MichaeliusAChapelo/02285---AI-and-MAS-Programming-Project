@@ -264,7 +264,7 @@ namespace BoxTests
 
             HighlevelMove move = new HighlevelMove(level.InitialState, box, goal.Pos, agent, agentFinalPos);
 
-            VerityCommands(level, move, expectedCommands);
+            VerifyCommands(level, move, expectedCommands);
         }
 
         private static void VerifyMoveAgentToGoalCreator(string levelString, List<AgentCommand> expectedCommands)
@@ -276,10 +276,10 @@ namespace BoxTests
 
             HighlevelMove move = new HighlevelMove(level.InitialState, agent, goal.Pos, null, null);
 
-            VerityCommands(level, move, expectedCommands);
+            VerifyCommands(level, move, expectedCommands);
         }
 
-        private static void VerityCommands(Level level, HighlevelMove move, List<AgentCommand> expectedCommands)
+        private static void VerifyCommands(Level level, HighlevelMove move, List<AgentCommand> expectedCommands)
         {
             List<AgentCommands> agentCommands = new LessNaiveSolver(level, level, new List<HighlevelMove>() { move }).Solve();
             List<AgentCommand> actualCommands = agentCommands.First().Commands;

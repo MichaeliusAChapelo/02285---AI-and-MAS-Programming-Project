@@ -28,7 +28,7 @@ namespace BoxProblems
             State currentState = Level.InitialState;
             foreach (HighlevelMove plan in Plan)
             {
-                int agentIndex = Array.IndexOf(Agents, plan.UsingThisAgent.HasValue ? plan.UsingThisAgent : plan.MoveThis);
+                int agentIndex = Array.IndexOf(Agents, plan.UsingThisAgent.HasValue ? plan.UsingThisAgent.Value : plan.MoveThis);
                 if (agentIndex == -1)
                 {
                     throw new Exception("Failed to find the agent.");

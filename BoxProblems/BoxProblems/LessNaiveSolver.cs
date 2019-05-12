@@ -34,7 +34,7 @@ namespace BoxProblems
                     throw new Exception("Failed to find the agent.");
                 }
 
-                var commands = CreateOnlyFirstSolutionCommand(plan, currentState);
+                var commands = CreateOnlyFirstSolutionCommand(plan, currentState, agentIndex);
 
                 currentState = plan.CurrentState;
 
@@ -46,7 +46,7 @@ namespace BoxProblems
 
         #region Abstract Moves to Specific Commands
 
-        public List<AgentCommand> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState)
+        public List<AgentCommand> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState, int agentIndex)
         {
             var box = move.MoveThis;
 
@@ -63,13 +63,11 @@ namespace BoxProblems
             {
                 Level.RemoveWall(move.UsingThisAgent.Value.Pos);
                 result = CreateSolutionCommands(move, move.ToHere);
-                int agentIndex = Array.IndexOf(Agents, move.UsingThisAgent.Value);
                 Agents[agentIndex] = move.UsingThisAgent.Value.Move(move.AgentFinalPos.Value);
             }
             else
             {
                 result = MoveToLocation(box.Pos, move.ToHere);
-                int agentIndex = Array.IndexOf(Agents, move.MoveThis);
                 Agents[agentIndex] = move.MoveThis.Move(move.ToHere);
             }
 

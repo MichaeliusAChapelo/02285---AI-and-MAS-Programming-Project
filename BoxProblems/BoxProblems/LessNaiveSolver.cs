@@ -366,8 +366,6 @@ namespace BoxProblems
 
         public List<Point> RunAStar(Point start, Point end)
         {
-            //if (start == end) return new List<Point>() { end }; //Jeez, dawg. This ain't cool.
-
             return Precomputer.GetPath(Level, start, end, false).ToList();
         }
 

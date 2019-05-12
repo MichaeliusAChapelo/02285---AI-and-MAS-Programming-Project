@@ -236,9 +236,9 @@ namespace BoxTests
             string levelString = @"
 ++++++++++++
 +B       FG+
-++++ ++ ++++
-++++ +++++++
-++++0+++++++
++++++++ ++++
++++++++ ++++
++++++++0++++
 ++++++++++++
 ++++++++++++";
 
@@ -247,6 +247,9 @@ namespace BoxTests
                 AgentCommand.CreateMove(Direction.N),
                 AgentCommand.CreateMove(Direction.N),
                 AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.W),
+                AgentCommand.CreateMove(Direction.W),
+                AgentCommand.CreateMove(Direction.W),
                 AgentCommand.CreateMove(Direction.W),
                 AgentCommand.CreateMove(Direction.W),
                 AgentCommand.CreatePull(Direction.E, Direction.W),
@@ -276,9 +279,9 @@ namespace BoxTests
 
             List<AgentCommand> commands = new List<AgentCommand>()
             {
-                AgentCommand.CreateMove(Direction.N),
-                AgentCommand.CreateMove(Direction.N),
-                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.S),
+                AgentCommand.CreateMove(Direction.S),
+                AgentCommand.CreateMove(Direction.S),
                 AgentCommand.CreateMove(Direction.E),
                 AgentCommand.CreateMove(Direction.E),
                 AgentCommand.CreatePush(Direction.E, Direction.E),
@@ -305,9 +308,9 @@ namespace BoxTests
 
             List<AgentCommand> commands = new List<AgentCommand>()
             {
-                AgentCommand.CreateMove(Direction.N),
-                AgentCommand.CreateMove(Direction.N),
-                AgentCommand.CreateMove(Direction.N),
+                AgentCommand.CreateMove(Direction.S),
+                AgentCommand.CreateMove(Direction.S),
+                AgentCommand.CreateMove(Direction.S),
                 AgentCommand.CreateMove(Direction.W),
                 AgentCommand.CreateMove(Direction.W),
                 AgentCommand.CreatePull(Direction.E, Direction.W),

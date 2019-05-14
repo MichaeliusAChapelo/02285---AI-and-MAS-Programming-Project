@@ -402,27 +402,29 @@ namespace BoxTests
         private static void VerifyMoveBoxToGoalCreator(string levelString, List<AgentCommand> expectedCommands)
         {
             Level level = TestTools.StringToOldFormatLevel(levelString);
+            Level clearedLevel = TestTools.StringToOldFormatLevel(levelString.Replace('G', ' ').Replace('F', ' '));
 
             Entity agent = level.InitialState.Entities.Single(x => x.Type == '0');
             Entity box = level.InitialState.Entities.Single(x => x.Type == 'B');
             Entity goal = level.InitialState.Entities.Single(x => x.Type == 'G');
             Point agentFinalPos = level.InitialState.Entities.Single(x => x.Type == 'F').Pos;
 
-            HighlevelMove move = new HighlevelMove(level.InitialState, box, goal.Pos, agent, agentFinalPos);
+            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, box, goal.Pos, agent, agentFinalPos);
 
-            VerifyCommands(level, move, expectedCommands);
+            VerifyCommands(clearedLevel, move, expectedCommands);
         }
 
         private static void VerifyMoveAgentToGoalCreator(string levelString, List<AgentCommand> expectedCommands)
         {
             Level level = TestTools.StringToOldFormatLevel(levelString);
+            Level clearedLevel = TestTools.StringToOldFormatLevel(levelString.Replace('G', ' '));
 
             Entity agent = level.InitialState.Entities.Single(x => x.Type == '0');
             Entity goal = level.InitialState.Entities.Single(x => x.Type == 'G');
 
-            HighlevelMove move = new HighlevelMove(level.InitialState, agent, goal.Pos, null, null);
+            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, agent, goal.Pos, null, null);
 
-            VerifyCommands(level, move, expectedCommands);
+            VerifyCommands(clearedLevel, move, expectedCommands);
         }
 
         private static void VerifyCommands(Level level, HighlevelMove move, List<AgentCommand> expectedCommands)

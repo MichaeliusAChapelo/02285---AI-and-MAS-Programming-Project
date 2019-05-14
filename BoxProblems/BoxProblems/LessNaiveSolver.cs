@@ -12,12 +12,14 @@ namespace BoxProblems
         private readonly Level Level;
         private List<HighlevelMove> Plan;
         private Entity[] Agents;
+        private Entity[] Boxes;
 
         public LessNaiveSolver(Level wholeLevel, Level partialLevel, List<HighlevelMove> plan)
         {
             this.Level = partialLevel;
             this.Plan = plan;
             this.Agents = wholeLevel.GetAgents().ToArray();
+            this.Boxes = wholeLevel.GetBoxes().ToArray();
         }
 
         // GOD FUNCTION DEUX
@@ -57,25 +59,25 @@ namespace BoxProblems
             Level.RemoveWall(box.Pos);
             Level.RemoveWall(move.ToHere);
 
-            List<AgentCommand> result;
+            List<AgentCommand> result = new List<AgentCommand>();
 
             if (move.UsingThisAgent.HasValue)
             {
+                int boxIndex = Array.IndexOf(Boxes, move.MoveThis);
                 Level.RemoveWall(move.UsingThisAgent.Value.Pos);
-                result = CreateSolutionCommands(move, move.ToHere);
-                Agents[agentIndex] = move.UsingThisAgent.Value.Move(move.AgentFinalPos.Value);
+                result = CreateSolutionCommands(move, move.ToHere, agentIndex, boxIndex);
             }
             else
             {
-                result = MoveToLocation(box.Pos, move.ToHere);
-                Agents[agentIndex] = move.MoveThis.Move(move.ToHere);
+                var agentToPos = RunAStar(move.MoveThis.Pos, move.ToHere);
+                MoveToLocation(agentToPos, result, agentIndex);
             }
 
             Level.ResetWalls();
             return result;
         }
 
-        public List<AgentCommand> CreateSolutionCommands(HighlevelMove plan, Point goalPos)
+        public List<AgentCommand> CreateSolutionCommands(HighlevelMove plan, Point goalPos, int agentIndex, int boxIndex)
         {
             List<AgentCommand> commands = new List<AgentCommand>();
 
@@ -84,8 +86,10 @@ namespace BoxProblems
             var box = plan.MoveThis;
 
             var agentToBox = RunAStar(agent.Pos, box.Pos);
-            MoveToBox(agentToBox, commands);
-            Point agentNextToBox = agentToBox[agentToBox.Count - 2];
+            //Remove box location from the path as the path should end next to the box
+            agentToBox.RemoveAt(agentToBox.Count - 1);
+            MoveToLocation(agentToBox, commands, agentIndex);
+            Point agentNextToBox = agentToBox[agentToBox.Count - 1];
 
             var boxToAgentEnd = RunAStar(box.Pos, agentEndPos);
 
@@ -145,7 +149,7 @@ namespace BoxProblems
             Point? firstPartAgentEndPos = null;
             if (startPull)
             {
-                PullOnPath(firstPart, commands);
+                PullOnPath(firstPart, commands, agentIndex, boxIndex);
                 if (secondPart != null)
                 {
                     firstPartAgentEndPos = firstPart.Last();
@@ -153,7 +157,7 @@ namespace BoxProblems
             }
             else
             {
-                PushOnPath(firstPart, agentNextToBox, commands);
+                PushOnPath(firstPart, agentNextToBox, commands, agentIndex, boxIndex);
                 if (secondPart != null)
                 {
                     firstPartAgentEndPos = firstPart[firstPart.Count - 2];
@@ -164,11 +168,11 @@ namespace BoxProblems
             {
                 if (endPull)
                 {
-                    PullOnPath(secondPart, commands);
+                    PullOnPath(secondPart, commands, agentIndex, boxIndex);
                 }
                 else
                 {
-                    PushOnPath(secondPart, firstPartAgentEndPos.Value, commands);
+                    PushOnPath(secondPart, firstPartAgentEndPos.Value, commands, agentIndex, boxIndex);
                 }
             }
 
@@ -272,7 +276,7 @@ namespace BoxProblems
             */
         }
 
-        private void PushOnPath(List<Point> path, Point agentPos, List<AgentCommand> commandList)
+        private void PushOnPath(List<Point> path, Point agentPos, List<AgentCommand> commandList, int agentIndex, int boxIndex)
         {
             for (int i = 0; i < path.Count - 1; i++)
             {
@@ -283,12 +287,14 @@ namespace BoxProblems
                 Direction boxDir = PointsToDirection(currentBoxPos, nextBoxPos);
 
                 commandList.Add(AgentCommand.CreatePush(agentDir, boxDir));
-
                 agentPos = currentBoxPos;
+
+                MoveBox(nextBoxPos, boxIndex);
+                MoveAgent(currentBoxPos, agentIndex);
             }
         }
 
-        private void PullOnPath(List<Point> path, List<AgentCommand> commandList)
+        private void PullOnPath(List<Point> path, List<AgentCommand> commandList, int agentIndex, int boxIndex)
         {
             for (int i = 0; i < path.Count - 2; i++)
             {
@@ -302,53 +308,71 @@ namespace BoxProblems
                 Direction boxDir = PointsToDirection(nextBoxPos, currentBoxPos);
 
                 commandList.Add(AgentCommand.CreatePull(agentDir, boxDir));
+
+                MoveAgent(nextAgentPos, agentIndex);
+                MoveBox(nextBoxPos, boxIndex);
             }
         }
 
         #region Solution Command Generation
 
-        private void MoveToBox(List<Point> toBox, List<AgentCommand> commands)
+        private void MoveToLocation(List<Point> path, List<AgentCommand> commands, int agentIndex)
         {
-            for (int i = 0; i < toBox.Count - 2; ++i)
+            for (int i = 0; i < path.Count - 1; ++i)
             {
-                Point agentPos = toBox[i];
-                Point nextAgentPos = toBox[i + 1];
+                Point agentPos = path[i];
+                Point nextAgentPos = path[i + 1];
 
                 Direction agentDir = PointsToDirection(agentPos, nextAgentPos);
 
                 commands.Add(AgentCommand.CreateMove(agentDir));
+
+                MoveAgent(nextAgentPos, agentIndex);
             }
         }
 
-        private List<AgentCommand> MoveToLocation(Point agentFrom, Point destination)
+        private void MoveAgent(Point nextAgentPos, int agentIndex)
         {
-            var commands = new List<AgentCommand>();
-            MoveToLocation(agentFrom, destination, commands);
-
-            return commands;
+            VerifyIsMoveValid(nextAgentPos);
+            Agents[agentIndex] = Agents[agentIndex].Move(nextAgentPos);
         }
 
-        private void MoveToLocation(Point agentFrom, Point destination, List<AgentCommand> commands)
+        private void MoveBox(Point nextBoxPos, int boxIndex)
         {
-            if (agentFrom == destination) return; //Jeez, dawg. This ain't cool.
-
-            var toDest = RunAStar(agentFrom, destination);
-            for (int i = 1; i < toDest.Count; ++i)
-                commands.Add(AgentCommand.CreateMove(PointsToDirection(toDest[i - 1], toDest[i])));
+            VerifyIsMoveValid(nextBoxPos);
+            Boxes[boxIndex] = Boxes[boxIndex].Move(nextBoxPos);
         }
 
-        private AgentCommand Push(List<Point> toGoal, int index)
+        private void VerifyIsMoveValid(Point nextPos)
         {
-            Direction moveDirAgent = PointsToDirection(toGoal[index - 2], toGoal[index - 1]);
-            Direction moveDirBox = PointsToDirection(toGoal[index - 1], toGoal[index]);
-            return AgentCommand.CreatePush(moveDirAgent, moveDirBox);
-        }
+            if (nextPos.X <= 0 || nextPos.X >= Level.Width  - 1 ||
+                nextPos.Y <= 0 || nextPos.Y >= Level.Height - 1)
+            {
+                throw new Exception("Can't move outside the bounds of the level.");
+            }
 
-        private AgentCommand Pull(List<Point> toGoal, int index)
-        {
-            Direction currDirBox = PointsToDirection(toGoal[index - 1], toGoal[index - 2]);
-            Direction moveDirAgent = PointsToDirection(toGoal[index - 1], toGoal[index]);
-            return AgentCommand.CreatePull(moveDirAgent, currDirBox);
+            if (Level.IsWall(nextPos))
+            {
+                throw new Exception("Can't move into a wall.");
+            }
+
+            foreach (var agent in Agents)
+            {
+                if (agent.Pos == nextPos)
+                {
+                    Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    throw new Exception("Can't move into an agent.");
+                }
+            }
+
+            foreach (var box in Boxes)
+            {
+                if (box.Pos == nextPos)
+                {
+                    Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    throw new Exception("Can't move into a box.");
+                }
+            }
         }
 
         public static Direction PointsToDirection(Point start, Point end)

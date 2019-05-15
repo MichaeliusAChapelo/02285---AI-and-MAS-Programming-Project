@@ -149,6 +149,13 @@ namespace BoxProblems
                 }
             }
 
+            //if (firstPart != null)
+            //{
+            //    Console.WriteLine("first part");
+            //    State state = new State(null, Agents.Concat(Boxes).ToArray(), 0);
+            //    LevelVisualizer.PrintPath(Level, state, firstPart);
+            //}
+
             Point? firstPartAgentEndPos = null;
             if (startPull)
             {
@@ -167,6 +174,12 @@ namespace BoxProblems
                 }
             }
 
+            //if (secondPart != null)
+            //{
+            //    Console.WriteLine("second part");
+            //    State state = new State(null, Agents.Concat(Boxes).ToArray(), 0);
+            //    LevelVisualizer.PrintPath(Level, state, secondPart);
+            //}
             if (secondPart != null)
             {
                 if (endPull)
@@ -363,7 +376,7 @@ namespace BoxProblems
             {
                 if (agent.Pos == nextPos)
                 {
-                    Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    //Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
                     throw new Exception("Can't move into an agent.");
                 }
             }
@@ -372,7 +385,7 @@ namespace BoxProblems
             {
                 if (box.Pos == nextPos)
                 {
-                    Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    //Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
                     throw new Exception("Can't move into a box.");
                 }
             }

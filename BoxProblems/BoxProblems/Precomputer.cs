@@ -42,6 +42,11 @@ namespace BoxProblems
 
         public static Point[] GetPath(Level level, Point start, Point end, bool getFromCache = true)
         {
+            if (start == end)
+            {
+                return new Point[] { end };
+            }
+
             var pathData = GraphSearcher.GetDistanceBFS(level.Walls, end).Value;
             int distance = pathData.distanceMap[start.X, start.Y];
             Point[] path = new Point[distance + 1];

@@ -34,5 +34,10 @@ namespace BoxProblems
 
             return max;
         }
+
+        public static Point[] DirectionDeltas(this Direction dir)
+        {
+            return DirectionMovement;
+        }
     }
 }

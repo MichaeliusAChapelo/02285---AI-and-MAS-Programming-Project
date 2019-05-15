@@ -376,7 +376,7 @@ namespace BoxProblems.Solver
                     sData.Level.RemoveWall(goalToSolve.Pos);
 
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
-                    //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+                    //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && 
@@ -684,38 +684,67 @@ namespace BoxProblems.Solver
             {
                 agentToUse = sData.CurrentState.Entities[agentIndex.Value];
 
-                // 1) Calculate agent's position when next to box.
-
-                bool onlyPullToGoal = false;
-                Point agentPosNextToBox;
-
-                if (Point.ManhattenDistance(agentToUse.Value.Pos, toMove.Pos) != 1)
+                List<Point> possibleAgentPositions = new List<Point>();
+                foreach (var dirDelta in Direction.NONE.DirectionDeltas())
                 {
-                    if (pathToBox.Contains(toMovePath.Last()))
-                        onlyPullToGoal = true;
+                    Point possibleAgentPos = goal + dirDelta;
 
-                    // Last is box, second last is agent's pos next to box.
-                    agentPosNextToBox = pathToBox[pathToBox.Length - 2];
+                    //Can't place the agent inside a wall
+                    if (sData.Level.IsWall(possibleAgentPos))
+                    {
+                        continue;
+                    }
+
+                    //Don't place the agent at an illegal position
+                    if (sData.FreePath.ContainsKey(possibleAgentPos))
+                    {
+                        continue;
+                    }
+
+                    //Can't place the box on another agent or box
+                    INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
+                    if (nodeAtPos is BoxConflictNode boxNode && 
+                        (boxNode.Value.EntType == EntityType.AGENT || 
+                         boxNode.Value.EntType == EntityType.BOX) && 
+                        boxNode.Value.Ent != toMove && 
+                        boxNode.Value.Ent != agentToUse.Value)
+                    {
+                        continue;
+                    }
+
+                    possibleAgentPositions.Add(possibleAgentPos);
                 }
-                else
-                    agentPosNextToBox = agentToUse.Value.Pos; // already next to box.
 
-
-                // 2) Find agent's final position.
-                bool ShouldPush = !toMovePath.Contains(agentPosNextToBox);
-
-
-                if (!ShouldPush && onlyPullToGoal)
+                if (possibleAgentPositions.Count == 0)
                 {
-                    int indexOfGoalPosInToBoxPath = Array.IndexOf(pathToBox, goal);
-                    if (indexOfGoalPosInToBoxPath == -1)
-                        newAgentPos = agentToUse.Value.Pos; // friendofDFS case
-                    else
-                        newAgentPos = pathToBox[indexOfGoalPosInToBoxPath - 1];
+                    throw new Exception("No agent position found.");
                 }
 
-                if (!newAgentPos.HasValue)
-                    newAgentPos = toMovePath[toMovePath.Length - 2]; // last is goal, second last is agentPos
+                //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
+                bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
+
+                //If the agent starts by pushing then it should also try to end by pushing
+                //as turning around to pull is more moves
+                bool isPushPossible = false;
+                if (startPush)
+                {
+                    foreach (var endAgentPos in possibleAgentPositions)
+                    {
+                        //If the box path contains the agents end position then the agent must've pushed the box
+                        if (toMovePath.Contains(endAgentPos))
+                        {
+                            newAgentPos = endAgentPos;
+                            isPushPossible = true;
+                            break;
+                        }
+                    }
+                }
+
+                //If push wasn't possible then chose one of the possible pull positions
+                if (!isPushPossible)
+                {
+                    newAgentPos = possibleAgentPositions.First();
+                }
 
                 sData.CurrentState.Entities[agentIndex.Value] = sData.CurrentState.Entities[agentIndex.Value].Move(newAgentPos.Value);
             }
@@ -901,50 +930,6 @@ namespace BoxProblems.Solver
             }
 
             throw new Exception("Found no path from  entity to goal.");
-        }
-
-        private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs)
-        {
-            PrintLatestStateDiff(level, graphs, graphs.Count - 1);
-        }
-
-        private static void PrintLatestStateDiff(Level level, List<BoxConflictGraph> graphs, int index)
-        {
-            if (index == -1)
-            {
-                Console.WriteLine(level.ToString());
-            }
-            else if (index == 0)
-            {
-                Console.WriteLine(level.StateToString(graphs[index].CreatedFromThisState));
-            }
-            else
-            {
-                State last = graphs[index].CreatedFromThisState;
-                State sLast = graphs[index - 1].CreatedFromThisState;
-
-                string[] lastStateStrings = level.StateToString(last).Split(Environment.NewLine);
-                string[] sLastStateStrings = level.StateToString(sLast).Split(Environment.NewLine);
-
-                for (int y = 0; y < lastStateStrings.Length; y++)
-                {
-                    for (int x = 0; x < lastStateStrings[y].Length; x++)
-                    {
-                        if (lastStateStrings[y][x] != sLastStateStrings[y][x])
-                        {
-                            Console.BackgroundColor = ConsoleColor.Red;
-                        }
-                        else
-                        {
-                            Console.BackgroundColor = ConsoleColor.Black;
-                        }
-                        Console.Write(lastStateStrings[y][x]);
-                    }
-                    Console.WriteLine();
-                }
-            }
-
-            Console.ReadLine();
         }
     }
 }

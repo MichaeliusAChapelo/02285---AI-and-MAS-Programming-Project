@@ -200,6 +200,20 @@ namespace BoxProblems.Solver
 
         private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData)
         {
+            //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+
+            HashSet<Point> agentPositions = new HashSet<Point>();
+            if (((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(conflict.Pos)).Value.EntType == EntityType.AGENT)
+            {
+                foreach (var node in sData.CurrentConflicts.Nodes)
+                {
+                    if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.AGENT)
+                    {
+                        agentPositions.Add(boxNode.Value.Ent.Pos);
+                    }
+                }
+            }
+            Func<Point, bool> isFreeSpaceAvailable = new Func<Point, bool>(freeSpace => !sData.FreePath.ContainsKey(freeSpace) && !sData.RoutesUsed.ContainsKey(freeSpace) && !agentPositions.Contains(freeSpace));
 
             //See if there is even 1 free space.
             int avaiableFreeSpacesCount = 0;
@@ -207,7 +221,7 @@ namespace BoxProblems.Solver
             {
                 if (iNode is FreeSpaceNode freeSpaceNode)
                 {
-                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => (!sData.FreePath.ContainsKey(x) && !sData.RoutesUsed.ContainsKey(x)) ? 1 : 0);
+                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => isFreeSpaceAvailable(x) ? 1 : 0);
                 }
             }
             if (avaiableFreeSpacesCount < 1)
@@ -266,7 +280,7 @@ namespace BoxProblems.Solver
                 }
                 if (currentNode is FreeSpaceNode currentFreeSpaceNode)
                 {
-                    var newFreeSpacesCount = currentFreeSpaceNode.Value.FreeSpaces.Where(x => (!sData.FreePath.ContainsKey(x) && !sData.RoutesUsed.ContainsKey(x))).Count();
+                    var newFreeSpacesCount = currentFreeSpaceNode.Value.FreeSpaces.Where(isFreeSpaceAvailable).Count();
                     if(newFreeSpacesCount>0)
                     {
                         currentNumFreeSpaces += newFreeSpacesCount;
@@ -304,7 +318,7 @@ namespace BoxProblems.Solver
             {
                 throw new Exception("Not enough free space is available");
             }
-            var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(x => (!sData.FreePath.ContainsKey(x) && !sData.RoutesUsed.ContainsKey(x))).ToList();
+            var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(isFreeSpaceAvailable).ToList();
             Point freeSpacePointToUse = potentialFreeSpacePoints.First();
             int maxDistance = int.MinValue;
             foreach (var FSP in potentialFreeSpacePoints)
@@ -320,7 +334,7 @@ namespace BoxProblems.Solver
                 {
                     maxDistance = minDistance;
                     freeSpacePointToUse = FSP;
-                    if (maxDistance >= howFarIntoFreeSpace)
+                    if (maxDistance >= howFarIntoFreeSpace + 1)
                     {
                         break;
                     }

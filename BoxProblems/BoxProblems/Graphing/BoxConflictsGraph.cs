@@ -172,11 +172,16 @@ namespace BoxProblems.Graphing
             //that won't block the path or be on top of other entities.
             //
 
+            HashSet<Point> agentPositions = new HashSet<Point>();
             foreach (var inode in Nodes)
             {
                 if (inode is BoxConflictNode boxNode)
                 {
                     level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
+                    if (boxNode.Value.EntType == EntityType.AGENT)
+                    {
+                        agentPositions.Add(boxNode.Value.Ent.Pos);
+                    }
                 }
             }
 
@@ -266,6 +271,23 @@ namespace BoxProblems.Graphing
                 }
             }
             level.ResetWalls();
+
+            foreach (var agentPos in agentPositions)
+            {
+                foreach (var dirDelta in Direction.NONE.DirectionDeltas())
+                {
+                    Point nextToAgent = agentPos + dirDelta;
+                    if (PositionHasNode(nextToAgent))
+                    {
+                        INode node = GetNodeFromPosition(nextToAgent);
+                        if (node is FreeSpaceNode freeSpaceNode)
+                        {
+                            freeSpaceNode.Value.FreeSpaces.Add(agentPos);
+                            continue;
+                        }
+                    }
+                }
+            }
         }
     }
 }

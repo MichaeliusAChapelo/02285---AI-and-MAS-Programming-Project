@@ -7,6 +7,23 @@ namespace BoxProblems
 {
     internal static class LevelVisualizer
     {
+        public static void PrintPath(Level level, State state, List<Point> path)
+        {
+            string[] stateString = level.StateToString(state).Split(Environment.NewLine);
+
+            WriteLevelToConsole(level, state, pos =>
+            {
+                if (path.Contains(pos))
+                {
+                    Console.BackgroundColor = ConsoleColor.Red;
+                }
+                else
+                {
+                    Console.BackgroundColor = ConsoleColor.Black;
+                }
+            });
+        }
+
         public static void PrintFreeSpace(Level level, State state, Dictionary<Point, int> freeSpaces)
         {
             string[] stateString = level.StateToString(state).Split(Environment.NewLine);

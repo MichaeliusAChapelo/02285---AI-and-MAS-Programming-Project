@@ -40,6 +40,21 @@ namespace BoxProblems
 
                 currentState = plan.CurrentState;
 
+                if (plan.UsingThisAgent.HasValue)
+                {
+                    if (Agents[agentIndex] != plan.UsingThisAgent.Value.Move(plan.AgentFinalPos.Value))
+                    {
+                        throw new Exception("reee");
+                    }
+                }
+                else
+                {
+                    if (Agents[agentIndex].Pos != plan.ToHere)
+                    {
+                        throw new Exception("reeee");
+                    }
+                }
+
                 solution.Add(new AgentCommands(commands, agentIndex));
             }
 

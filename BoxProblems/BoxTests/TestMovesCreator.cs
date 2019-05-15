@@ -100,6 +100,52 @@ namespace BoxTests
         }
 
         [TestMethod]
+        public void TestPushPullTurnLast()
+        {
+            string levelString = @"
+++++++++++
++0B    GF+
++++++++ ++
+++++++++++";
+
+            List<AgentCommand> commands = new List<AgentCommand>()
+            {
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.E),
+                AgentCommand.CreatePush(Direction.E, Direction.S),
+                AgentCommand.CreatePull(Direction.E, Direction.S),
+            };
+
+            VerifyMoveBoxToGoalCreator(levelString, commands);
+        }
+
+        [TestMethod]
+        public void TestPullPushTurnLast()
+        {
+            string levelString = @"
+++++++++++
++B0    FG+
++++++++ ++
+++++++++++";
+
+            List<AgentCommand> commands = new List<AgentCommand>()
+            {
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.E, Direction.W),
+                AgentCommand.CreatePull(Direction.S, Direction.W),
+                AgentCommand.CreatePush(Direction.N, Direction.E),
+            };
+
+            VerifyMoveBoxToGoalCreator(levelString, commands);
+        }
+
+        [TestMethod]
         public void TestAgentToBoxPushPull()
         {
             string levelString = @"

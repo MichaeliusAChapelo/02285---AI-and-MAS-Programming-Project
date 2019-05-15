@@ -103,7 +103,9 @@ namespace BoxProblems
                 //Find somewhere to turn around
                 Point? turnPoint = null;
                 int count = 0;
-                foreach (var pos in boxToAgentEnd)
+
+                int skipFirst = startPull ? 1 : 0;
+                foreach (var pos in boxToAgentEnd.Skip(skipFirst))
                 {
                     count++;
                     if (!IsCorridor(pos))
@@ -112,13 +114,14 @@ namespace BoxProblems
                         break;
                     }
                 }
+                count += skipFirst;
 
                 if (!turnPoint.HasValue)
                 {
                     throw new Exception("Failed to find a turn point on the route.");
                 }
 
-                Point turnIntoPoint = FindSpaceToTurn(boxToAgentEnd, turnPoint.Value);
+                Point turnIntoPoint = FindSpaceToTurn(boxToAgentEnd, turnPoint.Value, goalPos);
 
                 firstPart = new List<Point>();
                 firstPart.AddRange(boxToAgentEnd.Take(count));
@@ -408,13 +411,15 @@ namespace BoxProblems
             return (2 <= walls);
         }
 
-        private Point FindSpaceToTurn(List<Point> solutionPath, Point turnPos)
+        private Point FindSpaceToTurn(List<Point> solutionPath, Point turnPos, Point goalPos)
         {
             foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
             {
                 var p = turnPos + dirDelta;
-                if (!Level.Walls[p.X, p.Y] && !solutionPath.Contains(p))
+                if (!Level.Walls[p.X, p.Y] && !solutionPath.Contains(p) && p != goalPos)
+                {
                     return p;
+                }
             }
             throw new Exception("Agent pos was corridor, but no extra space was found.");
         }

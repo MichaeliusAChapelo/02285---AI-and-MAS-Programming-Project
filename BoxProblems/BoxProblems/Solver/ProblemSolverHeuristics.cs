@@ -108,26 +108,12 @@ namespace BoxProblems.Solver
             {
                 var distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, entity.Pos, false);
 
-                int currentNumConflicts = 0;
                 foreach (BoxConflictNode edge in startNode.GetNodeEnds()) // Add edge as BoxConflict 
                 {
+                    int currentNumConflicts = 0;
                     if (edge.Value.EntType == EntityType.BOX)
                     {
-                        currentNumConflicts += 1;
-                    }
-                    if (edge.Value.EntType == bfsGoalEntType)
-                    {
-                        if (startNode is BoxConflictNode startBoxNode)
-                        {
-                            if ((bfsGoalEntType == EntityType.AGENT && edge.Value.Ent.Color == startBoxNode.Value.Ent.Color) || (bfsGoalEntType == EntityType.BOX && entity.Type == edge.Value.Ent.Type))
-                            {
-                                if (currentNumConflicts < minimumConflict)
-                                {
-                                    minimumConflict = currentNumConflicts;
-                                    minimumConflictEntity = edge.Value.Ent;
-                                }
-                            }
-                        }
+                        currentNumConflicts++;
                     }
                     int distance = distanceMap[edge.Value.Ent.Pos.X, edge.Value.Ent.Pos.Y];
                     priorityQueue.Enqueue((edge, currentNumConflicts), distance);

@@ -11,16 +11,16 @@ namespace ImageToLevel
     {
         static void Main(string[] args)
         {
-            const string imagePath = @"C:\SALeo.bmp";
+            const string imagePath = @"C:\SAVisualKei.bmp";
             const string outputPath = @"C:\Meine Items\Coding Ambitions\8. Semester\t.txt";
 
             Bitmap b = new Bitmap(imagePath);
 
-            string[] content = new string[50];
+            string[] content = new string[10];
 
             for (int y = 0; y < b.Height; y++)
             {
-                char[] str = new char[50];
+                char[] str = new char[19];
                 for (int x = 0; x < b.Width; x++)
                     switch ((uint) b.GetPixel(x, y).ToArgb())
                     {
@@ -29,12 +29,16 @@ namespace ImageToLevel
                             str[x] = '+';
                             break;
 
+                        case 0xFFFFD800: // Yellow
+                            str[x] = ' ';
+                            break;
+
                         case 0xFF7F3300: // Brown
                             str[x] = 'L';
                             break;
 
                         case 0xFFFF6A00: // Orange
-                            str[x] = 'E';
+                            str[x] = 'Z';
                             break;
 
                         case 0xFFFF0000: // Red

@@ -53,6 +53,9 @@
     <None Update="Levels\New_Format\MAFiveWalls.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Levels\New_Format\MAInterestingManeuver.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Levels\New_Format\MAPullPush.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -64,6 +67,9 @@
     </None>
     <None Update="Levels\New_Format\SALeo.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Levels\New_Format\SAtesuto.lvl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Levels\New_Format\SAVisualKei.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -242,7 +248,13 @@
     <None Update="Levels\Old_Format\initial_levels\SAboXboXboX.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Levels\Old_Format\SAchoice2.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Levels\Old_Format\initial_levels\SAchoice.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Levels\Old_Format\SAchoice3.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Levels\Old_Format\initial_levels\SACrunch.lvl">
@@ -567,6 +579,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Levels\Old_Format\real_levels\SAZEROagent.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Levels\Old_Format\SAKarlMarxDeux.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

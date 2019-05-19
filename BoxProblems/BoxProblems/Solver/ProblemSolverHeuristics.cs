@@ -327,6 +327,22 @@ namespace BoxProblems.Solver
                 }
 
             }
+
+            // If FreeSpacePoint was picked naively, then set place it somewhere closer.
+            //if (freeSpacePointToUse == potentialFreeSpacePoints.First() && potentialFreeSpacePoints.Count > 5)
+            //{
+            //    int dist = int.MaxValue;
+            //    var conflictDistMap = Precomputer.GetDistanceMap(sData.Level.Walls, conflict.Pos, false);
+            //    foreach (var FSP in potentialFreeSpacePoints)
+            //    {
+            //        if (conflictDistMap[FSP.X, FSP.Y] < dist)
+            //        {
+            //            dist = conflictDistMap[FSP.X, FSP.Y];
+            //            freeSpacePointToUse = FSP;
+            //        }
+            //    }
+            //}
+
             return freeSpacePointToUse;
 
         }

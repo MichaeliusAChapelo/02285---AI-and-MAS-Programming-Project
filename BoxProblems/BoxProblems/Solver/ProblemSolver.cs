@@ -730,6 +730,10 @@ namespace BoxProblems.Solver
                 {
                     foreach (var endAgentPos in possibleAgentPositions)
                     {
+                        // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
+                        if (endAgentPos == toMove.Pos)
+                            continue;
+
                         //If the box path contains the agents end position then the agent must've pushed the box
                         if (toMovePath.Contains(endAgentPos))
                         {

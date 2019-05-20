@@ -74,7 +74,7 @@
     <None Update="Levels\New_Format\SAtesuto.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Levels\New_Format\SAVisualKei.lvl">
+    <None Update="Levels\New_Format\SAVisualKeiOld.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Levels\New_Format\SAVKTest.lvl">
@@ -83,7 +83,7 @@
     <None Update="Levels\New_Format\SAVKTest2.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Levels\New_Format\SAVKTest3.lvl">
+    <None Update="Levels\New_Format\SAVisualKei.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Levels\New_Format\SplitExample1.lvl">

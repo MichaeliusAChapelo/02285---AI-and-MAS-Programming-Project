@@ -10,8 +10,10 @@ namespace BoxProblems.Solver
         private class SolverData
         {
             public readonly Dictionary<Point, int> FreePath = new Dictionary<Point, int>();
+            public readonly Dictionary<Point, int> RoutesUsed = new Dictionary<Point, int>();
             public List<BoxConflictGraph> SolutionGraphs = new List<BoxConflictGraph>();
             public readonly HashSet<Entity> RemovedEntities = new HashSet<Entity>();
+            public readonly GraphSearchData gsData;
             public readonly Level Level;
             public readonly CancellationToken CancelToken;
             public BoxConflictGraph CurrentConflicts;
@@ -23,14 +25,7 @@ namespace BoxProblems.Solver
                 this.Level = level;
                 this.CancelToken = cancelToken;
                 this.CurrentState = level.InitialState;
-            }
-
-            public void AddToFreePath(Point[] path)
-            {
-                foreach (var pos in path)
-                {
-                    AddToFreePath(pos);
-                }
+                this.gsData = new GraphSearchData(level);
             }
 
             public void AddToFreePath(Point pos)
@@ -45,11 +40,23 @@ namespace BoxProblems.Solver
                 }
             }
 
-            public void RemoveFromFreePath(Point[] path)
+            public void AddToRoutesUsed(Point[] path)
             {
                 foreach (var pos in path)
                 {
-                    RemoveFromFreePath(pos);
+                    AddToRoutesUsed(pos);
+                }
+            }
+
+            public void AddToRoutesUsed(Point pos)
+            {
+                if (RoutesUsed.TryGetValue(pos, out int value))
+                {
+                    RoutesUsed[pos] = value + 1;
+                }
+                else
+                {
+                    RoutesUsed.Add(pos, 1);
                 }
             }
 
@@ -63,6 +70,27 @@ namespace BoxProblems.Solver
                 else
                 {
                     FreePath[pos] = value - 1;
+                }
+            }
+
+            public void RemoveFromRoutesUsed(Point[] path)
+            {
+                foreach (var pos in path)
+                {
+                    RemoveFromRoutesUsed(pos);
+                }
+            }
+
+            public void RemoveFromRoutesUsed(Point pos)
+            {
+                int value = RoutesUsed[pos];
+                if (value == 1)
+                {
+                    RoutesUsed.Remove(pos);
+                }
+                else
+                {
+                    RoutesUsed[pos] = value - 1;
                 }
             }
 

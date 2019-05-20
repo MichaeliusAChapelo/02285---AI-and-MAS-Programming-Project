@@ -3,6 +3,7 @@ using BoxProblems.Solver;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,13 +30,31 @@ namespace BoxPerformance
             List<string> filePaths = GetFilePathsFromFolderRecursively("Levels");
             ConcurrentBag<SolveStatistic> statisticsBag = new ConcurrentBag<SolveStatistic>();
 
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
             Parallel.ForEach(filePaths, x =>
             {
                 var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(10), false);
 
+                if (statistic.Status == SolverStatus.SUCCESS)
+                {
+                    try
+                    {
+                        var sc = new ServerCommunicator();
+                        var commands = sc.NonAsyncSolve(statistic.Level, statistic.Solution);
+                        CommandParallelizer.Parallelize(commands, statistic.Level);
+                    }
+                    catch (Exception e)
+                    {
+                        statistic.Status = SolverStatus.ERROR;
+                        statistic.ErrorThrown = e;
+                    }
+                }
+
                 Console.WriteLine($"{statistic.Status.ToString()} {Path.GetFileName(x)} Time: {statistic.RunTimeInMiliseconds}");
                 statisticsBag.Add(statistic);
             });
+            watch.Stop();
             List<SolveStatistic> statistics = statisticsBag.ToList();
 
             Console.WriteLine();
@@ -43,7 +62,9 @@ namespace BoxPerformance
             Console.WriteLine();
 
             var errorGroups = statistics.Where(x => x.Status == SolverStatus.ERROR)
-                                        .GroupBy(x => string.Join(Environment.NewLine, x.ErrorThrown.StackTrace.Split(Environment.NewLine).Take(2))).OrderByDescending(x => x.Count()).ToList();
+                                        .GroupBy(x => string.Join(Environment.NewLine, x.ErrorThrown.StackTrace.Split(Environment.NewLine).Take(2)))
+                                        .OrderByDescending(x => x.Count())
+                                        .ToList();
 
             foreach (var errorGroup in errorGroups)
             {
@@ -66,6 +87,7 @@ namespace BoxPerformance
             Console.WriteLine(string.Join(Environment.NewLine, statistics.Where(x => x.Status == SolverStatus.TIMEOUT).Select(x => x.LevelName)));
 
             Console.WriteLine();
+            Console.WriteLine($"Total time: {watch.ElapsedMilliseconds}");
             Console.WriteLine();
             Console.WriteLine();
 

@@ -4,6 +4,24 @@ using System.Text;
 
 namespace BoxProblems
 {
+    internal class GraphSearchData
+    {
+        public readonly Direction[] World;
+        public readonly Queue<Point> Frontier;
+
+        public GraphSearchData(Level level)
+        {
+            this.World = new Direction[level.Width * level.Height];
+            this.Frontier = new Queue<Point>();
+        }
+
+        public void Reset()
+        {
+            Array.Fill(World, Direction.NONE);
+            Frontier.Clear();
+        }
+    }
+
     internal static class GraphSearcher
     {
         public readonly struct GoalFound<T>
@@ -16,15 +34,12 @@ namespace BoxProblems
                 this.Value = value;
                 this.IsGoal = isGoal;
             }
-
         }
 
-        public static List<T> GetReachedGoalsBFS<T>(Level level, Point start, Func<Point, GoalFound<T>> goalCondition)
+        public static List<T> GetReachedGoalsBFS<T>(GraphSearchData gsData, Level level, Point start, Func<(Point pos, int depth), GoalFound<T>> goalCondition)
         {
-            Direction[] world = new Direction[level.Width * level.Height];
-            Array.Fill(world, Direction.NONE);
-            Queue<Point> frontier = new Queue<Point>();
-            frontier.Enqueue(start);
+            gsData.Reset();
+            gsData.Frontier.Enqueue(start);
             //world[level.PosToIndex(start)] = Direction.S;
             List<T> reachedGoals = new List<T>();
 
@@ -32,9 +47,9 @@ namespace BoxProblems
             int nextDepthNodeCount = 0;
             int depth = 0;
 
-            while (frontier.Count > 0)
+            while (gsData.Frontier.Count > 0)
             {
-                Point leafNode = frontier.Dequeue();
+                Point leafNode = gsData.Frontier.Dequeue();
 
                 if (depthNodeCount == 0)
                 {
@@ -44,7 +59,7 @@ namespace BoxProblems
                 }
                 depthNodeCount--;
 
-                var foundGoalInfo = goalCondition(leafNode);
+                var foundGoalInfo = goalCondition((leafNode, depth));
                 if (foundGoalInfo.IsGoal)
                 {
                     reachedGoals.Add(foundGoalInfo.Value);
@@ -66,28 +81,28 @@ namespace BoxProblems
                 int southIndex = level.PosToIndex(south);
                 int westIndex = level.PosToIndex(west);
 
-                if (world[northIndex] == Direction.NONE)
+                if (gsData.World[northIndex] == Direction.NONE)
                 {
-                    world[northIndex] = Direction.S;
-                    frontier.Enqueue(north);
+                    gsData.World[northIndex] = Direction.S;
+                    gsData.Frontier.Enqueue(north);
                     nextDepthNodeCount++;
                 }
-                if (world[eastIndex] == Direction.NONE)
+                if (gsData.World[eastIndex] == Direction.NONE)
                 {
-                    world[eastIndex] = Direction.W;
-                    frontier.Enqueue(east);
+                    gsData.World[eastIndex] = Direction.W;
+                    gsData.Frontier.Enqueue(east);
                     nextDepthNodeCount++;
                 }
-                if (world[southIndex] == Direction.NONE)
+                if (gsData.World[southIndex] == Direction.NONE)
                 {
-                    world[southIndex] = Direction.N;
-                    frontier.Enqueue(south);
+                    gsData.World[southIndex] = Direction.N;
+                    gsData.Frontier.Enqueue(south);
                     nextDepthNodeCount++;
                 }
-                if (world[westIndex] == Direction.NONE)
+                if (gsData.World[westIndex] == Direction.NONE)
                 {
-                    world[westIndex] = Direction.E;
-                    frontier.Enqueue(west);
+                    gsData.World[westIndex] = Direction.E;
+                    gsData.Frontier.Enqueue(west);
                     nextDepthNodeCount++;
                 }
             }

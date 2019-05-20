@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace BoxTests
 {
@@ -236,8 +237,9 @@ namespace BoxTests
             levelPriorityString = levelPriorityString.Substring(2, levelPriorityString.Length - 2);
 
             Level level = TestTools.StringToOldFormatLevel(levelString);
-            GoalGraph goalGraph = new GoalGraph(level.InitialState, level);
-            var actualGoalPriority = new GoalPriority(level, goalGraph);
+            GraphSearchData gsData = new GraphSearchData(level);
+            GoalGraph goalGraph = new GoalGraph(gsData, level.InitialState, level);
+            var actualGoalPriority = new GoalPriority(level, goalGraph, new CancellationToken());
             var actualPriorityString = actualGoalPriority.ToLevelString(level);
 
             string expectedLevel = TestTools.RemoveInvisibleCharacters(levelPriorityString);

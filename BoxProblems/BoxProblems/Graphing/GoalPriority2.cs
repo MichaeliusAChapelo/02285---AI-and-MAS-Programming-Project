@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Collections;
+using System.Threading;
 
 namespace BoxProblems.Graphing
 {
@@ -20,12 +21,12 @@ namespace BoxProblems.Graphing
     {
         public readonly List<GoalNode[]> PriorityLayers = new List<GoalNode[]>();
 
-        public GoalPriority(Level level, GoalGraph goalGraph)
+        public GoalPriority(Level level, GoalGraph goalGraph, CancellationToken cancel)
         {
-            CreateGoalPriority(level, goalGraph);
+            CreateGoalPriority(level, goalGraph, cancel);
         }
 
-        private void CreateGoalPriority(Level level, GoalGraph goalGraph)
+        private void CreateGoalPriority(Level level, GoalGraph goalGraph, CancellationToken cancel)
         {
             Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>> nodeGraphs = new Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>>();
             foreach (var goal in level.Goals)
@@ -65,6 +66,7 @@ namespace BoxProblems.Graphing
 
                 foreach (Entity goal in level.Goals)
                 {
+                    cancel.ThrowIfCancellationRequested();
                     if (toIgnore.Contains(goal))
                     {
                         continue;
@@ -79,6 +81,7 @@ namespace BoxProblems.Graphing
                         int pathsCount = 0;
                         foreach (var boxGroup in boxGroups)
                         {
+                            cancel.ThrowIfCancellationRequested();
                             int boxesWithSameType = 0;
                             foreach (var boxNode in boxGroup)
                             {
@@ -93,8 +96,6 @@ namespace BoxProblems.Graphing
                             }
                         }
 
-                        Console.WriteLine("cake");
-
                         pathResult = (pathsCount, shortestPathsVisitedNodesCount);
                         cachedPathResults[start] = pathResult;
                     }
@@ -104,7 +105,6 @@ namespace BoxProblems.Graphing
                         nodeCounter[pathNode.Key] += (1f / (pathResult.pathsCount)) * pathNode.Value;
                     }
                 }
-                Console.WriteLine("asdsadsa");
 
                 GoalNode[] newPriorityGroup = nodeCounter.GroupBy(x => x.Value).OrderBy(x => x.First().Value).First().Select(x => x.Key).ToArray();
                 PriorityLayers.Add(newPriorityGroup);

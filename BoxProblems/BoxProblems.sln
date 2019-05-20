@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxRunner", "BoxRunner\BoxR
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BoxMisc", "BoxMisc\BoxMisc.csproj", "{72DD1EDC-F8D2-4039-8F5B-4C3948AC352A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PriorityQueue", "..\..\..\..\..\..\Meine Items\Coding Ambitions\8. Semester\02285 Box Problems\PriorityQueue-master\PriorityQueue\PriorityQueue.csproj", "{FAD3D5D8-BBDC-4147-ADA9-7A8670BC72F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PriorityQueue", "PriorityQueue\PriorityQueue.csproj", "{FAD3D5D8-BBDC-4147-ADA9-7A8670BC72F4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageToLevel", "ImageToLevel\ImageToLevel.csproj", "{896DB84E-3BA6-4429-AB73-7985CB952E8B}"
 EndProject

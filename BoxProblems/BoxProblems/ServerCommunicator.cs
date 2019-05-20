@@ -16,7 +16,7 @@ namespace BoxProblems
 
         public void StartServer(string levelPath)
         {
-            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 15; Read-Host");
+            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 50; Read-Host");
         }
 
         public List<AgentCommands> NonAsyncSolve(Level level, List<HighlevelLevelSolution> levelSolutions)
@@ -61,7 +61,7 @@ namespace BoxProblems
         public static void SendCommand(string command)
         {
             Console.WriteLine(command);
-            Console.Error.WriteLine(command);
+            Console.Error.WriteLine("Debug: " + command);
             if (SkipConsoleRead) return;
             string response = Console.ReadLine();
 

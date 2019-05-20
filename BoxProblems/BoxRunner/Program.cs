@@ -113,7 +113,7 @@ namespace BoxRunner
         {
             ServerCommunicator.SkipConsoleRead = false;
             bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
-            bool Parallelize = ! ServerCommunicator.SkipConsoleRead;
+            bool Parallelize = true;
 
             //string levelPath = "MARipOffNew.lvl";
             //string levelPath = "MAInterestingManeuver.lvl";

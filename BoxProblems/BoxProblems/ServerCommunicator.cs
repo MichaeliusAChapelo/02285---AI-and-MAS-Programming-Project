@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -52,9 +53,44 @@ namespace BoxProblems
 
         public void SendCommands(string[] commands)
         {
-            foreach (var command in commands)
+            StringBuilder sBuilder = new StringBuilder();
+            const int maxSize = 5_000;
+            int charsUsed = 0;
+            int lines = 0;
+            for (int i = 0; i < commands.Length; i++)
             {
-                SendCommand(command);
+                if (charsUsed + commands[i].Length + 3 > maxSize)
+                {
+                    SendBatchCommands(sBuilder, lines);
+
+                    sBuilder.Clear();
+                    charsUsed = 0;
+                    lines = 0;
+                }
+
+                sBuilder.AppendLine(commands[i]);
+                charsUsed += commands[i].Length;
+                lines++;
+            }
+
+            SendBatchCommands(sBuilder, lines);
+        }
+
+        private void SendBatchCommands(StringBuilder sBuilder, int lines)
+        {
+            Console.Write(sBuilder);
+            //Console.Error.WriteLine(sBuilder);
+
+            if (!SkipConsoleRead)
+            {
+                for (int z = 0; z < lines; z++)
+                {
+                    string response = Console.ReadLine();
+                    //if (response.Contains("false"))
+                    //{
+                    //    throw new Exception("Sent illegal command to server.");
+                    //}
+                }
             }
         }
 

@@ -65,6 +65,9 @@
     <None Update="Levels\New_Format\MAVisualKei.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Levels\New_Format\MAVisualKeiOld.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Levels\New_Format\SABoxOnGoal.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

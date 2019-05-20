@@ -8,17 +8,18 @@ namespace BoxProblems
     public class BoxSwimmingSolver
     { // Specially hand-crafted and designed for SALeo and SALeo only!
 
-        private readonly Level Level;
+        public static List<AgentCommands> EndSolution { get; private set; }
+        public static Level Level { get; private set; }
         private Entity Agent;
         //private Entity[] Boxes;
         private readonly Point End;
 
         public BoxSwimmingSolver(Level level)
         {
-            this.Level = level;
+            Level = level;
             this.Agent = level.GetAgents()[0];
             //this.Boxes = level.GetBoxes().ToArray();
-            this.End = new Point(13, 35); // Should be set in goals or something, but whatever.
+            this.End = new Point(48, 19); // Should be set in goals or something, but whatever.
         }
 
         // GOD FUNCTION TROIS
@@ -69,10 +70,7 @@ namespace BoxProblems
                 {
                     if (BoxSwimming.CanLeftHandBoxSwim(nextDir, Agent.Pos, Level))
                         solution.AddRange(BoxSwimming.SwimLeft(BoxSwimming.Opposite(freeSpotDir)));
-                    else
-                    {
-
-                    }
+                    else throw new Exception("How?");
                     freeSpot = Agent.Pos;
                     Agent = Agent.Move(nextPoint);
                     continue;
@@ -82,11 +80,11 @@ namespace BoxProblems
                 {
                     if (BoxSwimming.CanRightHandBoxSwim(nextDir, Agent.Pos, Level))
                         solution.AddRange(BoxSwimming.SwimRight(BoxSwimming.Opposite(freeSpotDir)));
-                    else
-                    {
+                    else throw new Exception("How?");
+                    //{
                         // He's got gotten!
 
-                        solution.Add(AgentCommand.CreateMove(freeSpotDir));
+                        //solution.Add(AgentCommand.CreateMove(freeSpotDir));
                         //solution.Add(AgentCommand.CreatePull)
 
                         // Considering that FORWARD right NOW is the opposite of freeSpot
@@ -97,7 +95,7 @@ namespace BoxProblems
                          * if agent isn't at nextPoint, then L/R BoxSwim in nextDir
                         */
 
-                    }
+                    //}
                     freeSpot = Agent.Pos;
                     Agent = Agent.Move(nextPoint);
                     continue;
@@ -106,9 +104,8 @@ namespace BoxProblems
                 else
                     break;
             }
-
-
-            return new List<AgentCommands>() { new AgentCommands(solution, 0) };
+            EndSolution = new List<AgentCommands>() { new AgentCommands(solution, 0) };
+            return EndSolution;
         }
 
     }

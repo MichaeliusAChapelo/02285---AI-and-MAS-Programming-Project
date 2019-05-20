@@ -132,20 +132,36 @@ namespace BoxProblems.Solver
                 {
                     Parallel.ForEach(levels, x =>
                     {
-                        var solution = SolvePartialLevel(x, cancelSource.Token);
-                        solution = HighLevelOptimizer.Optimize(solution);
-                        //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(solution);
+                        if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
+                        {
+                            (new BoxSwimmingSolver(x)).Solve();
+                            solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
+                        }
+                        else
+                        {
+                            var solution = SolvePartialLevel(x, cancelSource.Token);
+                            solution = HighLevelOptimizer.Optimize(solution);
+                            //WriteToFile(optimizedSolution);
+                            solutionPieces.Add(solution);
+                        }
                     });
                 }
                 else
                 {
                     foreach (var x in levels)
                     {
-                        var solution = SolvePartialLevel(x, cancelSource.Token);
-                        solution = HighLevelOptimizer.Optimize(solution);
-                        //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(solution);
+                        if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
+                        {
+                            (new BoxSwimmingSolver(x)).Solve();
+                            solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
+                        }
+                        else
+                        {
+                            var solution = SolvePartialLevel(x, cancelSource.Token);
+                            solution = HighLevelOptimizer.Optimize(solution);
+                            //WriteToFile(optimizedSolution);
+                            solutionPieces.Add(solution);
+                        }
                     }
                 }
             }
@@ -378,7 +394,7 @@ namespace BoxProblems.Solver
                     //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
-                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && 
+                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 &&
                         !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve) &&
                         mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
                     {
@@ -478,7 +494,7 @@ namespace BoxProblems.Solver
                                             {
                                                 continue;
                                             }
-                                            
+
                                             BoxConflictNode boxNode = (BoxConflictNode)iNode;
 
                                             if (boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type != goalToSolve.Type)
@@ -491,7 +507,7 @@ namespace BoxProblems.Solver
                                                 else
                                                 {
                                                     int boxesInMain = 0;
-                                                    if (mainGroupInformation.boxeTypes.TryGetValue(boxNode.Value.Ent.Type,out boxesInMain))
+                                                    if (mainGroupInformation.boxeTypes.TryGetValue(boxNode.Value.Ent.Type, out boxesInMain))
                                                     {
                                                         if (boxesInMain >= boxesNeeded)
                                                         {
@@ -581,7 +597,7 @@ namespace BoxProblems.Solver
                     }
 
 
-                    
+
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
                     Entity box = GetBoxToSolveProblem(sData, goalToSolve);
@@ -748,10 +764,10 @@ namespace BoxProblems.Solver
 
                     //Can't place the box on another agent or box
                     INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
-                    if (nodeAtPos is BoxConflictNode boxNode && 
-                        (boxNode.Value.EntType == EntityType.AGENT || 
-                         boxNode.Value.EntType == EntityType.BOX) && 
-                        boxNode.Value.Ent != toMove && 
+                    if (nodeAtPos is BoxConflictNode boxNode &&
+                        (boxNode.Value.EntType == EntityType.AGENT ||
+                         boxNode.Value.EntType == EntityType.BOX) &&
+                        boxNode.Value.Ent != toMove &&
                         boxNode.Value.Ent != agentToUse.Value)
                     {
                         continue;

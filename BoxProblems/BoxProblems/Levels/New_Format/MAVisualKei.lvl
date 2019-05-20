@@ -1,120 +1,62 @@
 #domain
 hospital
 #levelname
-MAVisualKei
+MARipOffNew
 #colors
-red: 4, A 
-green: 0, 1, 7, 8, B, C, D, E, F, G, H, I, J, K, L
-blue: 5, M, N, O, P, Q
-orange: 2, R
-cyan: 3
-brown: 6, S, T, U, V, X, Y, Z
+green: 0, 1, 5, 6, 8, Q, W, E, R, T, Y, U, I, P, O, A, S, D, F
+cyan: 2, 7, 9, Z, X, C, V
+red: 3, B, N, M, L
+pink: 4, G, H, J, K
 #initial
 ++++++++++++++++++++++++++++++++++++++++++++++++++
-++ + + + + +++++    +   ++CCCCCCCCCCCCCCCCCCCCCCB+
-+ 1LFKEJDICHGB +    +   ++CCCCCCCCCCCCCCCCCCCCCCC+
-++ + + + + +++++    +   ++CCCCCCCCCCCCCCCCCCCCCCC+
-++++++++++++   +    +++ ++CCCCCCCCCCCCCCCCCRCCCCC+
-+    AAAAAA    +        ++CCCCCCCCCCCCCCCCRRRCCCC+
-+   AAAAAAAAAA +        ++CCCCCCCCCCCCCCCCRRRCCCC+
-+   +++SSS+S   +        ++CCCCCCCCCCCCCRRRRRRRRRC+
-+  +S+SSSS+SSS +        ++CCCCCCCCCCCCCCRR+R+RRCC+
-+  +S+SSSSS+SSS+        ++CCCCCCCCCCCCCCCR+R+RCCC+
-+  ++SSSSS++++ +        ++CCCCCCCCCCCCCCCRRRRRCCC+
-+    SSSSSSSS  +        ++ CCCCCCCCCCCCCRRRCRRRCC+
-+   AAMAAAM    +        ++ CCCCCCCCCCCCCRRCCCCRRC+
-+  AAAMAAMAAA  +      ++++ARRCCCC+++++CCCCCCCCCCC+
-+ AAAAMMMMAAAA +      A  0  +CCCC+I+C+CCCCCCCCCCC+
-+ SSAMRMMRMASS +      +B+ + +CC+++ + +++CCCCCCCCC+
-+ SSSMMMMMMSSS +      +C+ + +CC+F8    H+CCCCCCCCC+
-+ SSMMMMMMMMSS +      +D+ + +CC+++ + +++CCCCCCCCC+
-+   MMM  MMM   +    +A+E+ + +CC+G     E+CCCCCCCCC+
-+  SSSS  SSSS  +  +A+M+F+ + +CC+++ + +++CCCCCCCCC+
-+ SSSSS  SSSSS +  + + +G+ + +CCCC+D+B+CCCCCCCCCCC+
-+++++++++++++++++++++++H+ + +RRRR+++++RRRRRRRRRRR+
-+2R                   +I+ + + + + + + + + + + + ++
-+++++++++++++++++++++ +J+ + +                    +
-+  3                  +K+ + ++++++++++++++++++++ +
-+++ +++++++++++++++++++L+ + +BCDEFGHIJKL7        +
-+++++++   +++++++++++++++ ++++++++++++++++++++++++
-+4+AAA  +             +M+ + +              +   + +
-+ +AA+  + + + +++++++ +N+ + + ++++++++++++ + + + +
-+ +A+  +  + +         +O+ + + +          + + + + +
-+ ++  +  +  + +++++++ +P+ + +   ++++++++ + + + + +
-+ +  +  +  +  +       +Q+ + +++++    +   + + + + +
-+ + +  +  +  +  +++++ +  5  A   S  +   +++   +   +
-+   + +  +  +  +      +++++++   + ++++++++++++++++
-+++++   +     +  ++++ ++++    +++                +
-+   + ++++++++++        ++ +++++++++++ +++++++++ +
-+ +     +   +   +++++++ ++ + B+               +  +
-+ +++++   +   +         ++ + CC+             +   +
-+     ++++++++++++++++++++ + RDD+           +    +
-+ + +                   ++ + EREE+         +     +
-+ + +++++++++++++++++++ ++ + FFRFF+       +   6  +
-+ + +                   ++ + GRGGRG+     +       +
-+   + ++++++++++++++++++++ + RHHHRB ++ ++        +
-+++++                   ++ + IRIIII+     +STSTUUX+
-+AAA  + + + + + + + +++ ++ + JJRJJ+   +   +SVXZVS+
-+AAA+ + + + + + + + +   ++ + KKKR+  +   +  +UTTZX+
-+++++ + + + + + + + + ++++ + LLL+  ++ + ++  +XYTT+
-+     + + + + + + + +   ++ + MM+   +     +   +SSZ+
-+ +++ +   + + + + + +++ ++ + N+  + + + + + +  +ZV+
-+ +   + + + + + + + +   ++ + +  +  +  +  +  +  +Y+
-+ + + + + + + + + + + ++++ + +++++++++++++++++++X+
-+   +   +   +   +   +      +SUTVUXVYXZVYZXYVXYVSU+
++OOOOOOOOO++OOOOOOOO++OOOOOOOO++OOOOOOO+OOOOOOOOO+
++0 OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO+
++OOOO++OOOOOOOO++OOOOOOOO++OOOOOOO++OOOOOOOOOOOOO+
++++++++++++++++++++++++++++++++++++++++++++++++OO+
++L K   VJFX S A   CMD  Z   H  N  G B +  5  +OO+OO+
++ZLV  X   D     H   N K JB   AGC FSM +D+ + +OO+OO+
++                                    +A+ + +OO+OO+
++  MC  V  KJFA DHX     L Z   S  N  BJ+W+ + +OO+OO+
++ G  HA   F    Z    BS NKMD  L   VC Z+R+ + +OO+OO+
++                                    +Y+ + +OO+OO+
++ H  X  B     SA    N KFC  GMVLJZ D G+I+ + +OO+OO+
++ L VHGMB ACXS K       DN F        JX+ + + +OO+OO+
++1 2 3 4                             +U+ + +OO+OO+
++                                    +T+ + +OO+OO+
++                                    +E+ + +OO+OO+
+++++++++++++++++++++++++++++++++++++++Q+ + +OO+OO+
++    +YT++R+E++WQ+    ++++++++++++++++S+ + +OOOOO+
++     +DS+AOP+IU+     ++++++++++++++++F+ + +OOOOO+
++++++++    F   +++++++++++++++++++++++++++P+OOOOO+
++      7+ +++ +6  VCXZ++++++++++++++++++++++++++++
+++++++++        +++++++++++++++++++++++++++++ ++++
++     +  +   +  +     +++++++++++++++++++++++ ++++
++    +  ++ + ++  +    ++++++++++++++++++++   8 9Z+
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 #goal
 ++++++++++++++++++++++++++++++++++++++++++++++++++
-++B+C+D+E+F+++++    +AAA++CCCCCCCCCCCCCCCCCCCCCC +
-+            L1+    + A ++CCCCCCCCCCCCCCCCCCCCCCC+
-++G+H+I+J+K+++++    +   ++CCCCCCCCCCCCCCCCCCCCCCC+
-++++++++++++   +    +++4++CCCCCCCCCCCCCCCCCRCCCCC+
-+    AAAAAA    +        ++CCCCCCCCCCCCCCCCRRRCCCC+
-+   AAAAAAAAAA +        ++CCCCCCCCCCCCCCCCRRRCCCC+
-+   +++SSS+S   +        ++CCCCCCCCCCCCCRRRRRRRRRC+
-+  +S+SSSS+SSS +        ++CCCCCCCCCCCCCCRR+R+RRCC+
-+  +S+SSSSS+SSS+        ++CCCCCCCCCCCCCCCR+R+RCCC+
-+  ++SSSSS++++ +        ++CCCCCCCCCCCCCCCRRRRRCCC+
-+    SSSSSSSS  +        ++ CCCCCCCCCCCCCRRRCRRRCC+
-+   AAMAAAM    +        ++ CCCCCCCCCCCCRRCCCCCRRC+
-+  AAAMAAMAAA  +      ++++ RRCCCC+++++CCCCCCCCCCC+
-+ AAAAMMMMAAAA +         0  +CCCC+ + +CCCCCCCCCCC+
-+ SSAMRMMRMASS +      + + +G+CC+++ + +++CCCCCCCCC+
-+ SSSMMMMMMSSS +      + + +F+CC+ 8BCD  +CCCCCCCCC+
-+ SSMMMMMMMMSS +      + + +H+CC+++I+E+++CCCCCCCCC+
-+   MMM  MMM   +    + + + +E+CC+  HGF  +CCCCCCCCC+
-+  SSSS  SSSS  +  + + + + +I+CC+++ + +++CCCCCCCCC+
-+ SSSSS  SSSSS +  +S+M+ + +D+CCCC+ + +CCCCCCCCCCC+
-+++++++++++++++++++++++ + +J+RRRR+++++RRRRRRRRRRR+
-+R2                   + + +C+7+ + + + + + + + + ++
-+++++++++++++++++++++ + + +K+                    +
-+  3                  + + +B++++++++++++++++++++ +
-+++ +++++++++++++++++++ + +L+LKJIHGFEDCB         +
-+++++++   +++++++++++++++ ++++++++++++++++++++++++
-+ +     + A           + + +M+              +   +6+
-+ +  +  + + +A+++++++ + + +Q+ ++++++++++++ + + + +
-+ + +  +  + +         + + +N+ +          + + + + +
-+ ++  +  +  + +++++++Z+ + +P+   ++++++++ + + + + +
-+ +  +  +  +  +       + + +O+++++    +   + + + + +
-+ + +  +  +  +  +++++ +  5         +   +++   +   +
-+   + +  +  +  +      +++++++   + ++++++++++++++++
-+++++   +     +  ++++A++++    +++                +
-+   +A++++++++++        ++ +++++++++++ +++++++++ +
-+ +     +   +   +++++++ ++ + B+               +  +
-+ +++++   +   +         ++ + CC+             +   +
-+ A   ++++++++++++++++++++ + RDD+           +    +
-+ + +                   ++ + EREE+         +     +
-+ + +++++++++++++++++++ ++ + FFRFF+       +      +
-+ + +                   ++ + GRGGRG+     +       +
-+   + ++++++++++++++++++++ + RHHHR B++ ++        +
-+++++ A   A   A   A     ++ + IRIIII+  X  +       +
-+     + + + + + + + +++ ++ + JJRJJ+UST+STU+      +
-+   + + + + + + + + +   ++ + KKKR+ZX+TUT+ZX+     +
-+++++ + + + + + + + + ++++ + LLL+SV++X+X++VS+    +
-+     + + + + + + + +   ++ + MM+TTX+XYZVZ+YSS+   +
-+ +++A+ A + + + + + +++ ++ + N+VV+U+X+V+Y+U+ST+  +
-+ +   + + + + + + + +   ++ + +YV+YX+XS+ZZ+VY+XU+ +
-+ + + + + + + + + + + ++++ + +++++++++++++++++++ +
-+   +   +   +   +   +      +                     +
++OOOOOOOOO++OOOOOOOO++OOOOOOOO++OOOOOOO+OOOOOOOOO+
++OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO+
++OOOO++OOOOOOOO++OOOOOOOO++OOOOOOO++OOOOOOOOOOOOO+
++++++++++++++++++++++++++++++++++++++++++++++++OO+
++ F MNG    J C  SA    V LKD HX  B Z L+     +OO+OO+
++   DH BNX F KVG ZJL   S  AM    C    + + +P+OO+OO+
++                                    + + +I+OO+OO+
++FN  H  GA        MCVD  J SXK  L ZB  + + +U+OO+OO+
++C  N  LZG  AMX JKFD        H VSB    + + +Y+OO+OO+
++                                    + + +T+OO+OO+
++  BA XF  VSKD  G CJ M    Z      H N + + +R+OO+OO+
++S V          D KX JLMH    NZAGFB C  + + +E+OO+OO+
++                                    + + +W+OO+OO+
++                                    + + +Q+OO+OO+
++                                    + + +A+OO+OO+
+++++++++++++++++++++++++++++++++++++++ + +S+OO+OO+
++    +  ++ + ++  +    ++++++++++++++++ + +D+OOOOO+
++     +  +   +  +     ++++++++++++++++ + +F+OOOO +
++++++++        +++++++++++++++++++++++++++ +OOOO0+
++ZXCV   + +++ +       ++++++++++++++++++++++++++++
+++++++++   F    +++++++++++++++++++++++++++++ ++++
++     +UI+POA+SD+     +++++++++++++++++++++++ ++++
++    +QW++E+R++TY+    ++++++++++++++++++++Z      +
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 #end

@@ -25,6 +25,8 @@ namespace BoxProblems
         // GOD FUNCTION DEUX
         public List<AgentCommands> Solve()
         {
+            if (Level == BoxSwimmingSolver.Level) return BoxSwimmingSolver.EndSolution;
+
             List<AgentCommands> solution = new List<AgentCommands>();
 
             State currentState = Level.InitialState;

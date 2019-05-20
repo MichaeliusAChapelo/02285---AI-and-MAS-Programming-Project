@@ -111,29 +111,62 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipConsoleRead = true;
+            ServerCommunicator.SkipConsoleRead = false;
             bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
-            bool Parallelize = true;
+            bool Parallelize = ! ServerCommunicator.SkipConsoleRead;
 
-            //string levelPath = "MABahaMAS.lvl";
-            //string levelPath = "MAExample.lvl";
-            //string levelPath = "friendofDFS.lvl";
+            //string levelPath = "MARipOffNew.lvl";
+            //string levelPath = "MAInterestingManeuver.lvl";
+            //string levelPath = "SAVisualKei.lvl";
+            string levelPath = "MAVisualKei.lvl";
             //string levelPath = "SAKarlMarx.lvl";
-            //string levelPath = "SAExample.lvl";
-            //string levelPath = "SACrunch.lvl";
-            //string levelPath = "MAPullPush.lvl";
-            //string levelPath = "MAFiveWalls.lvl";
-            //string levelPath = "MAPullPush2.lvl";
+
+
+            // string levelPath = "MAAlphaOne.lvl";
+
+            #region Optimize
+            //string levelPath = "SAanagram.lvl";
+            //string levelPath = "SAtesuto.lvl";
+            #endregion
+
+            #region Bugfix
+            //string levelPath = "SAsimple2.lvl";
+            //string levelPath = "SADangerbot.lvl"; 
+            #endregion
+
+            #region Heuristics fail
+            //string levelPath = "SAOptimal.lvl";
+            //string levelPath = "SAOmnics.lvl";
+            //string levelPath = "SASolo.lvl";
+            //string levelPath = "MADAT.lvl";
+            //string levelPath = "MAbongu.lvl";
+            //string levelPath = "MAJMAI.lvl";
+            //string levelPath = "MACybot.lvl";
+            //string levelPath = "MABeTrayEd.lvl";
+
+            #endregion
+
+            // Heuristic Win?!?
+            //string levelPath = "SAdashen.lvl";
+
+
+
+            #region Old shite
+            // string levelPath = "SAtowersOfSaigon03.lvl";
+            //string levelPath = "SAchoice3.lvl";
+            //string levelPath = "MAExample.lvl";
+            //string levelPath = "SAKarlMarx.lvl";
+            //string levelPath = "SAAiMasTers.lvl";
             //string levelPath = "SAsoko3_32.lvl";
             //string levelPath = "MACorridor.lvl";
-            //string levelPath = "SAlabyrinthOfStBertin.lvl";
-            //string levelPath = "MAKarlMarx.lvl";'
+            //string levelPath = "MAKarlMarx.lvl";
             //string levelPath = "SAVisualKei.lvl";
             //string levelPath = "SALeo.lvl";
-            //string levelPath = "SAOmnics.lvl";
-            string levelPath = "SAEasyPeasy.lvl";
+            //string levelPath = "MAInterestingManeuver.lvl";
+            //string levelPath = "SAGeneralAI.lvl";
             //Not enough free space
             //string levelPath = "SAGroupOne.lvl";
+            #endregion
 
             string convertedLevelPath = "temp.lvl";
 
@@ -180,10 +213,8 @@ namespace BoxRunner
                     var finalCommands = CommandParallelizer.Parallelize(lowLevelCommands, level);
                     serverCom.SendCommands(finalCommands);
                 }
-
                 Console.Read();
                 return;
-                // Michaelius ENDO
             }
         }
     }

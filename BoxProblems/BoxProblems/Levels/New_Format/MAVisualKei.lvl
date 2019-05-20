@@ -4,7 +4,7 @@ hospital
 MAVisualKei
 #colors
 red: 4, A 
-green: 0, 1, 7, 8, 9, B, C, D, E, F, G, H, I, J, K, L
+green: 0, 1, 7, 8, B, C, D, E, F, G, H, I, J, K, L
 blue: 5, M, N, O, P, Q
 orange: 2, R
 cyan: 3
@@ -21,7 +21,7 @@ brown: 6, S, T, U, V, X, Y, Z
 +  +S+SSSS+SSS +        ++CCCCCCCCCCCCCCRR+R+RRCC+
 +  +S+SSSSS+SSS+        ++CCCCCCCCCCCCCCCR+R+RCCC+
 +  ++SSSSS++++ +        ++CCCCCCCCCCCCCCCRRRRRCCC+
-+    SSSSSSSS  +        ++9CCCCCCCCCCCCCRRRCRRRCC+
++    SSSSSSSS  +        ++ CCCCCCCCCCCCCRRRCRRRCC+
 +   AAMAAAM    +        ++ CCCCCCCCCCCCCRRCCCCRRC+
 +  AAAMAAMAAA  +      ++++ARRCCCC+++++CCCCCCCCCCC+
 + AAAAMMMMAAAA +      A  0  +CCCC+I+C+CCCCCCCCCCC+
@@ -76,7 +76,7 @@ brown: 6, S, T, U, V, X, Y, Z
 +  +S+SSSSS+SSS+        ++CCCCCCCCCCCCCCCR+R+RCCC+
 +  ++SSSSS++++ +        ++CCCCCCCCCCCCCCCRRRRRCCC+
 +    SSSSSSSS  +        ++ CCCCCCCCCCCCCRRRCRRRCC+
-+   AAMAAAM    +        ++BCCCCCCCCCCCCRRCCCCCRRC+
++   AAMAAAM    +        ++ CCCCCCCCCCCCRRCCCCCRRC+
 +  AAAMAAMAAA  +      ++++ RRCCCC+++++CCCCCCCCCCC+
 + AAAAMMMMAAAA +         0  +CCCC+ + +CCCCCCCCCCC+
 + SSAMRMMRMASS +      + + +G+CC+++ + +++CCCCCCCCC+
@@ -84,7 +84,7 @@ brown: 6, S, T, U, V, X, Y, Z
 + SSMMMMMMMMSS +      + + +H+CC+++I+E+++CCCCCCCCC+
 +   MMM  MMM   +    + + + +E+CC+  HGF  +CCCCCCCCC+
 +  SSSS  SSSS  +  + + + + +I+CC+++ + +++CCCCCCCCC+
-+ SSSSS  SSSSS + 9+S+M+ + +D+CCCC+ + +CCCCCCCCCCC+
++ SSSSS  SSSSS +  +S+M+ + +D+CCCC+ + +CCCCCCCCCCC+
 +++++++++++++++++++++++ + +J+RRRR+++++RRRRRRRRRRR+
 +R2                   + + +C+7+ + + + + + + + + ++
 +++++++++++++++++++++ + + +K+                    +

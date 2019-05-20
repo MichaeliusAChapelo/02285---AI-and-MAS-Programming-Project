@@ -1,0 +1,50 @@
+﻿#domain
+hospital
+#levelname
+MAVisualKei
+#colors
+green: 0, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, S, T, U, V, X, Y, Z
+brown: R
+#initial
++++++++++++++++++++++++
++                     +
++++++++++++ +++++++++ +
++ B+               +  +
++ CC+             +   +
++ RDD+           +    +
++ EREE+         +     +
++ FFRFF+       +   0  +
++ GRGGRG+     +       +
++ RHHHRB ++ ++      XX+
++ IRIIII+     +STSTUUX+
++ JJRJJ+   +   +SVXZVS+
++ KKKR+  +   +  +UTTZX+
++ LLL+  ++ + ++  +XYTT+
++ MM+   +     +   +SSZ+
++ N+  + + + + + +  +ZV+
++ +  +  +  +  +  +  +Y+
++ +++++++++++++++++++X+
++SUTVUXVYXZVYZXYVXYVSU+
++++++++++++++++++++++++
+#goal
++++++++++++++++++++++++
++                     +
++++++++++++ +++++++++ +
++  +               +  +
++   +             +   +
++    +           +    +
++  R  +         +     +
++   R  +       +      +
++  R  R +     +       +
++ R   R B++ ++        +
++  R    +  X  +       +
++   R  +UST+STU+      +
++    R+ZX+TUT+ZX+     +
++    +SV++X+X++VS+    +
++   +TTX+XYZVZ+YSS+   +
++  +VV+U+X+V+Y+U+ST+  +
++ +YV+YX+XS+ZZ+VY+XU+ +
++ +++++++++++++++++++ +
++                     +
++++++++++++++++++++++++
+#end

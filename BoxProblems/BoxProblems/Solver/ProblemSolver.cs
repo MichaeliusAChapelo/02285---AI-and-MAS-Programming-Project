@@ -383,7 +383,6 @@ namespace BoxProblems.Solver
                         mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
                     {
                         var mainGroupInformation = new GroupInformation(mainGroup);
-                        bool movedSomething = false;
                         List<Entity> goalsWithHigherPriority = new List<Entity>();
                         foreach (var group in graphGroups)
                         {
@@ -520,7 +519,6 @@ namespace BoxProblems.Solver
                                                 throw new Exception("Could not move wrong box from goal.");
                                             }
                                             solution.AddRange(boxOnGoalSolution);
-                                            movedSomething = true;
                                         }
                                     }
                                 }
@@ -532,7 +530,6 @@ namespace BoxProblems.Solver
                         }
                         else
                         {
-                            movedSomething = true;
                             foreach (var layer in goalPriorityLinkedLayers)
                             {
                                 foreach (var goal in goalsWithHigherPriority)
@@ -543,7 +540,7 @@ namespace BoxProblems.Solver
                             }
                         }
 
-                        if (movedSomething)
+                        if (goalsWithHigherPriority.Count > 0)
                         {
                             goalPriorityLinkedLayers.AddBefore(currentLayerNode, new GoalPriorityLayer(goalsWithHigherPriority.ToHashSet()));
                             currentLayerNode = currentLayerNode.Previous;
@@ -656,6 +653,16 @@ namespace BoxProblems.Solver
                 level.RemovePermanentWall(goal.Pos);
                 level.RemoveWall(goal.Pos);
             }
+
+#if DEBUG
+            foreach (var goal in level.Goals)
+            {
+                if (!sData.CurrentState.GetBoxes(sData.Level).ToArray().Any(x => x.Pos == goal.Pos && x.Type == goal.Type))
+                {
+                    throw new Exception("Didn't fix all goals");
+                }
+            }
+#endif
 
             return new HighlevelLevelSolution(solution, sData.SolutionGraphs, level);
         }

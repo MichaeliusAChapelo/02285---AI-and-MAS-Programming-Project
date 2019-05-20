@@ -6,12 +6,12 @@ namespace BoxProblems
 {
     public static class CommandParallelizer
     {
-        private readonly struct FreeTime
+        private readonly struct UsedTime
         {
             public readonly int StartTime;
             public readonly int EndTime;
 
-            public FreeTime(int start, int end)
+            public UsedTime(int start, int end)
             {
                 this.StartTime = start;
                 this.EndTime = end;
@@ -20,7 +20,7 @@ namespace BoxProblems
 
         public static string[] Parallelize(List<AgentCommands> allCommands, Level level)
         {
-            List<FreeTime>[,] world = new List<FreeTime>[level.Width, level.Height];
+            List<UsedTime>[,] world = new List<UsedTime>[level.Width, level.Height];
             Point[] agentPositions = new Point[level.AgentCount];
             List<string[]> parallelizedCommands = new List<string[]>();
 
@@ -34,8 +34,8 @@ namespace BoxProblems
             {
                 for (int x = 0; x < level.Width; x++)
                 {
-                    world[x, y] = new List<FreeTime>();
-                    world[x, y].Add(new FreeTime(0, int.MaxValue));
+                    world[x, y] = new List<UsedTime>();
+                    world[x, y].Add(new UsedTime(0, int.MaxValue));
                 }
             }
 

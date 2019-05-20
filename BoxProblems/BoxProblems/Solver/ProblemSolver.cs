@@ -781,6 +781,18 @@ namespace BoxProblems.Solver
                         }
                     }
                 }
+                else
+                {
+                    foreach (var endAgentPos in possibleAgentPositions)
+                    {
+                        if (!toMovePath.Contains(endAgentPos))
+                        {
+                            newAgentPos = endAgentPos;
+                            isPushPossible = true;
+                            break;
+                        }
+                    }
+                }
 
                 //If push wasn't possible then chose one of the possible pull positions
                 if (!isPushPossible)

@@ -184,7 +184,7 @@ namespace BoxProblems.Solver
             return (minimumConflict, minimumConflictEntity);
         }
 
-        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData)
+        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData, int additonalIntoFreeSpace = 0)
         {
             //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
 
@@ -228,8 +228,8 @@ namespace BoxProblems.Solver
                         howFarIntoFreeSpace += 1;
                     }
                 }
-
             }
+            howFarIntoFreeSpace += additonalIntoFreeSpace;
             FreeSpaceNode freeSpaceNodeToUse = null;
             var visitedNodes = new HashSet<INode>();
             (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);

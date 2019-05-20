@@ -260,6 +260,9 @@
     <None Update="Levels\Old_Format\initial_levels\SAboXboXboX.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Levels\Old_Format\MARipOff.lvl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Levels\Old_Format\SAchoice2.lvl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

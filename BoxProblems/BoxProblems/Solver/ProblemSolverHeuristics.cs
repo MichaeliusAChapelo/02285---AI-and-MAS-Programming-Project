@@ -267,7 +267,7 @@ namespace BoxProblems.Solver
                 if (currentNode is FreeSpaceNode currentFreeSpaceNode)
                 {
                     var newFreeSpacesCount = currentFreeSpaceNode.Value.FreeSpaces.Where(isFreeSpaceAvailable).Count();
-                    if(newFreeSpacesCount>0)
+                    if (newFreeSpacesCount > 0)
                     {
                         currentNumFreeSpaces += newFreeSpacesCount;
                         if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
@@ -327,8 +327,59 @@ namespace BoxProblems.Solver
                 }
 
             }
+
+            // If 1) FreeSpacePoint was picked naively (default position)
+            // 2) there is an abundance of freespace
+            // 3) the FreeSpacePoint is far away from the conflict
+            // THEN place the FreeSpacePoint somewhere closer.
+
+            if (false) // Disables heuristic
+                if (freeSpacePointToUse == potentialFreeSpacePoints.First()
+            && potentialFreeSpacePoints.Count > 5
+            && Point.ManhattenDistance(freeSpacePointToUse, conflict.Pos) > 3)
+                {
+                    int dist = int.MaxValue;
+                    var conflictDistMap = Precomputer.GetDistanceMap(sData.Level.Walls, conflict.Pos, false);
+                    foreach (var FSP in potentialFreeSpacePoints)
+                    {
+                        // If placing a box eliminates a turning point/creates a corridor, skip it.
+                        if (IsCorridor(sData.Level, FSP) && IsNextToTurningPoint(sData.Level, FSP))
+                            continue;
+
+                        if (conflictDistMap[FSP.X, FSP.Y] < dist)
+                        {
+                            dist = conflictDistMap[FSP.X, FSP.Y];
+                            freeSpacePointToUse = FSP;
+                        }
+                    }
+
+                }
+
             return freeSpacePointToUse;
 
+        }
+
+        private static bool IsNextToTurningPoint(Level level, Point FSP)
+        {
+            foreach (Point n in neighbours)
+            {
+                Point p = FSP + n;
+                if (!level.Walls[p.X, p.Y] && !IsCorridor(level, p))
+                    return true;
+            }
+            return false;
+        }
+
+        private static readonly Point[] neighbours = new Point[4] { new Point(0, 1), new Point(0, -1), new Point(-1, 0), new Point(1, 0) };
+
+        private static bool IsCorridor(Level level, Point p)
+        { // This works for corridor corners too.
+            int walls = 0;
+            if (level.Walls[p.X + 1, p.Y]) walls++;
+            if (level.Walls[p.X - 1, p.Y]) walls++;
+            if (level.Walls[p.X, p.Y + 1]) walls++;
+            if (level.Walls[p.X, p.Y - 1]) walls++;
+            return (2 <= walls);
         }
     }
 }

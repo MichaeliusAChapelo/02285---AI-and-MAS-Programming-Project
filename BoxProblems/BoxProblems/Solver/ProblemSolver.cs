@@ -735,6 +735,10 @@ namespace BoxProblems.Solver
                 {
                     foreach (var endAgentPos in possibleAgentPositions)
                     {
+                        // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
+                        if (endAgentPos == toMove.Pos)
+                            continue;
+
                         //If the box path contains the agents end position then the agent must've pushed the box
                         if (toMovePath.Contains(endAgentPos))
                         {
@@ -777,8 +781,8 @@ namespace BoxProblems.Solver
                 Entity toMove = sData.GetEntity(toMoveIndex);
                 List<BoxConflictNode> conflicts = GetConflicts(toMove, goal, sData.CurrentConflicts, isGoalAnObstable);
 
-                LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
-                LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
 
                 //The path needs to go through the same entitites as the conflicts
                 //list says it does but the precosnputer may not return the same
@@ -795,7 +799,7 @@ namespace BoxProblems.Solver
                 }
 
                 sData.AddToRoutesUsed(toMovePath);
-                LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
 
                 bool toMoveMoved = false;
                 do

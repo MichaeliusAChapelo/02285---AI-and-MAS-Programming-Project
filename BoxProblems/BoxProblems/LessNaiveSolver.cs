@@ -136,7 +136,7 @@ namespace BoxProblems
                     throw new Exception("Failed to find a turn point on the route.");
                 }
 
-                Point turnIntoPoint = FindSpaceToTurn(boxToAgentEnd, turnPoint.Value, goalPos);
+                Point turnIntoPoint = FindSpaceToTurn(boxToAgentEnd, turnPoint.Value, goalPos, agentNextToBox);
 
                 firstPart = new List<Point>();
                 firstPart.AddRange(boxToAgentEnd.Take(count));
@@ -376,7 +376,7 @@ namespace BoxProblems
 
         private void VerifyIsMoveValid(Point nextPos)
         {
-            if (nextPos.X <= 0 || nextPos.X >= Level.Width  - 1 ||
+            if (nextPos.X <= 0 || nextPos.X >= Level.Width - 1 ||
                 nextPos.Y <= 0 || nextPos.Y >= Level.Height - 1)
             {
                 throw new Exception("Can't move outside the bounds of the level.");
@@ -439,11 +439,16 @@ namespace BoxProblems
             return (2 <= walls);
         }
 
-        private Point FindSpaceToTurn(List<Point> solutionPath, Point turnPos, Point goalPos)
+        private Point FindSpaceToTurn(List<Point> solutionPath, Point turnPos, Point goalPos, Point agentNextToBox)
         {
             foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
             {
                 var p = turnPos + dirDelta;
+
+                // Cannot U-turn box into agent's position next to box.
+                if (p == agentNextToBox)
+                    continue;
+
                 if (!Level.Walls[p.X, p.Y] && !solutionPath.Contains(p) && p != goalPos)
                 {
                     return p;

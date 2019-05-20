@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Collections;
+using System.Threading;
 
 namespace BoxProblems.Graphing
 {
@@ -20,21 +21,22 @@ namespace BoxProblems.Graphing
     {
         public readonly List<GoalNode[]> PriorityLayers = new List<GoalNode[]>();
 
-        public GoalPriority(Level level, GoalGraph goalGraph)
+        public GoalPriority(Level level, GoalGraph goalGraph, CancellationToken cancel)
         {
-            CreateGoalPriority(level, goalGraph);
+            CreateGoalPriority(level, goalGraph, cancel);
         }
 
-        private void CreateGoalPriority(Level level, GoalGraph goalGraph)
+        private void CreateGoalPriority(Level level, GoalGraph goalGraph, CancellationToken cancel)
         {
             Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>> nodeGraphs = new Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>>();
             foreach (var goal in level.Goals)
             {
-                GoalNode node = goalGraph.GetNodeFromPosition(goal.Pos);
+                GoalNode node = goalGraph.GetGoalNodeFromPosition(goal.Pos);
                 nodeGraphs.Add(node, CreateDirectedEdgesToStart(node));
             }
 
             Graph groupedGraph = Graph.CreateSimplifiedGraph<EmptyEdgeInfo>(goalGraph);
+            //GraphShower.ShowGraph(groupedGraph);
 
             List<List<GoalNode>> boxGroups = new List<List<GoalNode>>();
             foreach (var iNode in groupedGraph.Nodes)
@@ -48,6 +50,8 @@ namespace BoxProblems.Graphing
             }
 
             HashSet<Entity> toIgnore = new HashSet<Entity>();
+            HashSet<GoalNode> toIgnoreNodes = new HashSet<GoalNode>();
+            Dictionary<GoalNode, (int pathsCount, Dictionary<GoalNode, int> pathNodes)> cachedPathResults = new Dictionary<GoalNode, (int pathsCount, Dictionary<GoalNode, int> pathNodes)>();
             while (toIgnore.Count < level.Goals.Length)
             {
                 Dictionary<GoalNode, float> nodeCounter = new Dictionary<GoalNode, float>();
@@ -62,44 +66,44 @@ namespace BoxProblems.Graphing
 
                 foreach (Entity goal in level.Goals)
                 {
+                    cancel.ThrowIfCancellationRequested();
                     if (toIgnore.Contains(goal))
                     {
                         continue;
                     }
 
-                    GoalNode start = goalGraph.GetNodeFromPosition(goal.Pos);
+                    GoalNode start = goalGraph.GetGoalNodeFromPosition(goal.Pos);
 
-                    Dictionary<GoalNode, int> shortestPathsVisitedNodesCount = new Dictionary<GoalNode, int>();
-                    int pathsCount = 0;
-                    foreach (var boxGroup in boxGroups)
+                    (int pathsCount, Dictionary<GoalNode, int> pathNodes) pathResult;
+                    if (!cachedPathResults.TryGetValue(start, out pathResult) || toIgnoreNodes.Any(x => pathResult.pathNodes.ContainsKey(x)))
                     {
-                        int boxesWithSameType = 0;
-                        foreach (var boxNode in boxGroup)
+                        Dictionary<GoalNode, int> shortestPathsVisitedNodesCount = new Dictionary<GoalNode, int>();
+                        int pathsCount = 0;
+                        foreach (var boxGroup in boxGroups)
                         {
-                            if (boxNode.Value.Ent.Type == goal.Type)
+                            cancel.ThrowIfCancellationRequested();
+                            int boxesWithSameType = 0;
+                            foreach (var boxNode in boxGroup)
                             {
-                                boxesWithSameType++;
+                                if (boxNode.Value.Ent.Type == goal.Type)
+                                {
+                                    boxesWithSameType++;
+                                }
+                            }
+                            if (boxesWithSameType > 0)
+                            {
+                                pathsCount += GetShortestPathsData(boxGroup.First(), nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore, boxesWithSameType);
                             }
                         }
-                        if (boxesWithSameType > 0)
-                        {
-                            pathsCount += GetShortestPathsData(boxGroup.First(), nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore, boxesWithSameType);
-                        }
-                    }
-                    //foreach (Entity box in level.GetBoxes())
-                    //{
-                    //    if (box.Type == goal.Type)
-                    //    {
-                    //        GoalNode goalNode = goalGraph.GetNodeFromPosition(box.Pos);
-                    //        pathsCount += GetShortestPathsData(goalNode, nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore);
-                    //    }
-                    //}
 
-                    foreach (var pathNode in shortestPathsVisitedNodesCount)
-                    {
-                        nodeCounter[pathNode.Key] += (1f / (pathsCount)) * pathNode.Value;
+                        pathResult = (pathsCount, shortestPathsVisitedNodesCount);
+                        cachedPathResults[start] = pathResult;
                     }
-                    
+
+                    foreach (var pathNode in pathResult.pathNodes)
+                    {
+                        nodeCounter[pathNode.Key] += (1f / (pathResult.pathsCount)) * pathNode.Value;
+                    }
                 }
 
                 GoalNode[] newPriorityGroup = nodeCounter.GroupBy(x => x.Value).OrderBy(x => x.First().Value).First().Select(x => x.Key).ToArray();
@@ -107,6 +111,7 @@ namespace BoxProblems.Graphing
                 foreach (var priorityNode in newPriorityGroup)
                 {
                     toIgnore.Add(priorityNode.Value.Ent);
+                    toIgnoreNodes.Add(goalGraph.GetGoalNodeFromPosition(priorityNode.Value.Ent.Pos));
                 }
             }
         }

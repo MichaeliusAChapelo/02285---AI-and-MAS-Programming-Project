@@ -43,7 +43,8 @@ namespace BoxProblems.Graphing
 
     internal sealed class GoalGraph : Graph
     {
-        private readonly Dictionary<Point, GoalNode> PositionToNode = new Dictionary<Point, GoalNode>();
+        private readonly Dictionary<Point, GoalNode> PositionToGoalNode = new Dictionary<Point, GoalNode>();
+        private readonly Dictionary<Point, GoalNode> PositionToBoxNode = new Dictionary<Point, GoalNode>();
 
         public GoalGraph(GraphSearchData gsData, State state, Level level)
         {
@@ -62,12 +63,28 @@ namespace BoxProblems.Graphing
         public void AddNode(GoalNode node)
         {
             base.AddNode(node);
-            PositionToNode.Add(node.Value.Ent.Pos, node);
+            if (node.Value.EntType == EntityType.GOAL)
+            {
+                PositionToGoalNode.Add(node.Value.Ent.Pos, node);
+            }
+            else if (node.Value.EntType == EntityType.BOX)
+            {
+                PositionToBoxNode.Add(node.Value.Ent.Pos, node);
+            }
+            else
+            {
+                throw new Exception("GoalGraph does not support any other entity type than goal and box.");
+            }
         }
 
-        public GoalNode GetNodeFromPosition(Point pos)
+        public GoalNode GetGoalNodeFromPosition(Point pos)
         {
-            return PositionToNode[pos];
+            return PositionToGoalNode[pos];
+        }
+
+        public GoalNode GetBoxNodeFromPosition(Point pos)
+        {
+            return PositionToBoxNode[pos];
         }
     }
 }

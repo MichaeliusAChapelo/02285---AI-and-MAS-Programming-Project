@@ -114,7 +114,7 @@ namespace BoxProblems
             bool startPull = boxToAgentEnd.Contains(agentNextToBox);
             bool endPull = boxToAgentEnd.Contains(goalPos);
 
-            if (agent.Pos == goalPos) // If agent blocks goal position
+            if (agent.Pos == agentNextToBox && agentNextToBox == goalPos) // If agent blocks goal position
                 startPull = true; // Forces agent to locate distant U-turn location, pull at U-turn, and push to goal.
 
             List<Point> firstPart = null;

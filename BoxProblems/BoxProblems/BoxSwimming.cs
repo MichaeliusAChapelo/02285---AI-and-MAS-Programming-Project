@@ -5,20 +5,19 @@ using System.Text;
 
 namespace BoxProblems
 {
-    public class BoxSwimmingSolver
+    internal class BoxSwimmingSolver
     { // Specially hand-crafted and designed for SALeo and SALeo only!
 
         public static List<AgentCommands> EndSolution { get; private set; }
         public static Level Level { get; private set; }
         private Entity Agent;
-        //private Entity[] Boxes;
         private readonly Point End;
 
-        public BoxSwimmingSolver(Level level)
+        public BoxSwimmingSolver(Level level, Point end)
         {
             Level = level;
             this.Agent = level.GetAgents()[0];
-            //this.Boxes = level.GetBoxes().ToArray();
+            this.End = end;
             this.End = new Point(48, 19); // Should be set in goals or something, but whatever.
         }
 
@@ -58,8 +57,7 @@ namespace BoxProblems
                     else if (BoxSwimming.CanRightHandBoxSwim(nextDir, Agent.Pos, Level))
                         solution.AddRange(BoxSwimming.RightHandBoxSwimming(nextDir));
 
-                    //else break;
-                    else throw new Exception("How?");
+                    else throw new Exception("Box swimming operations failed.");
 
                     freeSpot = Agent.Pos;
                     Agent = Agent.Move(nextPoint);
@@ -70,7 +68,7 @@ namespace BoxProblems
                 {
                     if (BoxSwimming.CanLeftHandBoxSwim(nextDir, Agent.Pos, Level))
                         solution.AddRange(BoxSwimming.SwimLeft(BoxSwimming.Opposite(freeSpotDir)));
-                    else throw new Exception("How?");
+                    else throw new Exception("Box swimming operations failed.");
                     freeSpot = Agent.Pos;
                     Agent = Agent.Move(nextPoint);
                     continue;
@@ -80,20 +78,20 @@ namespace BoxProblems
                 {
                     if (BoxSwimming.CanRightHandBoxSwim(nextDir, Agent.Pos, Level))
                         solution.AddRange(BoxSwimming.SwimRight(BoxSwimming.Opposite(freeSpotDir)));
-                    else throw new Exception("How?");
+                    else throw new Exception("Box swimming operations failed.");
                     //{
-                        // He's got gotten!
+                    // He's got gotten!
 
-                        //solution.Add(AgentCommand.CreateMove(freeSpotDir));
-                        //solution.Add(AgentCommand.CreatePull)
+                    //solution.Add(AgentCommand.CreateMove(freeSpotDir));
+                    //solution.Add(AgentCommand.CreatePull)
 
-                        // Considering that FORWARD right NOW is the opposite of freeSpot
-                        /* Move into freeSpot
-                         * Pull left-back box into free spot
-                         * Push left-box into left-back
-                         * Move nextDir
-                         * if agent isn't at nextPoint, then L/R BoxSwim in nextDir
-                        */
+                    // Considering that FORWARD right NOW is the opposite of freeSpot
+                    /* Move into freeSpot
+                     * Pull left-back box into free spot
+                     * Push left-box into left-back
+                     * Move nextDir
+                     * if agent isn't at nextPoint, then L/R BoxSwim in nextDir
+                    */
 
                     //}
                     freeSpot = Agent.Pos;
@@ -127,27 +125,7 @@ namespace BoxProblems
             Point backRight = right + Opposite(d).DirectionDelta();
             Point frontRight = right + d.DirectionDelta();
             return !level.IsWall(right) && !level.IsWall(backRight) && !level.IsWall(frontRight);
-
-            //bool agentFrontBox = false, agentFrontRightBox = false, agentRightBox = false, agentBackRightBox = false;
-
-            //Point back = agentPos + Opposite(d).DirectionDelta();
-            //Point front = agentPos + d.DirectionDelta();
-            //Point Right = agentPos + Clockwise(d).DirectionDelta();
-            //Point backRight = Right + Opposite(d).DirectionDelta();
-            //Point frontRight = Right + d.DirectionDelta();
-
-            //foreach (Entity box in state.GetBoxes(level))
-            //    if (box.Pos == agentPos) throw new Exception("Agent is on a box???");
-            //    else if (box.Pos == back) return false;  // Space behind needs be free.
-            //    else if (box.Pos == front) agentFrontBox = true;
-            //    else if (box.Pos == Right) agentRightBox = true;
-            //    else if (box.Pos == frontRight) agentFrontRightBox = true;
-            //    else if (box.Pos == backRight) agentBackRightBox = true;
-            //    else if (agentFrontBox && agentFrontRightBox && agentRightBox && agentBackRightBox) break;
-
-            //return agentFrontBox && agentFrontRightBox && agentRightBox && agentBackRightBox;
         }
-
 
         internal static List<AgentCommand> LeftHandBoxSwimming(Direction d)
         {
@@ -182,55 +160,6 @@ namespace BoxProblems
         {
             return new List<AgentCommand>(RightHandBoxSwimming(d).Take(3));
         }
-
-        #region Garbage
-        public static string[] SwimLeft(char c)
-        {
-            var d = StringToDir(c);
-
-            return new string[3] {
-                "Move(" + Opposite(d) + ")",
-                "Pull(" + d + "," + CounterClockwise(d)  + ")",
-                "Push(" + CounterClockwise(d) + "," + Opposite(d)  + ")",
-            };
-        }
-
-        public static string[] LeftHandBoxSwimming(char c)
-        {
-            var d = StringToDir(c);
-
-            return new string[5] {
-                "Move(" + Opposite(d) + ")",
-                "Pull(" + d + "," + CounterClockwise(d)  + ")",
-                "Push(" + CounterClockwise(d) + "," + Opposite(d)  + ")",
-                "Pull(" + Clockwise(d) + "," + d  + ")",
-                "Push(" + d + "," + CounterClockwise(d)  + ")",
-            };
-        }
-
-        public static string[] SwimRight(char c)
-        {
-            var d = StringToDir(c);
-            return new string[3] {
-                "Move(" + Opposite(d) + ")",
-                "Pull(" + d + "," + Clockwise(d)  + ")",
-                "Push(" + Clockwise(d) + "," + Opposite(d)  + ")",
-            };
-        }
-
-        public static string[] RightHandBoxSwimming(char c)
-        {
-            var d = StringToDir(c);
-
-            return new string[5] {
-                "Move(" + Opposite(d) + ")",
-                "Pull(" + d + "," + Clockwise(d)  + ")",
-                "Push(" + Clockwise(d) + "," + Opposite(d)  + ")",
-                "Pull(" + CounterClockwise(d) + "," + d  + ")",
-                "Push(" + d + "," + Clockwise(d)  + ")",
-            };
-        }
-        #endregion
 
         internal static Direction Clockwise(Direction d)
         {
@@ -289,25 +218,6 @@ namespace BoxProblems
             return Direction.NONE;
         }
 
-        internal static Direction StringToDir(char c)
-        {
-            switch (c)
-            {
-                case 'N':
-                    return Direction.N;
-
-                case 'S':
-                    return Direction.S;
-
-                case 'E':
-                    return Direction.E;
-
-                case 'W':
-                    return Direction.W;
-            }
-            return Direction.NONE;
-        }
-
         public static float MeasureBoxDensity(Level level, bool includeAgents = true)
         {
             return MeasureBoxDensity(level, 0, level.Width, 0, level.Height, includeAgents);
@@ -325,9 +235,6 @@ namespace BoxProblems
                 entityCount += level.GetAgents().Length;
             return entityCount / (float)spaceCount;
         }
-
-
-
 
     }
 }

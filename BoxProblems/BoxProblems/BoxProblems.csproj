@@ -44,6 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Levels\New_Format\SACorridor.lvl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Levels\New_Format\MACorridor.lvl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

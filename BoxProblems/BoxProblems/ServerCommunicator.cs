@@ -13,7 +13,7 @@ namespace BoxProblems
     public class ServerCommunicator
     {
         const string strategy = "-astar";
-        public static bool SkipConsoleRead = false;
+        public static bool SkipServerLaunch = false;
 
         public void StartServer(string levelPath)
         {
@@ -81,7 +81,7 @@ namespace BoxProblems
             Console.Write(sBuilder);
             //Console.Error.WriteLine(sBuilder);
 
-            if (!SkipConsoleRead)
+            if (!SkipServerLaunch)
             {
                 for (int z = 0; z < lines; z++)
                 {
@@ -98,7 +98,7 @@ namespace BoxProblems
         {
             Console.WriteLine(command);
             Console.Error.WriteLine("Debug: " + command);
-            if (SkipConsoleRead) return;
+            if (SkipServerLaunch) return;
             string response = Console.ReadLine();
 
             //Console.Error.WriteLine("COMMAND: " + command + "\nRESPONSE: " + response);

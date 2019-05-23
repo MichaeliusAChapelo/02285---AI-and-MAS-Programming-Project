@@ -12,7 +12,7 @@ namespace BoxProblems.Graphing
             foreach (var inode in graph.Nodes)
             {
                 var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)inode;
-                if (node.Value.EntType != notAHindrance)
+                if (node.Value.EntType.EntityEquals(notAHindrance))
                 {
                     level.AddWall(node.Value.Ent.Pos);
                 }
@@ -48,8 +48,8 @@ namespace BoxProblems.Graphing
                 {
                     foreach (var reached in reachedList.nodes)
                     {
-                        if (node.Value.EntType == notAHindrance &&
-                            reached.Value.EntType == notAHindrance)
+                        if (node.Value.EntType.EntityEquals(notAHindrance) &&
+                            reached.Value.EntType.EntityEquals(notAHindrance))
                         {
                             continue;
                         }
@@ -59,7 +59,7 @@ namespace BoxProblems.Graphing
                 }
 
                 potentialGoals.Add(node.Value.Ent.Pos, storedNodes);
-                if (node.Value.EntType != notAHindrance)
+                if (node.Value.EntType.EntityEquals(notAHindrance))
                 {
                     level.AddWall(node.Value.Ent.Pos);
                 }

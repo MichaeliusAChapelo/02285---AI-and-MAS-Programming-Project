@@ -52,12 +52,16 @@ namespace BoxProblems.Graphing
             {
                 AddNode(new GoalNode(new EntityNodeInfo(box, EntityType.BOX)));
             }
+            foreach (var agent in state.GetAgents(level))
+            {
+                AddNode(new GoalNode(new EntityNodeInfo(agent, EntityType.AGENT)));
+            }
             foreach (var goal in level.Goals)
             {
-                AddNode(new GoalNode(new EntityNodeInfo(goal, EntityType.GOAL)));
+                AddNode(new GoalNode(new EntityNodeInfo(goal.Ent, goal.EntType)));
             }
 
-            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.BOX);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.MOVEABLE);
         }
 
         public void AddNode(GoalNode node)

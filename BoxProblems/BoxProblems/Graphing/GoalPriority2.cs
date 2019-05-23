@@ -31,7 +31,7 @@ namespace BoxProblems.Graphing
             Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>> nodeGraphs = new Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>>();
             foreach (var goal in level.Goals)
             {
-                GoalNode node = goalGraph.GetGoalNodeFromPosition(goal.Pos);
+                GoalNode node = goalGraph.GetGoalNodeFromPosition(goal.Ent.Pos);
                 nodeGraphs.Add(node, CreateDirectedEdgesToStart(node));
             }
 
@@ -64,7 +64,7 @@ namespace BoxProblems.Graphing
                     }
                 }
 
-                foreach (Entity goal in level.Goals)
+                foreach (Goal goal in level.Goals)
                 {
                     cancel.ThrowIfCancellationRequested();
                     if (toIgnore.Contains(goal))

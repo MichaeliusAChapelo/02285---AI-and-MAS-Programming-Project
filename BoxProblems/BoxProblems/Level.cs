@@ -11,7 +11,7 @@ namespace BoxProblems
     {
         internal readonly bool[,] Walls;
         private readonly bool[,] OriginalWalls;
-        internal readonly Entity[] Goals;
+        internal readonly Goal[] Goals;
         internal readonly State InitialState;
         internal readonly int Width;
         internal readonly int Height;
@@ -31,7 +31,7 @@ namespace BoxProblems
             "brown"
         };
 
-        internal Level(bool[,] walls, Entity[] goals, State initial, int width, int height, int agentCount, int boxCount)
+        internal Level(bool[,] walls, Goal[] goals, State initial, int width, int height, int agentCount, int boxCount)
         {
             this.Walls = walls;
             this.Goals = goals;
@@ -288,7 +288,7 @@ namespace BoxProblems
 
             List<Entity> agents = new List<Entity>();
             List<Entity> boxes = new List<Entity>();
-            List<Entity> goals = new List<Entity>();
+            List<Goal> goals = new List<Goal>();
 
             int width = initialLevel.Max(x => x.Length);
             int height = initialLevel.Length;
@@ -301,7 +301,9 @@ namespace BoxProblems
                     char c = initialLevel[y][x];
 
                     if (char.IsLetter(goalLevel[y][x]))
-                        goals.Add(new Entity(new Point(x, y), 0, goalLevel[y][x]));
+                        goals.Add(new Goal(new Entity(new Point(x, y), 0, goalLevel[y][x]), EntityType.BOX_GOAL));
+                    else if (char.IsDigit(goalLevel[y][x]))
+                        goals.Add(new Goal(new Entity(new Point(x, y), 0, goalLevel[y][x]), EntityType.AGENT_GOAL));
 
                     if (c == '+')
                         walls[x, y] = true;
@@ -331,9 +333,9 @@ namespace BoxProblems
             char[][] world = GetWallsAsWorld();
             foreach (var goal in Goals)
             {
-                int x = goal.Pos.X;
-                int y = goal.Pos.Y;
-                char type = goal.Type;
+                int x = goal.Ent.Pos.X;
+                int y = goal.Ent.Pos.Y;
+                char type = goal.Ent.Type;
 
                 world[y][x] = char.ToLower(type);
             }

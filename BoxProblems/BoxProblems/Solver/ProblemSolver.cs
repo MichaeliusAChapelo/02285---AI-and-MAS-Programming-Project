@@ -548,7 +548,9 @@ namespace BoxProblems.Solver
                                         {
                                             continue;
                                         }
+
                                         var groupinfo = new GroupInformation(group);
+                                        int intoFreeSpace = group.Where(x => x is BoxConflictNode boxNode && boxNode.Value.EntType.IsMoveable()).Count();
                                         foreach (var iNode in group)
                                         {
                                             if (iNode is FreeSpaceNode)
@@ -588,13 +590,16 @@ namespace BoxProblems.Solver
                                             {
                                                 continue;
                                             }
-                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData);
+
+                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData, intoFreeSpace);
+                                            intoFreeSpace--;
                                             sData.AddToFreePath(freeSpace);
                                             List<HighlevelMove> boxOnGoalSolution;
                                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxNode.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0, false))
                                             {
                                                 throw new Exception("Could not move wrong box from goal.");
                                             }
+                                            sData.RemoveFromFreePath(freeSpace);
                                             solution.AddRange(boxOnGoalSolution);
                                         }
                                     }
@@ -743,11 +748,6 @@ namespace BoxProblems.Solver
             if (depth == 100)
             {
                 throw new Exception("sub problem depth limit reached.");
-            }
-
-            if (goal == new Point(6, 13))
-            {
-
             }
 
             Entity toMove = sData.GetEntity(toMoveIndex);

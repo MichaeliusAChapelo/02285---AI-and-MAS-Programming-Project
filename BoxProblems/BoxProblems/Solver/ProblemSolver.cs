@@ -986,7 +986,7 @@ namespace BoxProblems.Solver
             while (true)
             {
                 Entity toMove = sData.GetEntity(toMoveIndex);
-                List<BoxConflictNode> conflicts = GetConflicts(toMove, goal, sData.CurrentConflicts, isGoalAnObstable);
+                List<BoxConflictNode> conflicts = GetConflicts(toMove, goal, sData.CurrentConflicts, isGoalAnObstable, sData);
 
                 //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
                 //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
@@ -1024,7 +1024,7 @@ namespace BoxProblems.Solver
                     sData.AddToFreePath(freeSpace);
 
                     //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
-                    if (TrySolveSubProblem(sData.GetEntityIndex(conflict.Value.Ent), freeSpace, conflict.Value.EntType == EntityType.AGENT, out List<HighlevelMove> solutionMoves, sData, depth + 1, false))
+                    if (TrySolveSubProblem(sData.GetEntityIndex(conflict.Value.Ent), freeSpace, conflict.Value.EntType == EntityType.AGENT, out List<HighlevelMove> solutionMoves, sData, depth + 1, true))
                     {
                         //solutionToSubProblem.InsertRange(0, solutionMoves);
                         solutionToSubProblem.AddRange(solutionMoves);
@@ -1042,7 +1042,7 @@ namespace BoxProblems.Solver
                         break;
                     }
 
-                    conflicts = GetConflicts(toMove, goal, sData.CurrentConflicts, isGoalAnObstable);
+                    conflicts = GetConflicts(toMove, goal, sData.CurrentConflicts, isGoalAnObstable, sData);
                 } while (conflicts != null && conflicts.Count > 0);
 
                 sData.RemoveFromRoutesUsed(toMovePath);
@@ -1084,7 +1084,7 @@ namespace BoxProblems.Solver
             return toMovePath;
         }
 
-        private static List<BoxConflictNode> GetConflicts(Entity toMove, Point goal, BoxConflictGraph currentConflicts, bool isGoalAnObstable)
+        private static List<BoxConflictNode> GetConflicts(Entity toMove, Point goal, BoxConflictGraph currentConflicts, bool isGoalAnObstable, SolverData sData)
         {
             INode startNode = currentConflicts.GetNodeFromPosition(toMove.Pos);
             foreach (var edgeNode in startNode.GetNodeEnds())
@@ -1160,6 +1160,9 @@ namespace BoxProblems.Solver
                 }
                 exploredSet.Add(leaf);
             }
+
+            //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+            //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
 
             throw new Exception("Found no path from  entity to goal.");
         }

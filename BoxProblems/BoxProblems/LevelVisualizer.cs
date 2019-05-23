@@ -1,6 +1,7 @@
 ﻿using BoxProblems.Graphing;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BoxProblems
@@ -65,6 +66,10 @@ namespace BoxProblems
 
             WriteLevelToConsole(level, state, pos =>
             {
+                if (level.Goals.Any(x => x.Ent.Pos == pos) && state.GetBoxes(level).ToArray().Any(x => x.Pos == pos))
+                {
+                    Console.BackgroundColor = ConsoleColor.Yellow;
+                }
                 if (freeSpaces.ContainsKey(pos))
                 {
                     Console.BackgroundColor = ConsoleColor.Red;

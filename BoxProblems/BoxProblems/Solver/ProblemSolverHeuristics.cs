@@ -225,6 +225,8 @@ namespace BoxProblems.Solver
             }
             if (avaiableFreeSpacesCount < 1)
             {
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
                 throw new Exception("No free space is available");
 
             }
@@ -243,133 +245,120 @@ namespace BoxProblems.Solver
                 }
             }
             howFarIntoFreeSpace += additonalIntoFreeSpace;
-            FreeSpaceNode freeSpaceNodeToUse = null;
-            var visitedNodes = new HashSet<INode>();
-            (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);
-            var bfsQueue = new Queue<(INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes)>();
-            int minExtraBoxes = int.MaxValue;
-            int totalExtraBoxes = 0;
-            bfsQueue.Enqueue(starttuple);
-            while (bfsQueue.Count > 0)
+
+            int[,] spacesDistance = new int[sData.Level.Width, sData.Level.Height];
+            for (int y = 0; y < sData.Level.Height; y++)
             {
-                var tuple = bfsQueue.Dequeue();
-                var currentNode = tuple.node;
-                var currentExtraBoxes = tuple.extraBoxes;
-                var currentNumFreeSpaces = tuple.numFreeSpaces;
-                var currentRepeatBoxes = tuple.repeatBoxes;
-                if (visitedNodes.Contains(currentNode))
+                for (int x = 0; x < sData.Level.Width; x++)
                 {
-                    continue;
+                    spacesDistance[x, y] = int.MaxValue;
                 }
-                visitedNodes.Add(currentNode);
-                if (currentNode is BoxConflictNode currentBoxNode)
-                {
-                    if (currentBoxNode.Value.EntType == EntityType.BOX)
-                    {
-                        if (!sData.RoutesUsed.ContainsKey(currentBoxNode.Value.Ent.Pos))
-                        {
-                            currentExtraBoxes += 1;
-                        }
-                        else
-                        {
-                            currentRepeatBoxes += 1;
-                        }
+            }
+            foreach (var routePos in sData.RoutesUsed)
+            {
+                MergePosIntoDistanceGrid(sData, spacesDistance, routePos.Key, isFreeSpaceAvailable);
+            }
+            MergePosIntoDistanceGrid(sData, spacesDistance, conflict.Pos, isFreeSpaceAvailable);
 
-                    }
-                }
-                if (currentNode is FreeSpaceNode currentFreeSpaceNode)
+            for (int y = 0; y < sData.Level.Height; y++)
+            {
+                for (int x = 0; x < sData.Level.Width; x++)
                 {
-                    var newFreeSpacesCount = currentFreeSpaceNode.Value.FreeSpaces.Where(isFreeSpaceAvailable).Count();
-                    if (newFreeSpacesCount > 0)
-                    {
-                        currentNumFreeSpaces += newFreeSpacesCount;
-                        if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
-                        {
-                            if (currentExtraBoxes + currentRepeatBoxes < minExtraBoxes)
-                            {
-                                freeSpaceNodeToUse = currentFreeSpaceNode;
-                                minExtraBoxes = currentExtraBoxes + currentRepeatBoxes;
-                                totalExtraBoxes = currentExtraBoxes;
-                            }
-                            if (currentExtraBoxes == 0 && currentRepeatBoxes == 0)
-                            {
-                                break;
-                            }
-
-                        }
-
-                    }
-
-                }
-                foreach (var edge in currentNode.GetNodeEnds())
-                {
-                    var newNode = edge;
-                    (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) newTuple = (newNode, currentExtraBoxes, currentNumFreeSpaces, currentRepeatBoxes);
-                    bfsQueue.Enqueue(newTuple);
-                }
-                if (bfsQueue.Count == 0)
-                {
-                    howFarIntoFreeSpace += totalExtraBoxes;
+                    spacesDistance[x, y] = isFreeSpaceAvailable(new Point(x, y)) ? spacesDistance[x, y] : 0;
                 }
             }
 
-            if (freeSpaceNodeToUse == null)
+            foreach (var entity in sData.CurrentState.GetBoxes(sData.Level))
             {
-                throw new Exception("Not enough free space is available");
+                spacesDistance[entity.Pos.X, entity.Pos.Y] = 0;
             }
-            var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(isFreeSpaceAvailable).ToList();
-            Point freeSpacePointToUse = potentialFreeSpacePoints.First();
+
             int maxDistance = int.MinValue;
-            foreach (var FSP in potentialFreeSpacePoints)
+            for (int y = 0; y < sData.Level.Height; y++)
             {
-                var distancesMap = Precomputer.GetDistanceMap(sData.Level.Walls, FSP, false);
-                int minDistance = int.MaxValue;
-                foreach (var p in sData.RoutesUsed)
+                for (int x = 0; x < sData.Level.Width; x++)
                 {
-                    int distance = distancesMap[p.Key.X, p.Key.Y];
-                    minDistance = Math.Min(minDistance, distance == 0 ? int.MaxValue : distance);
-                }
-                if (maxDistance < minDistance)
-                {
-                    maxDistance = minDistance;
-                    freeSpacePointToUse = FSP;
-                    if (maxDistance >= howFarIntoFreeSpace + 1)
+                    if (spacesDistance[x, y] != int.MaxValue)
                     {
-                        break;
+                        maxDistance = Math.Max(maxDistance, spacesDistance[x, y]);
                     }
                 }
-
             }
 
-            #region Deprecated Closer FreeSpacePick Heuristic
-            // If 1) FreeSpacePoint was picked naively (default position)
-            // 2) there is an abundance of freespace
-            // 3) the FreeSpacePoint is far away from the conflict
-            // THEN place the FreeSpacePoint somewhere closer.
+            if (maxDistance == 0)
+            {
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
+            }
 
-            //if (false) // Disables heuristic
-            //    if (freeSpacePointToUse == potentialFreeSpacePoints.First()
-            //    && potentialFreeSpacePoints.Count > 5
-            //    && Point.ManhattenDistance(freeSpacePointToUse, conflict.Pos) > 3)
+            (Point firstFreeSpace, int freeSpaceCount)[] freeSpacesByDistance = new (Point, int)[maxDistance];
+            for (int y = 0; y < sData.Level.Height; y++)
+            {
+                for (int x = 0; x < sData.Level.Width; x++)
+                {
+                    int distance = spacesDistance[x, y];
+                    if (distance != int.MaxValue && distance != 0)
+                    {
+                        int index = distance - 1;
+                        if (freeSpacesByDistance[index].freeSpaceCount == 0)
+                        {
+                            freeSpacesByDistance[index].firstFreeSpace = new Point(x, y);
+                        }
+                        freeSpacesByDistance[index].freeSpaceCount++;
+                    }
+                }
+            }
+
+            if (howFarIntoFreeSpace < maxDistance)
+            {
+                if (freeSpacesByDistance[howFarIntoFreeSpace].freeSpaceCount != 0)
+                {
+                    if (freeSpacesByDistance[howFarIntoFreeSpace].firstFreeSpace == new Point(0, 0))
+                    {
+
+                    }
+                    return freeSpacesByDistance[howFarIntoFreeSpace].firstFreeSpace;
+                }
+            }
+
+            //int spacesSum = 0;
+            //for (int i = 0; i < freeSpacesByDistance.Length; i++)
+            //{
+            //    spacesSum += freeSpacesByDistance[i].freeSpaceCount;
+            //    if (spacesSum >= howFarIntoFreeSpace)
             //    {
-            //        int dist = int.MaxValue;
-            //        var conflictDistMap = Precomputer.GetDistanceMap(sData.Level.Walls, conflict.Pos, false);
-            //        foreach (var FSP in potentialFreeSpacePoints)
+            //        if (freeSpacesByDistance[i].freeSpaceCount != 0)
             //        {
-            //            // If placing a box eliminates a turning point/creates a corridor, skip it.
-            //            if (IsCorridor(sData.Level, FSP) && IsNextToTurningPoint(sData.Level, FSP))
-            //                continue;
-            //            if (conflictDistMap[FSP.X, FSP.Y] < dist)
-            //            {
-            //                dist = conflictDistMap[FSP.X, FSP.Y];
-            //                freeSpacePointToUse = FSP;
-            //            }
+            //            return freeSpacesByDistance[i].firstFreeSpace;
             //        }
             //    }
-            #endregion
+            //}
 
-            return freeSpacePointToUse;
+            if (freeSpacesByDistance[freeSpacesByDistance.Length - 1].freeSpaceCount == 0)
+            {
 
+            }
+            if (freeSpacesByDistance[freeSpacesByDistance.Length - 1].firstFreeSpace == new Point(0, 0))
+            {
+
+            }
+
+            return freeSpacesByDistance[freeSpacesByDistance.Length - 1].firstFreeSpace;
+        }
+
+        private static void MergePosIntoDistanceGrid(SolverData sData, int[,] spacesDistance, Point start, Func<Point, bool> isSpaceFree)
+        {
+            short[,] distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, start, false);
+            for (int y = 0; y < sData.Level.Height; y++)
+            {
+                for (int x = 0; x < sData.Level.Width; x++)
+                {
+                    if (distanceMap[x, y] != 0)
+                    {
+                        spacesDistance[x, y] = Math.Min(spacesDistance[x, y], distanceMap[x, y]);
+                    }
+                }
+            }
         }
 
         private static bool IsNextToTurningPoint(Level level, Point FSP)

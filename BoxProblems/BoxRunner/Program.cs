@@ -25,7 +25,7 @@ namespace BoxRunner
 
         private static string GetLevelPath(string levelFileName)
         {
-            List<string> files = GetFilePathsFromFolderRecursively("Levels");
+            List<string> files = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels");
             return files.Single(x => Path.GetFileName(x) == levelFileName);
         }
 
@@ -77,7 +77,7 @@ namespace BoxRunner
             // string levelPath = "MANulPoint.lvl";
 
             //Not enough free space is available
-            string levelPath = "SAAvicii.lvl";
+            //string levelPath = "SAAvicii.lvl";
             //string levelPath = "SAWallZ.lvl";
             //string levelPath = "SAgTHIRTEEN.lvl";
             //string levelPath = "SANulPoint.lvl";
@@ -91,7 +91,7 @@ namespace BoxRunner
 
 
             #region Mein Levels
-            //string levelPath = "SAVisualKei.lvl";
+            string levelPath = "MAVisualKei.lvl";
             //string levelPath = "MAVisualKei.lvl";
             #endregion
 

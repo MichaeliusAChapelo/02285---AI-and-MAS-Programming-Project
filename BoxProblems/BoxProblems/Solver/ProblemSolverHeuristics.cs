@@ -74,7 +74,7 @@ namespace BoxProblems.Solver
                 foreach (var goal in goals)
                 {
                     INode startnode = sData.CurrentConflicts.GetNodeFromPosition(goal.Ent.Pos);
-                    (int numConflicts, Entity goalEntity) = CalculateMinimumConflict(sData, startnode, goal.Ent, entitytype);
+                    (int numConflicts, Entity goalEntity) = CalculateMinimumConflict(sData, startnode, goal.Ent, goal.EntType == EntityType.AGENT_GOAL ? EntityType.AGENT : EntityType.BOX);
                     if (minimumConflict > numConflicts)
                     {
                         minimumConflict = numConflicts;
@@ -84,7 +84,6 @@ namespace BoxProblems.Solver
                             break;
                         }
                     }
-
                 }
             }
             else

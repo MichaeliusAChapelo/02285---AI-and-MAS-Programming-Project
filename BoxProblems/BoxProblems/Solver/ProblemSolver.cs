@@ -405,6 +405,7 @@ namespace BoxProblems.Solver
             SolverData sData = new SolverData(level, cancelToken);
             GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph, cancelToken);
+            //Console.WriteLine(priority.ToLevelString(level));
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
             var currentLayerNode = goalPriorityLinkedLayers.First;
             while (currentLayerNode != null)
@@ -425,13 +426,23 @@ namespace BoxProblems.Solver
                         var agentWithGoalType = sData.CurrentConflicts.Nodes.Where(x => x is BoxConflictNode boxNode && 
                                                                                         boxNode.Value.EntType == EntityType.AGENT && 
                                                                                         boxNode.Value.Ent.Type == goalToSolve.Ent.Type).Cast<BoxConflictNode>().ToList();
-                        var boxesWithAgentColor = sData.CurrentConflicts.Nodes.Where(x => x is BoxConflictNode boxNode &&
-                                                                                          boxNode.Value.EntType == EntityType.BOX &&
-                                                                                          boxNode.Value.Ent.Color == agentWithGoalType.First().Value.Ent.Color).ToList();
+                        var boxesWithGoalType = level.InitialState.GetBoxes(level).ToArray().Where(x => x.Color == agentWithGoalType.First().Value.Ent.Color).ToList();
+                        var unsolvedGoalsWithAgentColor = goalPriorityLinkedLayers.SelectMany(x => x.Goals.Where(y => boxesWithGoalType.Any(z => z.Type == y.Ent.Type) && y.Ent != goalToSolve.Ent)).ToList();
 
-                        if (agentWithGoalType.Count == 1 && boxesWithAgentColor.Count > 0)
+                        if (agentWithGoalType.Count == 1 && unsolvedGoalsWithAgentColor.Count > 0)
                         {
+                            currentLayer.Goals.Remove(goalToSolve);
+                            if (currentLayerNode.Next != null)
+                            {
+                                currentLayerNode.Next.Value.Goals.Add(goalToSolve);
+                            }
+                            else
+                            {
+                                var goalsInLayer = new HashSet<Goal>() { goalToSolve };
+                                goalPriorityLinkedLayers.AddAfter(currentLayerNode, new GoalPriorityLayer(goalsInLayer));
 
+                            }
+                            continue;
                         }
                     }
 
@@ -595,7 +606,7 @@ namespace BoxProblems.Solver
                             }
                         }
 
-                        if (currentLayer.Goals.Count > 1)
+                        if (currentLayer.Goals.Count(x => x.EntType == EntityType.BOX_GOAL) > 1)
                         {
                             currentLayer.Goals.Remove(goalToSolve);
                             if (currentLayerNode.Next != null)

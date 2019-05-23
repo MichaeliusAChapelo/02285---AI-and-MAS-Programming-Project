@@ -14,5 +14,10 @@ namespace BoxProblems
             this.Ent = ent;
             this.EntType = entType;
         }
+
+        public override string ToString()
+        {
+            return $"{Ent} {EntType}";
+        }
     }
 }

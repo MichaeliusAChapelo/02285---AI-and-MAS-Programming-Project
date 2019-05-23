@@ -24,6 +24,41 @@ namespace BoxProblems
             });
         }
 
+        public static void PrintGraphGroups(Level level, State state, List<List<INode>> groups)
+        {
+            string[] stateString = level.StateToString(state).Split(Environment.NewLine);
+
+            WriteLevelToConsole(level, state, pos =>
+            {
+                bool hasGroup = false;
+                foreach (var group in groups)
+                {
+                    foreach (var node in group)
+                    {
+                        if (node is FreeSpaceNode freeNode && freeNode.Value.FreeSpaces.Contains(pos))
+                        {
+                            hasGroup = true;
+                            goto done;
+                        }
+                        else if (node is BoxConflictNode boxNode && boxNode.Value.Ent.Pos == pos)
+                        {
+                            hasGroup = true;
+                            goto done;
+                        }
+                    }
+                }
+                done:
+                if (hasGroup)
+                {
+                    Console.BackgroundColor = ConsoleColor.Red;
+                }
+                else
+                {
+                    Console.BackgroundColor = ConsoleColor.Black;
+                }
+            });
+        }
+
         public static void PrintFreeSpace(Level level, State state, Dictionary<Point, int> freeSpaces)
         {
             string[] stateString = level.StateToString(state).Split(Environment.NewLine);

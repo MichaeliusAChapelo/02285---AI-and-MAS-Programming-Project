@@ -90,6 +90,19 @@ namespace BoxProblems.Solver
             else
             {
                 INode startnode = sData.CurrentConflicts.GetNodeFromPosition(entity.Value.Pos);
+                if (startnode is FreeSpaceNode)
+                {
+                    //Dictionary<Point, INode> positionToNode = sData.CurrentConflicts.getPositionToNode();
+                    //Console.WriteLine("\n\n\n Entity: " + entity.ToString());
+                    //foreach (KeyValuePair<Point, INode> node in positionToNode)
+                    //{
+                    //    Console.WriteLine("Point = {0}, Node = {1}", node.Key, node.Value.ToString());
+                    //}
+                    //if (entity.Value.Pos == new Point(13, 6))
+                    //{
+                    //
+                    //}
+                } 
                 (minimumConflict, minimumConflictEntity) = CalculateMinimumConflict(sData, startnode, entity.Value, entitytype);
             }
             return minimumConflictEntity;

@@ -1,4 +1,5 @@
 ﻿using BoxProblems.Graphing;
+using PriorityQueue;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -404,7 +405,6 @@ namespace BoxProblems.Solver
             SolverData sData = new SolverData(level, cancelToken);
             GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph, cancelToken);
-
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
             var currentLayerNode = goalPriorityLinkedLayers.First;
             while (currentLayerNode != null)
@@ -448,12 +448,13 @@ namespace BoxProblems.Solver
                     //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Ent.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
+                    //LevelVisualizer.PrintGraphGroups(sData.Level, sData.CurrentState, graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 &&
                         !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve) &&
                         mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal()))
                     {
                         var mainGroupInformation = new GroupInformation(mainGroup);
-                        List<Goal> goalsWithHigherPriority = new List<Goal>();
+                        bool isGroupOtherThenMainWithGoal = false;
                         foreach (var group in graphGroups)
                         {
                             if (group != mainGroup)
@@ -462,22 +463,17 @@ namespace BoxProblems.Solver
                                 {
                                     if (node is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal())
                                     {
-                                        goalsWithHigherPriority.Add(new Goal(boxNode.Value.Ent, boxNode.Value.EntType));
+                                        isGroupOtherThenMainWithGoal = true;
+                                        goto sdfsdfDone;
                                     }
                                 }
                             }
                         }
+                        sdfsdfDone:
 
-                        if (goalsWithHigherPriority.Count == 0)
+                        if (!isGroupOtherThenMainWithGoal)
                         {
-                            goalsWithHigherPriority.AddRange(currentLayer.Goals);
-                            goalsWithHigherPriority.Remove(goalToSolve);
-                            foreach (var higherGoal in goalsWithHigherPriority)
-                            {
-                                currentLayer.Goals.Remove(higherGoal);
-                            }
-
-                            if (goalsWithHigherPriority.Count == 0)
+                            if (currentLayer.Goals.Count == 1)
                             {
 
                                 sData.Level.AddWall(goalToSolve.Ent.Pos);
@@ -598,24 +594,21 @@ namespace BoxProblems.Solver
                                 //throw new Exception("level will be split by this action.");
                             }
                         }
-                        else
+
+                        if (currentLayer.Goals.Count > 1)
                         {
-                            foreach (var layer in goalPriorityLinkedLayers)
+                            currentLayer.Goals.Remove(goalToSolve);
+                            if (currentLayerNode.Next != null)
                             {
-                                foreach (var goal in goalsWithHigherPriority)
-                                {
-                                    layer.Goals.Remove(goal);
-                                }
+                                currentLayerNode.Next.Value.Goals.Add(goalToSolve);
+                            }
+                            else
+                            {
+                                var goalsInLayer = new HashSet<Goal>() { goalToSolve };
+                                goalPriorityLinkedLayers.AddAfter(currentLayerNode, new GoalPriorityLayer(goalsInLayer));
 
                             }
-                        }
-
-                        if (goalsWithHigherPriority.Count > 0)
-                        {
-                            goalPriorityLinkedLayers.AddBefore(currentLayerNode, new GoalPriorityLayer(goalsWithHigherPriority.ToHashSet()));
-                            currentLayerNode = currentLayerNode.Previous;
-                            goToNextLayer = false;
-                            break;
+                            continue;
                         }
                     }
 
@@ -788,15 +781,13 @@ namespace BoxProblems.Solver
                 sData.RemoveFromRoutesUsed(toMovePath);
             }
 
-            sData.CurrentState = sData.CurrentState.GetCopy();
-            sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
+
 
             Point? newAgentPos = null;
             if (agentIndex.HasValue) // then set agent pos
             {
                 agentToUse = sData.CurrentState.Entities[agentIndex.Value];
-
-                List<Point> possibleAgentPositions = new List<Point>();
+                List<(Point,bool)> possibleAgentPositions = new List<(Point,bool)>();
                 foreach (var dirDelta in Direction.NONE.DirectionDeltas())
                 {
                     Point possibleAgentPos = goal + dirDelta;
@@ -813,33 +804,47 @@ namespace BoxProblems.Solver
                         continue;
                     }
 
-                    //Can't place the box on another agent or box
+                    //Can may place the box on another agent or box
                     INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
-                    if (nodeAtPos is BoxConflictNode boxNode &&
-                        (boxNode.Value.EntType.IsMoveable()) &&
-                        boxNode.Value.Ent != toMove &&
-                        boxNode.Value.Ent != agentToUse.Value)
+                    if (nodeAtPos is BoxConflictNode boxNode && boxNode.Value.EntType.IsMoveable())
                     {
-                        continue;
+                        if (boxNode.Value.Ent == toMove || boxNode.Value.Ent == agentToUse.Value)
+                        {
+                            possibleAgentPositions.Add((possibleAgentPos, false));
+
+                        }
+                        else
+                        {
+                            possibleAgentPositions.Add((possibleAgentPos, true));
+                        }
+                    }
+                    else
+                    {
+                        possibleAgentPositions.Add((possibleAgentPos,false));
                     }
 
-                    possibleAgentPositions.Add(possibleAgentPos);
+                    
                 }
 
                 if (possibleAgentPositions.Count == 0)
                 {
-                    throw new Exception("No agent position found.");
+                    throw new Exception("No agent position found at the goal");
                 }
-
                 //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
                 bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
+                bool canUturn = CanUturn(sData, agentToUse.Value.Pos);
+                if (!canUturn)
+                {
+                     startPush = startPush && !pathToBox.Contains(goal);
+                }
 
                 //If the agent starts by pushing then it should also try to end by pushing
                 //as turning around to pull is more moves
-                bool isPushPossible = false;
+                bool positionFound = false;
+                bool occupiedPositionFound = false;
                 if (startPush)
                 {
-                    foreach (var endAgentPos in possibleAgentPositions)
+                    foreach ((var endAgentPos,var positionOccupied) in possibleAgentPositions)
                     {
                         // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
                         if (endAgentPos == toMove.Pos)
@@ -848,33 +853,107 @@ namespace BoxProblems.Solver
                         //If the box path contains the agents end position then the agent must've pushed the box
                         if (toMovePath.Contains(endAgentPos))
                         {
+                            if (positionOccupied)
+                            {
+                                occupiedPositionFound = true;
+                                continue;
+                            }
                             newAgentPos = endAgentPos;
-                            isPushPossible = true;
+                            positionFound = true;
                             break;
                         }
                     }
                 }
                 else
                 {
-                    foreach (var endAgentPos in possibleAgentPositions)
+                    foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
                     {
                         if (!toMovePath.Contains(endAgentPos))
                         {
+                            if (positionOccupied)
+                            {
+                                occupiedPositionFound = true;
+                                continue;
+                            }
                             newAgentPos = endAgentPos;
-                            isPushPossible = true;
+                            positionFound = true;
                             break;
                         }
                     }
                 }
 
                 //If push wasn't possible then chose one of the possible pull positions
-                if (!isPushPossible)
+                if (!positionFound && possibleAgentPositions.Count(x => !x.Item2)>0)
                 {
-                    newAgentPos = possibleAgentPositions.First();
-                }
+                    if (canUturn)
+                    {
+                        newAgentPos = possibleAgentPositions.First(x => !x.Item2).Item1;
+                        positionFound = true;
+                    }
 
+                }
+                if (!positionFound && possibleAgentPositions.Count(x => x.Item2)==0)
+                {
+                    newAgentPos = possibleAgentPositions.First().Item1;
+                }
+                if (!positionFound && occupiedPositionFound)
+                {
+                    if (startPush)
+                    {
+                        foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                        {
+                            // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
+                            if (endAgentPos == toMove.Pos)
+                                continue;
+
+                            //If the box path contains the agents end position then the agent must've pushed the box
+                            if (toMovePath.Contains(endAgentPos))
+                            {
+                                newAgentPos = endAgentPos;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                        {
+                            if (!toMovePath.Contains(endAgentPos))
+                            {
+                                newAgentPos = endAgentPos;
+
+                                break;
+                            }
+                        }
+                    }
+                    var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
+                    var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;
+                    int entityOnAgentEndPositionIndex = sData.GetEntityIndex(entityOnAgentEndPosition);
+                    sData.AddToRoutesUsed(toMovePath);
+                    sData.AddToRoutesUsed(pathToBox);
+                    sData.AddToFreePath(goal);
+                    Point freeSpace = GetFreeSpaceToMoveConflictTo(entityOnAgentEndPosition, sData);
+                    sData.AddToFreePath(freeSpace);
+                    List<HighlevelMove> entityOnAgentEndPositionSolution;
+                    if (!TrySolveSubProblem(entityOnAgentEndPositionIndex, freeSpace, entityOnAgentEndPositionType == EntityType.AGENT, out entityOnAgentEndPositionSolution, sData, depth+1, false))
+                    {
+                        throw new Exception("Could not move wrong box from goal.");
+                    }
+                    solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
+                    sData.RemoveFromRoutesUsed(toMovePath);
+                    sData.RemoveFromRoutesUsed(pathToBox);
+                    sData.RemoveFromFreePath(freeSpace);
+                    sData.RemoveFromFreePath(goal);
+
+                }
+                            }
+            sData.CurrentState = sData.CurrentState.GetCopy();
+            sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
+            if (agentIndex.HasValue)
+            {
                 sData.CurrentState.Entities[agentIndex.Value] = sData.CurrentState.Entities[agentIndex.Value].Move(newAgentPos.Value);
             }
+
             //Console.WriteLine(sData.Level.WorldToString(sData.Level.GetWallsAsWorld()));
 
 
@@ -882,7 +961,7 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos));
-            //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+            //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
             return true;
         }
@@ -1073,6 +1152,39 @@ namespace BoxProblems.Solver
             }
 
             throw new Exception("Found no path from  entity to goal.");
+        }
+        private static bool CanUturn(SolverData sData, Point agentpos)
+        {
+            if (!IsCorridor(sData.Level, agentpos))
+            {
+                return true;
+            }
+            var turningPoints = new PriorityQueue<(int x, int y), int>();
+            int x, y;
+            for (x = 1; x < sData.Level.Width - 1; x++)
+                for (y = 1; y < sData.Level.Height - 1; y++)
+                    if (!sData.Level.Walls[x, y] && !IsCorridor(sData.Level,new Point(x, y)))
+                        turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentpos));
+            if (turningPoints.Count==0)
+            {
+                return false;
+            }
+            else
+            {
+                (x,y) = turningPoints.DequeueWithPriority().Value;
+                var pathToTurnIntoPoint = Precomputer.GetPath(sData.Level, agentpos, new Point(x, y), false).ToList();
+                while (pathToTurnIntoPoint.Count == 1)
+                { // Found no path to this turning point; Pick another.
+                    if (turningPoints.Count == 0)
+                        return false;
+                    (x, y) = turningPoints.DequeueWithPriority().Value;
+                    var turnPoint = new Point(x, y);
+
+                    pathToTurnIntoPoint = Precomputer.GetPath(sData.Level, agentpos, new Point(x, y), false).ToList();
+
+                }
+            }
+            return true;
         }
     }
 }

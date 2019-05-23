@@ -98,7 +98,6 @@ namespace BoxProblems
 
         public List<AgentCommand> CreateSolutionCommands(HighlevelMove plan, Point goalPos, int agentIndex, int boxIndex)
         {
-
             List<AgentCommand> commands = new List<AgentCommand>();
 
             var agent = plan.UsingThisAgent.Value;
@@ -109,7 +108,11 @@ namespace BoxProblems
             // Avoids stupid square problems.
             if (Point.ManhattenDistance(box.Pos, goalPos) == 1)
             {
-                if (box.Pos == agentEndPos)
+                if (IsStraightCorridor(goalPos) || IsStraightCorridor(box.Pos))
+                {
+                    // Do nothing
+                }
+                else if (box.Pos == agentEndPos)
                     // Force agent's pathfinding to box to avoid the goal.
                     Level.AddWall(goalPos);
                 else if (Point.ManhattenDistance(agentEndPos, goalPos) == 1)
@@ -139,7 +142,7 @@ namespace BoxProblems
             bool startPull = boxToAgentEnd.Contains(agentNextToBox);
             bool endPull = boxToAgentEnd.Contains(goalPos);
 
-            if (agent.Pos == agentNextToBox && agentNextToBox == goalPos) // If agent blocks goal position
+            if (agentNextToBox == goalPos) // If agent blocks goal position
                 startPull = true; // Forces agent to locate distant U-turn location, pull at U-turn, and push to goal.
 
             List<Point> firstPart = null;
@@ -278,11 +281,14 @@ namespace BoxProblems
 
             // Find spot beside turning point.
             foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
-                if (!Level.IsWall(turnPoint.Value + dirDelta))
+            {
+                Point dirP = turnPoint.Value + dirDelta;
+                if (!Level.IsWall(dirP) && dirP != agentNextToBox)
                 {
                     turnIntoPoint = turnPoint.Value + dirDelta;
                     break;
                 }
+            }
 
             // Reach turning point.
             var pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
@@ -481,6 +487,12 @@ namespace BoxProblems
             if (Level.Walls[p.X, p.Y + 1]) walls++;
             if (Level.Walls[p.X, p.Y - 1]) walls++;
             return (2 <= walls);
+        }
+
+        public bool IsStraightCorridor(Point p)
+        {
+            return (Level.Walls[p.X + 1, p.Y] && Level.Walls[p.X - 1, p.Y])
+                || (Level.Walls[p.X, p.Y + 1] && Level.Walls[p.X, p.Y - 1]);
         }
 
         private Point FindSpaceToTurn(List<Point> solutionPath, Point turnPos, Point goalPos, Point agentNextToBox)

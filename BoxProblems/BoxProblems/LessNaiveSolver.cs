@@ -66,7 +66,6 @@ namespace BoxProblems
             return solution;
         }
 
-        #region Abstract Moves to Specific Commands
 
         public List<AgentCommand> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState, int agentIndex)
         {
@@ -99,19 +98,43 @@ namespace BoxProblems
 
         public List<AgentCommand> CreateSolutionCommands(HighlevelMove plan, Point goalPos, int agentIndex, int boxIndex)
         {
+
             List<AgentCommand> commands = new List<AgentCommand>();
 
             var agent = plan.UsingThisAgent.Value;
             var agentEndPos = plan.AgentFinalPos.Value;
             var box = plan.MoveThis;
+            List<Point> agentToBox = null;
 
-            var agentToBox = RunAStar(agent.Pos, box.Pos);
+            // Avoids stupid square problems.
+            if (Point.ManhattenDistance(box.Pos, goalPos) == 1)
+            {
+                if (box.Pos == agentEndPos)
+                    // Force agent's pathfinding to box to avoid the goal.
+                    Level.AddWall(goalPos);
+                else if (Point.ManhattenDistance(agentEndPos, goalPos) == 1)
+                { // Force agent's position next to box onto the goal.
+                    Level.AddWall(box.Pos);
+                    agentToBox = RunAStar(agent.Pos, goalPos);
+                    agentToBox.Add(box.Pos);
+                }
+            }
+
+            if (agentToBox == null)
+                agentToBox = RunAStar(agent.Pos, box.Pos);
+
+            Level.RemoveWall(goalPos);
+            Level.RemoveWall(box.Pos);
+
             //Remove box location from the path as the path should end next to the box
             agentToBox.RemoveAt(agentToBox.Count - 1);
             MoveToLocation(agentToBox, commands, agentIndex);
             Point agentNextToBox = agentToBox[agentToBox.Count - 1];
 
             var boxToAgentEnd = RunAStar(box.Pos, agentEndPos);
+
+            if (boxToAgentEnd.Count == 3 && agentNextToBox == goalPos && boxToAgentEnd[1] != goalPos)
+                boxToAgentEnd[1] = goalPos; // If pathfinding dun goofed, then force agent to pull through goal position when it OBVIOUSLY should.
 
             bool startPull = boxToAgentEnd.Contains(agentNextToBox);
             bool endPull = boxToAgentEnd.Contains(goalPos);
@@ -403,7 +426,7 @@ namespace BoxProblems
             {
                 if (agent.Pos == nextPos)
                 {
-                    //Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    Console.Error.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
                     throw new Exception("Can't move into an agent.");
                 }
             }
@@ -412,7 +435,7 @@ namespace BoxProblems
             {
                 if (box.Pos == nextPos)
                 {
-                    //Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    //Console.Error.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
                     throw new Exception("Can't move into a box.");
                 }
             }
@@ -478,7 +501,6 @@ namespace BoxProblems
             throw new Exception("Agent pos was corridor, but no extra space was found.");
         }
 
-        #endregion
 
 
     }

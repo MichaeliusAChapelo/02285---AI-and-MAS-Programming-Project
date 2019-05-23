@@ -45,7 +45,9 @@ namespace BoxProblems
 
                 if (plan.UsingThisAgent.HasValue)
                 {
-                    if (Agents[agentIndex] != plan.UsingThisAgent.Value.Move(plan.AgentFinalPos.Value))
+                    var a = plan.UsingThisAgent.Value.Move(plan.AgentFinalPos.Value);
+                    var b = Agents[agentIndex];
+                    if (b != a)
                     {
                         throw new Exception("reee");
                     }
@@ -142,7 +144,7 @@ namespace BoxProblems
 
                 // If we failed to find a turn point on the route
                 if (!turnPoint.HasValue)
-                    FindDistantTurningPoint(plan, agentNextToBox, agentEndPos, ref turnPoint, ref turnIntoPoint, box.Pos, goalPos, commands, agentIndex, boxIndex, ref boxToAgentEnd, ref startPull, ref count, ref skipFirst);
+                    FindDistantTurningPoint(plan, ref agentNextToBox, agentEndPos, ref turnPoint, ref turnIntoPoint, box.Pos, goalPos, commands, agentIndex, boxIndex, ref boxToAgentEnd, ref startPull, ref endPull, ref count, ref skipFirst);
 
                 turnIntoPoint = FindSpaceToTurn(boxToAgentEnd, turnPoint.Value, goalPos, agentNextToBox);
 
@@ -207,7 +209,7 @@ namespace BoxProblems
 
         private void FindDistantTurningPoint(
             HighlevelMove plan,
-            Point agentNextToBox,
+            ref Point agentNextToBox,
             Point agentEndPos,
             ref Point? turnPoint,
             ref Point turnIntoPoint,
@@ -218,6 +220,7 @@ namespace BoxProblems
             int boxIndex,
             ref List<Point> boxToAgentEnd,
             ref bool startPull,
+            ref bool endPull,
             ref int count,
             ref int skipFirst
             )
@@ -233,19 +236,19 @@ namespace BoxProblems
 
             if (turningPoints.Count == 0)
             {
-                throw new Exception("Failed to find any possible distant turning point, possibly blocked by other agents.");
+                // Try disable blocking agents
+                foreach (Entity e in plan.CurrentState.GetAgents(Level))
+                    Level.RemoveWall(e.Pos);
 
-                //// Try disable blocking agents
-                //foreach (Entity e in plan.CurrentState.GetAgents(Level))
-                //    Level.RemoveWall(e.Pos);
+                for (x = 1; x < Level.Width - 1; x++)
+                    for (y = 1; y < Level.Height - 1; y++)
+                        if (!Level.Walls[x, y] && !IsCorridor(x, y))
+                            turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentNextToBox) + Point.ManhattenDistance(x, y, agentEndPos));
 
-                //for (x = 1; x < Level.Width - 1; x++)
-                //    for (y = 1; y < Level.Height - 1; y++)
-                //        if (!Level.Walls[x, y] && !IsCorridor(x, y))
-                //            turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentNextToBox) + Point.ManhattenDistance(x, y, agentEndPos));
-
-                //if (turningPoints.Count == 0)
-                //    throw new Exception("Failed to find a turning point.");
+                if (turningPoints.Count == 0)
+                    throw new Exception("Failed to find any turning points in level, probably due to boxes.");
+                else
+                    throw new Exception("Failed to find any possible distant turning point, because of blockage by agents.");
             }
             (x, y) = turningPoints.DequeueWithPriority().Value;
             turnPoint = new Point(x, y);
@@ -260,17 +263,47 @@ namespace BoxProblems
 
             // Reach turning point.
             var pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
-            if (!pathToTurnIntoPoint.Contains(agentNextToBox))
-                PushOnPath(pathToTurnIntoPoint, agentNextToBox, commands, agentIndex, boxIndex);
-            else
-            {
-                throw new Exception("Pulling to faraway turn-point not yet implemented.");
-                // Logically, this case should never happen.
-                // If the agent is blocking the goal position, then the agent must push the box to some U-turn point, and push it back to goal pos.
+
+            while (pathToTurnIntoPoint.Count == 1)
+            { // Found no path to this turning point; Pick another.
+                if (turningPoints.Count == 0)
+                    throw new Exception("Distant turning point exists, but none can be reached due to blockage by other boxes.");
+                (x, y) = turningPoints.DequeueWithPriority().Value;
+                turnPoint = new Point(x, y);
+
+                // Find spot beside turning point.
+                foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
+                    if (!Level.IsWall(turnPoint.Value + dirDelta))
+                    {
+                        turnIntoPoint = turnPoint.Value + dirDelta;
+                        break;
+                    }
+
+                pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
             }
 
-            // Rerun initial code from faraway position.
-            boxToAgentEnd = RunAStar(turnIntoPoint, agentEndPos);
+            startPull = !pathToTurnIntoPoint.Contains(agentNextToBox);
+
+            if (startPull)
+            {
+
+                //if (!pathToTurnIntoPoint.Contains(agentNextToBox))
+                PushOnPath(pathToTurnIntoPoint, agentNextToBox, commands, agentIndex, boxIndex);
+                Agents[agentIndex] = Agents[agentIndex].Move(turnPoint.Value);
+                boxToAgentEnd = RunAStar(turnIntoPoint, agentEndPos);
+            }
+            else
+            {
+
+                // SARegExAZ is an excellent example... of a mess.
+                PullOnPath(pathToTurnIntoPoint, commands, agentIndex, boxIndex);
+                Agents[agentIndex] = Agents[agentIndex].Move(turnIntoPoint);
+                boxToAgentEnd = RunAStar(turnPoint.Value, agentEndPos);
+            }
+
+            agentNextToBox = Agents[agentIndex].Pos; // Agent is always next to box.
+            endPull = boxToAgentEnd.Contains(goalPos);
+            startPull = !endPull;
 
             count = 0;
             skipFirst = startPull ? 1 : 0;

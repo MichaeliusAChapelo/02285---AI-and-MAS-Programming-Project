@@ -45,12 +45,54 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipServerLaunch = false;
-            bool Parallelize = true;
+            ServerCommunicator.SkipServerLaunch = true;
+            bool Parallelize = false;
+
+            // Failed to find any possible distant turning point, possibly blocked by other agents.
+            // string levelPath = "MANOAsArk.lvl";
+
+            // Failed to find the agent.
+            // string levelPath = "MAOneOneTwo.lvl";
+
+            // Index was outside the bounds of the array.
+            // string levelPath = "SAGroupName.lvl";
+
+            // sub problem depth limit reached.
+            // string levelPath = "MAGroupName.lvl";
+
+            // reee
+            // string levelPath = "SARegExAZ.lvl";
+            // string levelPath = "MABob.lvl";
+
+            // Pulling to faraway turn-point not yet implemented.
+            //string levelPath = "MASoulman.lvl";
+            //string levelPath = "SAOneOneTwo.lvl";
+
+            // Found no path from  entity to goal.
+            // string levelPath = "SAAIMAS.lvl";
+            // string levelPath = "SAPOPstars.lvl";
+
+            // Can't move into agent
+            // string levelPath = "MAgroup.lvl";
+            // string levelPath = "MANulPoint.lvl";
+
+            //Not enough free space is available
+            string levelPath = "SAAvicii.lvl";
+            //string levelPath = "SAWallZ.lvl";
+            //string levelPath = "SAgTHIRTEEN.lvl";
+            //string levelPath = "SANulPoint.lvl";
+            //string levelPath = "SATheBTeam.lvl";
+            //string levelPath = "MAgTHIRTEEN.lvl";
+            //string levelPath = "MAMKM.lvl";
+            //string levelPath = "MASubpoena.lvl";
+            //string levelPath = "MAMASAI.lvl";
+
+
+
 
             #region Mein Levels
             //string levelPath = "SAVisualKei.lvl";
-            string levelPath = "MAVisualKei.lvl";
+            //string levelPath = "MAVisualKei.lvl";
             #endregion
 
             #region Optimize these

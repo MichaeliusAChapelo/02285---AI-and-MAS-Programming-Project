@@ -27,14 +27,14 @@ namespace BoxPerformance
 
         static void Main(string[] args)
         {
-            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels");
+            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels");
             ConcurrentBag<SolveStatistic> statisticsBag = new ConcurrentBag<SolveStatistic>();
 
             Stopwatch watch = new Stopwatch();
             watch.Start();
             Parallel.ForEach(filePaths, x =>
             {
-                var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(10), false);
+                var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(180), false);
 
                 if (statistic.Status == SolverStatus.SUCCESS)
                 {

@@ -43,117 +43,88 @@ namespace BoxRunner
             }
         }
 
-        private static void InteractiveConsole()
-        {
-            File.WriteAllText(communicatorPath, string.Empty);
-            Console.WriteLine("Type your commands here:");
-            List<string> history = new List<string>();
-            while (true)
-            {
-                var s = Console.ReadLine();
-
-                if (s == "save")
-                    File.WriteAllLines(savePath, history);
-                if (s == "load")
-                    File.WriteAllLines(communicatorPath, File.ReadAllLines(savePath));
-                else if (s.Contains("LFront"))
-                {
-                    var a = BoxSwimming.LeftHandBoxSwimming(s.Last());
-                    history.AddRange(a);
-                    File.WriteAllLines(communicatorPath, a);
-                }
-                else if (s.Contains("RFront"))
-                {
-                    var a = BoxSwimming.RightHandBoxSwimming(s.Last());
-                    history.AddRange(a);
-                    File.WriteAllLines(communicatorPath, a);
-                }
-                else if (s.Contains("LRot"))
-                {
-                    var a = BoxSwimming.SwimLeft(s.Last());
-                    history.AddRange(a);
-                    File.WriteAllLines(communicatorPath, a);
-                }
-                else if (s.Contains("RRot"))
-                {
-                    var a = BoxSwimming.SwimRight(s.Last());
-                    history.AddRange(a);
-                    File.WriteAllLines(communicatorPath, a);
-                }
-                else
-                {
-                    history.Add(s);
-                    File.WriteAllText(communicatorPath, s);
-                }
-            }
-        }
-
-        private static void ServerReceiveInteractiveConsole(ServerCommunicator serverCom)
-        {
-            //serverCom.SendCommands(new string[4] { "Pull(E,N)", "Push(N,W)", "Pull(S,E)", "Push(E,N)" });
-            serverCom.SendCommands(new string[1] { "NoOp" });
-            string[] s;
-            while (true)
-            {
-                System.Threading.Thread.Sleep(1000);
-                s = File.ReadAllLines(communicatorPath);
-                if (s.Length == 0) continue;
-                if (s[0] == "end") break;
-
-                serverCom.SendCommands(s);
-                File.WriteAllText(communicatorPath, string.Empty);
-            }
-        }
-
-        // Set to suitable folders before enabling Interactive Console.
-        const string communicatorPath = @"C:\Meine Items\Coding Ambitions\8. Semester\02285 Box Problems\Box Problem Solver\Communicator.txt";
-        const string savePath = @"C:\Meine Items\Coding Ambitions\8. Semester\02285 Box Problems\Box Problem Solver\saved.txt";
-
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipConsoleRead = true;
-            bool InteractiveConsoleEnable = false; // WARNING: Set const folder paths above before enabling!
-            bool Parallelize = true;
+            ServerCommunicator.SkipServerLaunch = true;
+            bool Parallelize = false;
 
-            //string levelPath = "MABahaMAS.lvl";
-            //string levelPath = "MAExample.lvl";
-            //string levelPath = "friendofDFS.lvl";
-            //string levelPath = "SAKarlMarx.lvl";
-            //string levelPath = "SAExample.lvl";
-            //string levelPath = "SACrunch.lvl";
-            //string levelPath = "MAPullPush.lvl";
-            //string levelPath = "MAFiveWalls.lvl";
-            //string levelPath = "MAPullPush2.lvl";
-            //string levelPath = "SAsoko3_32.lvl";
-            //string levelPath = "MACorridor.lvl";
-            //string levelPath = "SAlabyrinthOfStBertin.lvl";
-            //string levelPath = "MAKarlMarx.lvl";'
+            // Failed to find any possible distant turning point, possibly blocked by other agents.
+            // string levelPath = "MANOAsArk.lvl";
+
+            // Failed to find the agent.
+            // string levelPath = "MAOneOneTwo.lvl";
+
+            // Index was outside the bounds of the array.
+            // string levelPath = "SAGroupName.lvl";
+
+            // sub problem depth limit reached.
+            // string levelPath = "MAGroupName.lvl";
+
+            // reee
+            // string levelPath = "SARegExAZ.lvl";
+            // string levelPath = "MABob.lvl";
+
+            // Pulling to faraway turn-point not yet implemented.
+            //string levelPath = "MASoulman.lvl";
+            //string levelPath = "SAOneOneTwo.lvl";
+
+            // Found no path from  entity to goal.
+            // string levelPath = "SAAIMAS.lvl";
+            // string levelPath = "SAPOPstars.lvl";
+
+            // Can't move into agent
+            // string levelPath = "MAgroup.lvl";
+            // string levelPath = "MANulPoint.lvl";
+
+            //Not enough free space is available
+            string levelPath = "SAAvicii.lvl";
+            //string levelPath = "SAWallZ.lvl";
+            //string levelPath = "SAgTHIRTEEN.lvl";
+            //string levelPath = "SANulPoint.lvl";
+            //string levelPath = "SATheBTeam.lvl";
+            //string levelPath = "MAgTHIRTEEN.lvl";
+            //string levelPath = "MAMKM.lvl";
+            //string levelPath = "MASubpoena.lvl";
+            //string levelPath = "MAMASAI.lvl";
+
+
+
+
+            #region Mein Levels
             //string levelPath = "SAVisualKei.lvl";
-            //string levelPath = "SALeo.lvl";
-            //string levelPath = "SAOmnics.lvl";
-            string levelPath = "SAEasyPeasy.lvl";
+            //string levelPath = "MAVisualKei.lvl";
+            #endregion
+
+            #region Optimize these
+            //string levelPath = "SAanagram.lvl";
+            //string levelPath = "SAtesuto.lvl";
+            #endregion
+
+            #region Bugfix
+            //string levelPath = "MACorridor.lvl";
+            //string levelPath = "SAsimple2.lvl";
+            //string levelPath = "SADangerbot.lvl"; 
+            #endregion
+
             //Not enough free space
             //string levelPath = "SAGroupOne.lvl";
 
             string convertedLevelPath = "temp.lvl";
 
             ServerCommunicator serverCom = new ServerCommunicator();
-            if (args.Length == 0 && !ServerCommunicator.SkipConsoleRead)
+            if (args.Length == 0 && !ServerCommunicator.SkipServerLaunch)
             {
                 levelPath = GetLevelPath(levelPath);
                 ConvertFilesToCorrectFormat(levelPath, convertedLevelPath);
 
                 serverCom.StartServer(convertedLevelPath);
-
-                if (InteractiveConsoleEnable)
-                    InteractiveConsole();
             }
             else
             {
                 ServerCommunicator.GiveGroupNameToServer();
 
                 Level level;
-                if (ServerCommunicator.SkipConsoleRead)
+                if (ServerCommunicator.SkipServerLaunch)
                 {
                     levelPath = GetLevelPath(levelPath);
                     ConvertFilesToCorrectFormat(levelPath, convertedLevelPath);
@@ -162,12 +133,6 @@ namespace BoxRunner
                 else
                 {
                     level = ServerCommunicator.GetLevelFromServer();
-                }
-
-                if (InteractiveConsoleEnable)
-                {
-                    ServerReceiveInteractiveConsole(serverCom);
-                    return;
                 }
 
                 var highLevelCommands = ProblemSolver.SolveLevel(level, TimeSpan.FromHours(1), false);
@@ -180,10 +145,8 @@ namespace BoxRunner
                     var finalCommands = CommandParallelizer.Parallelize(lowLevelCommands, level);
                     serverCom.SendCommands(finalCommands);
                 }
-
                 Console.Read();
                 return;
-                // Michaelius ENDO
             }
         }
     }

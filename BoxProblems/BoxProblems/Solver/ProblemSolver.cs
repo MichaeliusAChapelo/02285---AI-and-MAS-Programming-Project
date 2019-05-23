@@ -132,20 +132,36 @@ namespace BoxProblems.Solver
                 {
                     Parallel.ForEach(levels, x =>
                     {
-                        var solution = SolvePartialLevel(x, cancelSource.Token);
-                        solution = HighLevelOptimizer.Optimize(solution);
-                        //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(solution);
+                        if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
+                        {
+                            (new BoxSwimmingSolver(x, new Point())).Solve(); // Set point to agent pos goal.
+                            solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
+                        }
+                        else
+                        {
+                            var solution = SolvePartialLevel(x, cancelSource.Token);
+                            solution = HighLevelOptimizer.Optimize(solution);
+                            //WriteToFile(optimizedSolution);
+                            solutionPieces.Add(solution);
+                        }
                     });
                 }
                 else
                 {
                     foreach (var x in levels)
                     {
-                        var solution = SolvePartialLevel(x, cancelSource.Token);
-                        solution = HighLevelOptimizer.Optimize(solution);
-                        //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(solution);
+                        if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
+                        {
+                            (new BoxSwimmingSolver(x, new Point())).Solve(); // Set point to agent pos goal.
+                            solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
+                        }
+                        else
+                        {
+                            var solution = SolvePartialLevel(x, cancelSource.Token);
+                            solution = HighLevelOptimizer.Optimize(solution);
+                            //WriteToFile(optimizedSolution);
+                            solutionPieces.Add(solution);
+                        }
                     }
                 }
             }
@@ -378,12 +394,11 @@ namespace BoxProblems.Solver
                     //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
-                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && 
+                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 &&
                         !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve) &&
                         mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
                     {
                         var mainGroupInformation = new GroupInformation(mainGroup);
-                        bool movedSomething = false;
                         List<Entity> goalsWithHigherPriority = new List<Entity>();
                         foreach (var group in graphGroups)
                         {
@@ -479,7 +494,7 @@ namespace BoxProblems.Solver
                                             {
                                                 continue;
                                             }
-                                            
+
                                             BoxConflictNode boxNode = (BoxConflictNode)iNode;
 
                                             if (boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type != goalToSolve.Type)
@@ -492,7 +507,7 @@ namespace BoxProblems.Solver
                                                 else
                                                 {
                                                     int boxesInMain = 0;
-                                                    if (mainGroupInformation.boxeTypes.TryGetValue(boxNode.Value.Ent.Type,out boxesInMain))
+                                                    if (mainGroupInformation.boxeTypes.TryGetValue(boxNode.Value.Ent.Type, out boxesInMain))
                                                     {
                                                         if (boxesInMain >= boxesNeeded)
                                                         {
@@ -520,7 +535,6 @@ namespace BoxProblems.Solver
                                                 throw new Exception("Could not move wrong box from goal.");
                                             }
                                             solution.AddRange(boxOnGoalSolution);
-                                            movedSomething = true;
                                         }
                                     }
                                 }
@@ -532,7 +546,6 @@ namespace BoxProblems.Solver
                         }
                         else
                         {
-                            movedSomething = true;
                             foreach (var layer in goalPriorityLinkedLayers)
                             {
                                 foreach (var goal in goalsWithHigherPriority)
@@ -543,7 +556,7 @@ namespace BoxProblems.Solver
                             }
                         }
 
-                        if (movedSomething)
+                        if (goalsWithHigherPriority.Count > 0)
                         {
                             goalPriorityLinkedLayers.AddBefore(currentLayerNode, new GoalPriorityLayer(goalsWithHigherPriority.ToHashSet()));
                             currentLayerNode = currentLayerNode.Previous;
@@ -584,7 +597,7 @@ namespace BoxProblems.Solver
                     }
 
 
-                    
+
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
                     Entity box = GetBoxToSolveProblem(sData, goalToSolve);
@@ -656,6 +669,16 @@ namespace BoxProblems.Solver
                 level.RemovePermanentWall(goal.Pos);
                 level.RemoveWall(goal.Pos);
             }
+
+#if DEBUG
+            foreach (var goal in level.Goals)
+            {
+                if (!sData.CurrentState.GetBoxes(sData.Level).ToArray().Any(x => x.Pos == goal.Pos && x.Type == goal.Type))
+                {
+                    throw new Exception("Didn't fix all goals");
+                }
+            }
+#endif
 
             return new HighlevelLevelSolution(solution, sData.SolutionGraphs, level);
         }
@@ -741,10 +764,10 @@ namespace BoxProblems.Solver
 
                     //Can't place the box on another agent or box
                     INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
-                    if (nodeAtPos is BoxConflictNode boxNode && 
-                        (boxNode.Value.EntType == EntityType.AGENT || 
-                         boxNode.Value.EntType == EntityType.BOX) && 
-                        boxNode.Value.Ent != toMove && 
+                    if (nodeAtPos is BoxConflictNode boxNode &&
+                        (boxNode.Value.EntType == EntityType.AGENT ||
+                         boxNode.Value.EntType == EntityType.BOX) &&
+                        boxNode.Value.Ent != toMove &&
                         boxNode.Value.Ent != agentToUse.Value)
                     {
                         continue;

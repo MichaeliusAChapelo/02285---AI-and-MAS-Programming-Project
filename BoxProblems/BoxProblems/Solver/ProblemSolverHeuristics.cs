@@ -328,32 +328,32 @@ namespace BoxProblems.Solver
 
             }
 
+            #region Deprecated Closer FreeSpacePick Heuristic
             // If 1) FreeSpacePoint was picked naively (default position)
             // 2) there is an abundance of freespace
             // 3) the FreeSpacePoint is far away from the conflict
             // THEN place the FreeSpacePoint somewhere closer.
 
-            if (false) // Disables heuristic
-                if (freeSpacePointToUse == potentialFreeSpacePoints.First()
-            && potentialFreeSpacePoints.Count > 5
-            && Point.ManhattenDistance(freeSpacePointToUse, conflict.Pos) > 3)
-                {
-                    int dist = int.MaxValue;
-                    var conflictDistMap = Precomputer.GetDistanceMap(sData.Level.Walls, conflict.Pos, false);
-                    foreach (var FSP in potentialFreeSpacePoints)
-                    {
-                        // If placing a box eliminates a turning point/creates a corridor, skip it.
-                        if (IsCorridor(sData.Level, FSP) && IsNextToTurningPoint(sData.Level, FSP))
-                            continue;
-
-                        if (conflictDistMap[FSP.X, FSP.Y] < dist)
-                        {
-                            dist = conflictDistMap[FSP.X, FSP.Y];
-                            freeSpacePointToUse = FSP;
-                        }
-                    }
-
-                }
+            //if (false) // Disables heuristic
+            //    if (freeSpacePointToUse == potentialFreeSpacePoints.First()
+            //    && potentialFreeSpacePoints.Count > 5
+            //    && Point.ManhattenDistance(freeSpacePointToUse, conflict.Pos) > 3)
+            //    {
+            //        int dist = int.MaxValue;
+            //        var conflictDistMap = Precomputer.GetDistanceMap(sData.Level.Walls, conflict.Pos, false);
+            //        foreach (var FSP in potentialFreeSpacePoints)
+            //        {
+            //            // If placing a box eliminates a turning point/creates a corridor, skip it.
+            //            if (IsCorridor(sData.Level, FSP) && IsNextToTurningPoint(sData.Level, FSP))
+            //                continue;
+            //            if (conflictDistMap[FSP.X, FSP.Y] < dist)
+            //            {
+            //                dist = conflictDistMap[FSP.X, FSP.Y];
+            //                freeSpacePointToUse = FSP;
+            //            }
+            //        }
+            //    }
+            #endregion
 
             return freeSpacePointToUse;
 

@@ -27,7 +27,7 @@ namespace BoxPerformance
 
         static void Main(string[] args)
         {
-            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels");
+            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels");
             ConcurrentBag<SolveStatistic> statisticsBag = new ConcurrentBag<SolveStatistic>();
 
             Stopwatch watch = new Stopwatch();

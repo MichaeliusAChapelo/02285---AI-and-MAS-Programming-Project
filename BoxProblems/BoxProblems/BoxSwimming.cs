@@ -18,7 +18,6 @@ namespace BoxProblems
             Level = level;
             this.Agent = level.GetAgents()[0];
             this.End = end;
-            this.End = new Point(48, 19); // Should be set in goals or something, but whatever.
         }
 
         // GOD FUNCTION TROIS

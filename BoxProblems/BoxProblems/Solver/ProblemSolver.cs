@@ -147,7 +147,14 @@ namespace BoxProblems.Solver
                     {
                         if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
                         {
-                            (new BoxSwimmingSolver(x, new Point())).Solve(); // Set point to agent pos goal.
+                            Point p = new Point();
+                            foreach (Goal g in x.Goals)
+                                if (g.EntType == EntityType.AGENT_GOAL)
+                                {
+                                    p = g.Ent.Pos;
+                                    break;
+                                }
+                            (new BoxSwimmingSolver(x, p)).Solve(); // Set point to agent pos goal.
                             solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
                         }
                         else
@@ -165,7 +172,14 @@ namespace BoxProblems.Solver
                     {
                         if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
                         {
-                            (new BoxSwimmingSolver(x, new Point())).Solve(); // Set point to agent pos goal.
+                            Point p = new Point();
+                            foreach (Goal g in x.Goals)
+                                if (g.EntType == EntityType.AGENT_GOAL)
+                                {
+                                    p = g.Ent.Pos;
+                                    break;
+                                }
+                            (new BoxSwimmingSolver(x, p)).Solve(); // Set point to agent pos goal.
                             solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
                         }
                         else

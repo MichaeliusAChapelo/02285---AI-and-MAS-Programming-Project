@@ -9,22 +9,23 @@ namespace BoxProblems.Solver
 {
     public static partial class ProblemSolver
     {
-        private static Entity GetGoalToSolve(HashSet<Entity> goals, GoalGraph goalGraph, SolverData sData)
+        private static Goal GetGoalToSolve(HashSet<Goal> goals, GoalGraph goalGraph, SolverData sData)
         {
             if (goals.Count == 1)
             {
                 return goals.First();
             }
-            return GetEntityToSolveProblem(sData, EntityType.BOX, null, goals);
+            Entity ent = GetEntityToSolveProblem(sData, EntityType.BOX, null, goals);
+            return sData.Level.Goals.Single(x => x.Ent == ent);
         }
 
-        private static Entity GetBoxToSolveProblem(SolverData sData, Entity goal)
+        private static Entity GetBoxToSolveProblem(SolverData sData, Goal goal)
         {
             Entity returnEntity = new Entity();
             int numBoxes = 0;
             foreach (var iNode in sData.CurrentConflicts.Nodes)
             {
-                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Type)
+                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Ent.Type)
                 {
                     numBoxes += 1;
                     returnEntity = boxNode.Value.Ent;
@@ -38,7 +39,7 @@ namespace BoxProblems.Solver
             {
                 return returnEntity;
             }
-            return GetEntityToSolveProblem(sData, EntityType.BOX, goal);
+            return GetEntityToSolveProblem(sData, EntityType.BOX, goal.Ent);
         }
 
         private static Entity GetAgentToSolveProblem(SolverData sData, Entity toMove)
@@ -64,7 +65,7 @@ namespace BoxProblems.Solver
             return GetEntityToSolveProblem(sData, EntityType.AGENT, toMove);
         }
 
-        private static Entity GetEntityToSolveProblem(SolverData sData, EntityType entitytype, Entity? entity = null, HashSet<Entity> goals = null)
+        private static Entity GetEntityToSolveProblem(SolverData sData, EntityType entitytype, Entity? entity = null, HashSet<Goal> goals = null)
         {
             int minimumConflict = int.MaxValue;
             Entity minimumConflictEntity = new Entity();
@@ -72,18 +73,17 @@ namespace BoxProblems.Solver
             {
                 foreach (var goal in goals)
                 {
-                    INode startnode = sData.CurrentConflicts.GetNodeFromPosition(goal.Pos);
-                    (int numConflicts, Entity goalEntity) = CalculateMinimumConflict(sData, startnode, goal, entitytype);
+                    INode startnode = sData.CurrentConflicts.GetNodeFromPosition(goal.Ent.Pos);
+                    (int numConflicts, Entity goalEntity) = CalculateMinimumConflict(sData, startnode, goal.Ent, goal.EntType == EntityType.AGENT_GOAL ? EntityType.AGENT : EntityType.BOX);
                     if (minimumConflict > numConflicts)
                     {
                         minimumConflict = numConflicts;
-                        minimumConflictEntity = goal;
+                        minimumConflictEntity = goal.Ent;
                         if (minimumConflict == 0)
                         {
                             break;
                         }
                     }
-
                 }
             }
             else
@@ -155,7 +155,7 @@ namespace BoxProblems.Solver
                     {
                         currentNumConflicts += 1;
                     }
-                    if (currentBoxNode.Value.EntType == bfsGoalEntType)
+                    if (currentBoxNode.Value.EntType.EntityEquals(bfsGoalEntType))
                     {
                         if (startNode is BoxConflictNode startBoxNode)
                         {

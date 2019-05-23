@@ -39,5 +39,37 @@ namespace BoxProblems
         {
             return DirectionMovement;
         }
+
+        public static bool IsMoveable(this EntityType entType)
+        {
+            return (entType & EntityType.MOVEABLE) != 0;
+        }
+
+        public static bool IsGoal(this EntityType entType)
+        {
+            return (entType & EntityType.GOAL) != 0;
+        }
+
+        public static bool EntityEquals(this EntityType a, EntityType b)
+        {
+            if (a == b)
+            {
+                return true;
+            }
+
+            if (a.IsMoveable() && b.IsMoveable() &&
+                (a == EntityType.MOVEABLE || b == EntityType.MOVEABLE))
+            {
+                return true;
+            }
+
+            if (a.IsGoal() && b.IsGoal() &&
+                (a == EntityType.GOAL || b == EntityType.GOAL))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

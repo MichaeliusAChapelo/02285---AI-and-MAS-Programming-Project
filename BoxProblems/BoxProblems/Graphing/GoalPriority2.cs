@@ -9,9 +9,9 @@ namespace BoxProblems.Graphing
 {
     internal readonly struct GoalPriorityLayer
     {
-        public readonly HashSet<Entity> Goals;
+        public readonly HashSet<Goal> Goals;
 
-        public GoalPriorityLayer(HashSet<Entity> goals)
+        public GoalPriorityLayer(HashSet<Goal> goals)
         {
             this.Goals = goals;
         }
@@ -31,7 +31,7 @@ namespace BoxProblems.Graphing
             Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>> nodeGraphs = new Dictionary<GoalNode, Dictionary<GoalNode, List<GoalNode>>>();
             foreach (var goal in level.Goals)
             {
-                GoalNode node = goalGraph.GetGoalNodeFromPosition(goal.Pos);
+                GoalNode node = goalGraph.GetGoalNodeFromPosition(goal.Ent.Pos);
                 nodeGraphs.Add(node, CreateDirectedEdgesToStart(node));
             }
 
@@ -39,6 +39,7 @@ namespace BoxProblems.Graphing
             //GraphShower.ShowGraph(groupedGraph);
 
             List<List<GoalNode>> boxGroups = new List<List<GoalNode>>();
+            List<List<GoalNode>> agentGroups = new List<List<GoalNode>>();
             foreach (var iNode in groupedGraph.Nodes)
             {
                 var node = (Node<NodeGroup, EmptyEdgeInfo>)iNode;
@@ -46,6 +47,11 @@ namespace BoxProblems.Graphing
                 if (boxes.Any())
                 {
                     boxGroups.Add(boxes.ToList());
+                }
+                var agents = node.Value.Nodes.Cast<GoalNode>().Where(x => x.Value.EntType == EntityType.AGENT);
+                if (agents.Any())
+                {
+                    agentGroups.Add(agents.ToList());
                 }
             }
 
@@ -58,42 +64,68 @@ namespace BoxProblems.Graphing
                 foreach (var inode in goalGraph.Nodes)
                 {
                     var node = (GoalNode)inode;
-                    if (node.Value.EntType == EntityType.GOAL && !toIgnore.Contains(node.Value.Ent))
+                    if (node.Value.EntType.IsGoal() && !toIgnore.Contains(node.Value.Ent))
                     {
                         nodeCounter.Add((GoalNode)node, 0);
                     }
                 }
 
-                foreach (Entity goal in level.Goals)
+                foreach (Goal goal in level.Goals)
                 {
                     cancel.ThrowIfCancellationRequested();
-                    if (toIgnore.Contains(goal))
+                    if (toIgnore.Contains(goal.Ent))
                     {
                         continue;
                     }
 
-                    GoalNode start = goalGraph.GetGoalNodeFromPosition(goal.Pos);
+                    GoalNode start = goalGraph.GetGoalNodeFromPosition(goal.Ent.Pos);
 
                     (int pathsCount, Dictionary<GoalNode, int> pathNodes) pathResult;
                     if (!cachedPathResults.TryGetValue(start, out pathResult) || toIgnoreNodes.Any(x => pathResult.pathNodes.ContainsKey(x)))
                     {
                         Dictionary<GoalNode, int> shortestPathsVisitedNodesCount = new Dictionary<GoalNode, int>();
                         int pathsCount = 0;
-                        foreach (var boxGroup in boxGroups)
+                        if (goal.EntType == EntityType.AGENT_GOAL)
                         {
-                            cancel.ThrowIfCancellationRequested();
-                            int boxesWithSameType = 0;
-                            foreach (var boxNode in boxGroup)
+                            foreach (var agentGroup in agentGroups)
                             {
-                                if (boxNode.Value.Ent.Type == goal.Type)
+                                cancel.ThrowIfCancellationRequested();
+                                int agentsWithSameType = 0;
+                                foreach (var agentNode in agentGroup)
                                 {
-                                    boxesWithSameType++;
+                                    if (agentNode.Value.Ent.Type == goal.Ent.Type)
+                                    {
+                                        agentsWithSameType++;
+                                    }
+                                }
+                                if (agentsWithSameType > 0)
+                                {
+                                    pathsCount += GetShortestPathsData(agentGroup.First(), nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore, agentsWithSameType);
                                 }
                             }
-                            if (boxesWithSameType > 0)
+                        }
+                        else if (goal.EntType == EntityType.BOX_GOAL)
+                        {
+                            foreach (var boxGroup in boxGroups)
                             {
-                                pathsCount += GetShortestPathsData(boxGroup.First(), nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore, boxesWithSameType);
+                                cancel.ThrowIfCancellationRequested();
+                                int boxesWithSameType = 0;
+                                foreach (var boxNode in boxGroup)
+                                {
+                                    if (boxNode.Value.Ent.Type == goal.Ent.Type)
+                                    {
+                                        boxesWithSameType++;
+                                    }
+                                }
+                                if (boxesWithSameType > 0)
+                                {
+                                    pathsCount += GetShortestPathsData(boxGroup.First(), nodeGraphs[start], shortestPathsVisitedNodesCount, toIgnore, boxesWithSameType);
+                                }
                             }
+                        }
+                        else
+                        {
+                            throw new Exception($"Unknown entity type: {goal.EntType}");
                         }
 
                         pathResult = (pathsCount, shortestPathsVisitedNodesCount);
@@ -131,7 +163,7 @@ namespace BoxProblems.Graphing
                 GoalNode leaf = frontier.Dequeue();
                 int depth = nodeDepths[leaf];
 
-                if (leaf.Value.EntType == EntityType.BOX)
+                if (leaf.Value.EntType.IsMoveable())
                 {
                     continue;
                 }
@@ -189,7 +221,7 @@ namespace BoxProblems.Graphing
                     validParentsCount = 1;
                 }
 
-                if (pathEnd.Value.EntType == EntityType.GOAL)
+                if (pathEnd.Value.EntType.IsGoal())
                 {
                     shortestPathsVisitedNodes.TryAdd(pathEnd, 0);
                     shortestPathsVisitedNodes[pathEnd] += validParentsCount * multiplier;
@@ -204,7 +236,7 @@ namespace BoxProblems.Graphing
             LinkedList<GoalPriorityLayer> layers = new LinkedList<GoalPriorityLayer>();
             foreach (var layer in PriorityLayers)
             {
-                layers.AddLast(new GoalPriorityLayer(layer.Select(x => x.Value.Ent).ToHashSet()));
+                layers.AddLast(new GoalPriorityLayer(layer.Select(x => new Goal(x.Value.Ent, x.Value.EntType)).ToHashSet()));
             }
 
             return layers;

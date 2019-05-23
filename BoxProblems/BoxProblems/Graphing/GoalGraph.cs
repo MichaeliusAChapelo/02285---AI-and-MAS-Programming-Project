@@ -32,7 +32,7 @@ namespace BoxProblems.Graphing
         {
             if (Value.EntType == EntityType.GOAL)
             {
-                return char.ToLower(Value.Ent.Type).ToString();
+                return char.ToLower(Value.Ent.Type).ToString() + " " + Value.Ent.Pos;
             }
             else
             {

@@ -34,7 +34,7 @@ namespace BoxPerformance
             watch.Start();
             Parallel.ForEach(filePaths, x =>
             {
-                var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(10), false);
+                var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(180), false);
 
                 if (statistic.Status == SolverStatus.SUCCESS)
                 {

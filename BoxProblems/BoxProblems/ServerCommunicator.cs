@@ -15,6 +15,13 @@ namespace BoxProblems
         const string strategy = "-astar";
         public static bool SkipServerLaunch = false;
 
+        public void LogCompetitionLevels()
+        {
+            string compDir = "Levels\\New_Format\\comp_levels";
+            System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -c 'dotnet BoxRunner.dll {strategy}' -l {compDir} -t 180 -o 'VisualKei.zip'; Read-Host");
+        }
+
+
         public void StartServer(string levelPath)
         {
             System.Diagnostics.Process.Start("cmd.exe", $"/c start powershell.exe java -jar server.jar -l {levelPath} -c 'dotnet BoxRunner.dll {strategy}' -g 150 -t 300 -s 50; Read-Host");

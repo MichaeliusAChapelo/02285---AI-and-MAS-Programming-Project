@@ -23,7 +23,7 @@ namespace BoxProblems.Graphing
 
         public override string ToString()
         {
-            if (Value.EntType == EntityType.GOAL)
+            if (Value.EntType.IsGoal())
             {
                 return char.ToLower(Value.Ent.Type).ToString();
             }
@@ -118,18 +118,18 @@ namespace BoxProblems.Graphing
             });
             foreach (var goal in level.Goals)
             {
-                if (level.IsWall(goal.Pos))
+                if (level.IsWall(goal.Ent.Pos))
                 {
                     continue;
                 }
-                if (goal == exceptThisGoal)
+                if (goal.Ent == exceptThisGoal)
                 {
                     continue;
                 }
 
-                BoxConflictNode node = new BoxConflictNode(new EntityNodeInfo(goal, EntityType.GOAL));
+                BoxConflictNode node = new BoxConflictNode(new EntityNodeInfo(goal.Ent, goal.EntType));
 
-                List<(Point pos, int distance)> edges = GraphSearcher.GetReachedGoalsBFS(gsData, level, goal.Pos, goalCondition);
+                List<(Point pos, int distance)> edges = GraphSearcher.GetReachedGoalsBFS(gsData, level, goal.Ent.Pos, goalCondition);
                 foreach (var edge in edges.Distinct())
                 {
                     BoxConflictNode end = (BoxConflictNode)GetNodeFromPosition(edge.pos);
@@ -148,7 +148,7 @@ namespace BoxProblems.Graphing
             for (int i = Nodes.Count - 1; i >= 0; i--)
             {
                 INode node = Nodes[i];
-                if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
+                if (node is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal())
                 {
                     Nodes.RemoveAt(i);
                     node.RemoveNode();
@@ -235,7 +235,7 @@ namespace BoxProblems.Graphing
             level.ResetWalls();
             foreach (var inode in Nodes)
             {
-                if (inode is BoxConflictNode boxNode && boxNode.Value.EntType != EntityType.GOAL)
+                if (inode is BoxConflictNode boxNode && !boxNode.Value.EntType.IsGoal())
                 {
                     level.Walls[boxNode.Value.Ent.Pos.X, boxNode.Value.Ent.Pos.Y] = true;
                 }

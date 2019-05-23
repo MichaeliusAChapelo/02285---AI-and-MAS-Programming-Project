@@ -447,8 +447,8 @@ namespace BoxTests
 
         private static void VerifyMoveBoxToGoalCreator(string levelString, List<AgentCommand> expectedCommands)
         {
-            Level level = TestTools.StringToOldFormatLevel(levelString);
-            Level clearedLevel = TestTools.StringToOldFormatLevel(levelString.Replace('G', ' ').Replace('F', ' '));
+            Level level = TestTools.StringToLevel(levelString);
+            Level clearedLevel = TestTools.StringToLevel(levelString.Replace('G', ' ').Replace('F', ' '));
 
             Entity agent = level.InitialState.Entities.Single(x => x.Type == '0');
             Entity box = level.InitialState.Entities.Single(x => x.Type == 'B');
@@ -462,8 +462,8 @@ namespace BoxTests
 
         private static void VerifyMoveAgentToGoalCreator(string levelString, List<AgentCommand> expectedCommands)
         {
-            Level level = TestTools.StringToOldFormatLevel(levelString);
-            Level clearedLevel = TestTools.StringToOldFormatLevel(levelString.Replace('G', ' '));
+            Level level = TestTools.StringToLevel(levelString);
+            Level clearedLevel = TestTools.StringToLevel(levelString.Replace('G', ' '));
 
             Entity agent = level.InitialState.Entities.Single(x => x.Type == '0');
             Entity goal = level.InitialState.Entities.Single(x => x.Type == 'G');

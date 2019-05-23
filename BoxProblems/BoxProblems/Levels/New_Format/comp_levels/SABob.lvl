@@ -5,8 +5,8 @@ SABob
 #colors
 red: 0, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
 #initial
-    +++
-    + +
++++++++
++++++ +
 +++++ +
 +A 0  +
 +Y+ + +
@@ -19,7 +19,7 @@ red: 0, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, 
 +K+ + +
 +I+ + +
 +G+ + +
-+E+ + + 
++E+ + +
 +C+ + +
 +A+ + +
 +B+ + +
@@ -37,13 +37,13 @@ red: 0, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, 
 +Z+ + +
 +++++++
 #goal
-    +++
-    +A+
++++++++
++++++A+
 +++++ +
 +     +
 + + +A+
-+ + +B+ 
-+ + +C+ 
++ + +B+
++ + +C+
 + + +D+
 + + +E+
 + + +F+

@@ -85,6 +85,11 @@ namespace BoxProblems.Graphing
             GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.GOAL);
         }
 
+        internal Dictionary<Point, INode> getPositionToNode()
+        {
+            return PositionToNode;
+        }
+
         internal void AddNode(BoxConflictNode node)
         {
             base.AddNode(node);

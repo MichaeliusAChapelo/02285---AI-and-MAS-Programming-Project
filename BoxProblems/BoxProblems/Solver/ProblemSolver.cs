@@ -366,7 +366,7 @@ namespace BoxProblems.Solver
             GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph, cancelToken);
             HashSet<Entity> solvedGoals = new HashSet<Entity>();
-
+            
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
             var currentLayerNode = goalPriorityLinkedLayers.First;
             while (currentLayerNode != null)
@@ -395,12 +395,13 @@ namespace BoxProblems.Solver
                     //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
+                    //LevelVisualizer.PrintGraphGroups(sData.Level, sData.CurrentState, graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 &&
                         !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve) &&
                         mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
                     {
                         var mainGroupInformation = new GroupInformation(mainGroup);
-                        List<Entity> goalsWithHigherPriority = new List<Entity>();
+                        bool isGroupOtherThenMainWithGoal = false;
                         foreach (var group in graphGroups)
                         {
                             if (group != mainGroup)
@@ -409,22 +410,17 @@ namespace BoxProblems.Solver
                                 {
                                     if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
                                     {
-                                        goalsWithHigherPriority.Add(boxNode.Value.Ent);
+                                        isGroupOtherThenMainWithGoal = true;
+                                        goto sdfsdfDone;
                                     }
                                 }
                             }
                         }
+                        sdfsdfDone:
 
-                        if (goalsWithHigherPriority.Count == 0)
+                        if (!isGroupOtherThenMainWithGoal)
                         {
-                            goalsWithHigherPriority.AddRange(currentLayer.Goals);
-                            goalsWithHigherPriority.Remove(goalToSolve);
-                            foreach (var higherGoal in goalsWithHigherPriority)
-                            {
-                                currentLayer.Goals.Remove(higherGoal);
-                            }
-
-                            if (goalsWithHigherPriority.Count == 0)
+                            if (currentLayer.Goals.Count == 1)
                             {
 
                                 sData.Level.AddWall(goalToSolve.Pos);
@@ -545,24 +541,21 @@ namespace BoxProblems.Solver
                                 //throw new Exception("level will be split by this action.");
                             }
                         }
-                        else
+
+                        if (currentLayer.Goals.Count > 1)
                         {
-                            foreach (var layer in goalPriorityLinkedLayers)
+                            currentLayer.Goals.Remove(goalToSolve);
+                            if (currentLayerNode.Next != null)
                             {
-                                foreach (var goal in goalsWithHigherPriority)
-                                {
-                                    layer.Goals.Remove(goal);
-                                }
+                                currentLayerNode.Next.Value.Goals.Add(goalToSolve);
+                            }
+                            else
+                            {
+                                var goalsInLayer = new HashSet<Entity>() { goalToSolve };
+                                goalPriorityLinkedLayers.AddAfter(currentLayerNode, new GoalPriorityLayer(goalsInLayer));
 
                             }
-                        }
-
-                        if (goalsWithHigherPriority.Count > 0)
-                        {
-                            goalPriorityLinkedLayers.AddBefore(currentLayerNode, new GoalPriorityLayer(goalsWithHigherPriority.ToHashSet()));
-                            currentLayerNode = currentLayerNode.Previous;
-                            goToNextLayer = false;
-                            break;
+                            continue;
                         }
                     }
 

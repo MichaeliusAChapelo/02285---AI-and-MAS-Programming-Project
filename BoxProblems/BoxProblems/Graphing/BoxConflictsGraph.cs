@@ -107,19 +107,17 @@ namespace BoxProblems.Graphing
 
         internal void AddGoalNodes(GraphSearchData gsData, Level level, Entity exceptThisGoal)
         {
-            HashSet<Point> entityPositions = new HashSet<Point>();
             foreach (var node in Nodes)
             {
                 if (node is BoxConflictNode boxNode)
                 {
                     level.AddWall(boxNode.Value.Ent.Pos);
-                    entityPositions.Add(boxNode.Value.Ent.Pos);
                 }
             }
 
             var goalCondition = new Func<(Point pos, int distance), GraphSearcher.GoalFound<(Point pos, int distance)>>(x =>
             {
-                return new GraphSearcher.GoalFound<(Point, int)>(x, entityPositions.Contains(x.pos));
+                return new GraphSearcher.GoalFound<(Point, int)>(x, PositionHasNode(x.pos));
             });
             foreach (var goal in level.Goals)
             {
@@ -137,9 +135,17 @@ namespace BoxProblems.Graphing
                 List<(Point pos, int distance)> edges = GraphSearcher.GetReachedGoalsBFS(gsData, level, goal.Ent.Pos, goalCondition);
                 foreach (var edge in edges.Distinct())
                 {
-                    BoxConflictNode end = (BoxConflictNode)GetNodeFromPosition(edge.pos);
-                    node.AddEdge(new Edge<DistanceEdgeInfo>(end, new DistanceEdgeInfo(edge.distance)));
-                    end.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo(edge.distance)));
+                    if (GetNodeFromPosition(edge.pos) is BoxConflictNode boxEnd)
+                    {
+                        node.AddEdge(new Edge<DistanceEdgeInfo>(boxEnd, new DistanceEdgeInfo(edge.distance)));
+                        boxEnd.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo(edge.distance)));
+                    }
+                    else if (GetNodeFromPosition(edge.pos) is FreeSpaceNode freeEnd)
+                    {
+                        node.AddEdge(new Edge<DistanceEdgeInfo>(freeEnd, new DistanceEdgeInfo()));
+                        freeEnd.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo()));
+                    }
+
                 }
 
                 Nodes.Add(node);

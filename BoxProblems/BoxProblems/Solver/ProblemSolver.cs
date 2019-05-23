@@ -416,9 +416,10 @@ namespace BoxProblems.Solver
                 while (currentLayer.Goals.Count > 0)
                 {
                     cancelToken.ThrowIfCancellationRequested();
-
                     sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, level);
+                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, level);//Something is wrong in here in SAGroupName missing edges from freespace to X
+
+
                     Goal goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData);
 
                     if (goalToSolve.EntType == EntityType.AGENT_GOAL)
@@ -455,11 +456,12 @@ namespace BoxProblems.Solver
                     sData.Level.RemovePermanentWall(goalToSolve.Ent.Pos);
                     sData.Level.RemoveWall(goalToSolve.Ent.Pos);
 
-                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
+
                     //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+
+
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Ent.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
-                    //LevelVisualizer.PrintGraphGroups(sData.Level, sData.CurrentState, graphGroups);
                     if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 &&
                         !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve) &&
                         mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal()))
@@ -475,12 +477,12 @@ namespace BoxProblems.Solver
                                     if (node is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal())
                                     {
                                         isGroupOtherThenMainWithGoal = true;
-                                        goto sdfsdfDone;
+                                        goto groupDone;
                                     }
                                 }
                             }
                         }
-                        sdfsdfDone:
+                        groupDone:
 
                         if (!isGroupOtherThenMainWithGoal)
                         {

@@ -783,7 +783,12 @@ namespace BoxProblems.Solver
                     throw new Exception("No agent position found at the goal");
                 }
                 //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
-                bool startPush = !toMovePath.Contains(agentToUse.Value.Pos) && !pathToBox.Contains(goal);
+                bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
+                bool canUturn = CanUturn(sData, agentToUse.Value.Pos);
+                if (!canUturn)
+                {
+                     startPush = startPush && !pathToBox.Contains(goal);
+                }
 
                 //If the agent starts by pushing then it should also try to end by pushing
                 //as turning around to pull is more moves
@@ -832,7 +837,6 @@ namespace BoxProblems.Solver
                 //If push wasn't possible then chose one of the possible pull positions
                 if (!positionFound && possibleAgentPositions.Count(x => !x.Item2)>0)
                 {
-                    bool canUturn = CanUturn(sData, agentToUse.Value.Pos);
                     if (canUturn)
                     {
                         newAgentPos = possibleAgentPositions.First(x => !x.Item2).Item1;

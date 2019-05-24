@@ -45,7 +45,7 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipServerLaunch = true;
+            ServerCommunicator.SkipServerLaunch = false;
             bool Parallelize = false;
 
             // Failed to find any possible distant turning point, possibly blocked by other agents.
@@ -77,7 +77,7 @@ namespace BoxRunner
             // string levelPath = "MANulPoint.lvl";
 
             //Not enough free space is available
-            string levelPath = "SAAvicii.lvl";
+            string levelPath = "MABob.lvl";
             //string levelPath = "SAWallZ.lvl";
             //string levelPath = "SAgTHIRTEEN.lvl";
             //string levelPath = "SANulPoint.lvl";

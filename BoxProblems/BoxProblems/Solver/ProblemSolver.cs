@@ -932,8 +932,8 @@ namespace BoxProblems.Solver
                 }
                 //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
                 bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
-                bool canUturn = CanUturn(sData, agentToUse.Value.Pos);
-                if (!canUturn)
+                Point? uTurnPos = GetUTurnPos(sData, agentToUse.Value.Pos);
+                if (!uTurnPos.HasValue)
                 {
                     startPush = startPush && !pathToBox.Contains(goal);
                 }
@@ -982,10 +982,85 @@ namespace BoxProblems.Solver
                         }
                     }
                 }
+
+                bool needUTurn = true;
+                if (startPush)
+                {
+                    foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                    {
+                        // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
+                        if (endAgentPos == toMove.Pos)
+                            continue;
+
+                        //If the box path contains the agents end position then the agent must've pushed the box
+                        if (toMovePath.Contains(endAgentPos))
+                        {
+                            needUTurn = false;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                    {
+
+                        if (!toMovePath.Contains(endAgentPos))
+                        {
+                            needUTurn = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (needUTurn)
+                {
+                    bool hasTurnOnPath = false;
+                    for (int i = 1; i < toMovePath.Length - 1; i++)
+                    {
+                        if (!IsCorridor(sData.Level, toMovePath[i]))
+                        {
+                            hasTurnOnPath = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasTurnOnPath)
+                    {
+                        if (uTurnPos.HasValue)
+                        {
+                            sData.AddToRoutesUsed(toMovePath);
+                            sData.AddToRoutesUsed(pathToBox);
+                            sData.AddToFreePath(goal);
+                            sData.AddToFreePath(uTurnPos.Value);
+                            sData.AddToFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
+                            sData.AddToFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
+                            sData.AddToFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
+                            sData.AddToFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
+                            List<HighlevelMove> entityOnAgentEndPositionSolution;
+                            if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
+                            {
+                                throw new Exception("Could not move wrong box from goal.");
+                            }
+                            solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
+                            sData.RemoveFromRoutesUsed(toMovePath);
+                            sData.RemoveFromRoutesUsed(pathToBox);
+                            sData.RemoveFromFreePath(uTurnPos.Value);
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
+                            sData.RemoveFromFreePath(goal);
+                            agentToUse = sData.GetEntity(agentIndex.Value);
+                            toMove = sData.GetEntity(toMoveIndex);
+                        }
+                    }
+                }
+
                 //If push wasn't possible then chose one of the possible pull positions
                 if (!positionFound && possibleAgentPositions.Count(x => !x.Item2) > 0)
                 {
-                    if (canUturn)
+                    if (uTurnPos.HasValue)
                     {
                         newAgentPos = possibleAgentPositions.First(x => !x.Item2).Item1;
                         positionFound = true;
@@ -1270,38 +1345,36 @@ namespace BoxProblems.Solver
 
             throw new Exception("Found no path from  entity to goal.");
         }
-        private static bool CanUturn(SolverData sData, Point agentpos)
+        private static Point? GetUTurnPos(SolverData sData, Point agentpos)
         {
             if (!IsCorridor(sData.Level, agentpos))
             {
-                return true;
+                return agentpos;
             }
+            short[,] distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, agentpos, false);
             var turningPoints = new PriorityQueue<(int x, int y), int>();
-            int x, y;
-            for (x = 1; x < sData.Level.Width - 1; x++)
-                for (y = 1; y < sData.Level.Height - 1; y++)
-                    if (!sData.Level.Walls[x, y] && !IsCorridor(sData.Level,new Point(x, y)))
-                        turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentpos));
+            for (int x = 1; x < sData.Level.Width - 1; x++)
+            {
+                for (int y = 1; y < sData.Level.Height - 1; y++)
+                {
+                    if (!sData.Level.Walls[x, y] && !IsCorridor(sData.Level, new Point(x, y)))
+                    {
+                        if (distanceMap[x, y] != 0)
+                        {
+                            turningPoints.Enqueue((x, y), distanceMap[x, y]);
+                        }
+                    }
+                }
+            }
             if (turningPoints.Count==0)
             {
-                return false;
+                return null;
             }
             else
             {
-                (x,y) = turningPoints.DequeueWithPriority().Value;
-                var pathToTurnIntoPoint = Precomputer.GetPath(sData.Level, agentpos, new Point(x, y), false).ToList();
-                while (pathToTurnIntoPoint.Count == 1)
-                { // Found no path to this turning point; Pick another.
-                    if (turningPoints.Count == 0)
-                        return false;
-                    (x, y) = turningPoints.DequeueWithPriority().Value;
-                    var turnPoint = new Point(x, y);
-
-                    pathToTurnIntoPoint = Precomputer.GetPath(sData.Level, agentpos, new Point(x, y), false).ToList();
-
-                }
+                (int x, int y) = turningPoints.DequeueWithPriority().Value;
+                return new Point(x, y);
             }
-            return true;
         }
     }
 }

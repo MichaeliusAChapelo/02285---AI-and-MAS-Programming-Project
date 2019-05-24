@@ -392,10 +392,21 @@ namespace BoxProblems.Solver
         private static bool DoesMainGroupNeedTheEntity(BoxConflictNode boxNode, Dictionary<(int color, char type), int> goalsNeeded, Dictionary<char, int> entities)
         {
             int entitiesNeeded = 0;
-            if (!goalsNeeded.TryGetValue((boxNode.Value.Ent.Color, boxNode.Value.Ent.Type), out entitiesNeeded))
+            if (boxNode.Value.EntType==EntityType.BOX)
             {
-                return false;
+                if (!goalsNeeded.TryGetValue((0, boxNode.Value.Ent.Type), out entitiesNeeded))
+                {
+                    return false;
+                }
             }
+            else
+            {
+                if (!goalsNeeded.TryGetValue((boxNode.Value.Ent.Color, boxNode.Value.Ent.Type), out entitiesNeeded))
+                {
+                    return false;
+                }
+            }
+
             int boxesInMain = 0;
             if (entities.TryGetValue(boxNode.Value.Ent.Type, out boxesInMain))
             {
@@ -419,7 +430,7 @@ namespace BoxProblems.Solver
             SolverData sData = new SolverData(level, cancelToken);
             GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph, cancelToken);
-            //Console.WriteLine(priority);
+            //Console.WriteLine(priority.ToLevelString(sData.Level));
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
             var currentLayerNode = goalPriorityLinkedLayers.First;
             while (currentLayerNode != null)
@@ -688,22 +699,23 @@ namespace BoxProblems.Solver
                     {
                         Entity agent = sData.CurrentState.Entities.Single(x => x.Type == goalToSolve.Ent.Type);
                         int agentIndex = sData.GetEntityIndex(agent);
-
+                        sData.AddToFreePath(goalToSolve.Ent.Pos);
                         if (!TrySolveSubProblem(agentIndex, goalToSolve.Ent.Pos, true, out solutionMoves, sData, 0, true))
                         {
                             throw new Exception("Can't handle that there is no high level solution yet.");
                         }
+                        sData.RemoveFromFreePath(goalToSolve.Ent.Pos);
                     }
                     else if (goalToSolve.EntType == EntityType.BOX_GOAL)
                     {
                         Entity box = GetBoxToSolveProblem(sData, goalToSolve);
                         int boxIndex = sData.GetEntityIndex(box);
-
+                        sData.AddToFreePath(goalToSolve.Ent.Pos);
                         if (!TrySolveSubProblem(boxIndex, goalToSolve.Ent.Pos, false, out solutionMoves, sData, 0, true))
                         {
                             throw new Exception("Can't handle that there is no high level solution yet.");
                         }
-
+                        sData.RemoveFromFreePath(goalToSolve.Ent.Pos);
                         sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, box.Color, box.Type));
                     }
                     else

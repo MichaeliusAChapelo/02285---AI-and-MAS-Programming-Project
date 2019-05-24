@@ -471,8 +471,7 @@ namespace BoxProblems.Solver
                     sData.Level.RemoveWall(goalToSolve.Ent.Pos);
 
 
-                    //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
-
+                    
 
                     var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Ent.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
@@ -1005,7 +1004,9 @@ namespace BoxProblems.Solver
                     sData.RemoveFromRoutesUsed(pathToBox);
                     sData.RemoveFromFreePath(freeSpace);
                     sData.RemoveFromFreePath(goal);
+                    agentToUse = sData.GetEntity(agentIndex.Value); 
                 }
+                toMove = sData.GetEntity(toMoveIndex);
 
             }
             sData.CurrentState = sData.CurrentState.GetCopy();

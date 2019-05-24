@@ -252,13 +252,14 @@ namespace BoxProblems
             )
         {
             //throw new Exception("Failed to find a turn point on the route.");
+            var distMap = Precomputer.GetDistanceMap(Level.Walls, goalPos, false);
 
             var turningPoints = new PriorityQueue<(int x, int y), int>();
             int x, y;
             for (x = 1; x < Level.Width - 1; x++)
                 for (y = 1; y < Level.Height - 1; y++)
                     if (!Level.Walls[x, y] && !IsCorridor(x, y))
-                        turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentNextToBox) + Point.ManhattenDistance(x, y, agentEndPos));
+                        turningPoints.Enqueue((x, y), distMap[x,y]);
 
             if (turningPoints.Count == 0)
             {
@@ -269,7 +270,7 @@ namespace BoxProblems
                 for (x = 1; x < Level.Width - 1; x++)
                     for (y = 1; y < Level.Height - 1; y++)
                         if (!Level.Walls[x, y] && !IsCorridor(x, y))
-                            turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentNextToBox) + Point.ManhattenDistance(x, y, agentEndPos));
+                            turningPoints.Enqueue((x, y), distMap[x, y]);
 
                 if (turningPoints.Count == 0)
                     throw new Exception("Failed to find any turning points in level, probably due to boxes.");
@@ -292,6 +293,26 @@ namespace BoxProblems
 
             // Reach turning point.
             var pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
+            if (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
+            {
+                List<Point> blocks = new List<Point>();
+                while (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
+                {
+                    Point p = pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2];
+                    Level.AddWall(p);
+                    blocks.Add(p);
+                    pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
+                }
+                foreach (Point p in blocks)
+                    Level.RemoveWall(p);
+            }
+
+
+
+            if (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
+            {
+                pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] = turnPoint.Value;
+            }
 
             while (pathToTurnIntoPoint.Count == 1)
             { // Found no path to this turning point; Pick another.

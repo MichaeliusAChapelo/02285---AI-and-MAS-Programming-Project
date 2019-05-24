@@ -1,0 +1,21 @@
+﻿#domain
+hospital
+#levelname
+MAFiveWalls
+#colors
+red: 0, A
+#initial
+++++++++
++      +
+++A++A++
+++0+ A++
++++++ ++
+++++++++
+#goal
+++++++++
++      +
+++ ++ ++
+++ +  ++
++++++A++
+++++++++
+#end

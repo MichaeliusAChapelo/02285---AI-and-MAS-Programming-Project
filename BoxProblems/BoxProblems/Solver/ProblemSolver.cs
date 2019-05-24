@@ -877,14 +877,15 @@ namespace BoxProblems.Solver
                         if (endAgentPos == toMove.Pos)
                             continue;
 
+                        if (positionOccupied)
+                        {
+                            occupiedPositionFound = true;
+                            continue;
+                        }
+
                         //If the box path contains the agents end position then the agent must've pushed the box
                         if (toMovePath.Contains(endAgentPos))
                         {
-                            if (positionOccupied)
-                            {
-                                occupiedPositionFound = true;
-                                continue;
-                            }
                             newAgentPos = endAgentPos;
                             positionFound = true;
                             break;
@@ -895,13 +896,14 @@ namespace BoxProblems.Solver
                 {
                     foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
                     {
+                        if (positionOccupied)
+                        {
+                            occupiedPositionFound = true;
+                            continue;
+                        }
+
                         if (!toMovePath.Contains(endAgentPos))
                         {
-                            if (positionOccupied)
-                            {
-                                occupiedPositionFound = true;
-                                continue;
-                            }
                             newAgentPos = endAgentPos;
                             positionFound = true;
                             break;
@@ -919,11 +921,11 @@ namespace BoxProblems.Solver
                     }
 
                 }
-                if (!positionFound && possibleAgentPositions.Count(x => x.Item2) == 0)
+                else if (!positionFound && possibleAgentPositions.Count(x => x.Item2) == 0)
                 {
                     newAgentPos = possibleAgentPositions.First().Item1;
                 }
-                if (!positionFound && occupiedPositionFound)
+                else if (!positionFound && occupiedPositionFound)
                 {
                     if (startPush)
                     {
@@ -953,6 +955,10 @@ namespace BoxProblems.Solver
                             }
                         }
                     }
+                    if (newAgentPos == null)
+                    {
+                        newAgentPos = possibleAgentPositions.First().Item1;
+                    }
                     var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
                     var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;
                     int entityOnAgentEndPositionIndex = sData.GetEntityIndex(entityOnAgentEndPosition);
@@ -971,6 +977,12 @@ namespace BoxProblems.Solver
                     sData.RemoveFromRoutesUsed(pathToBox);
                     sData.RemoveFromFreePath(freeSpace);
                     sData.RemoveFromFreePath(goal);
+                }
+
+
+                if (goal == new Point(15, 18))
+                {
+
                 }
             }
             sData.CurrentState = sData.CurrentState.GetCopy();
@@ -1022,12 +1034,19 @@ namespace BoxProblems.Solver
                 }
 
                 sData.AddToRoutesUsed(toMovePath);
-                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+                LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
 
                 bool toMoveMoved = false;
                 do
                 {
                     sData.CancelToken.ThrowIfCancellationRequested();
+
+                    //LevelVisualizer.PrintPath(sData.Level, sData.CurrentState, toMovePath.ToList());
+
+                    if (goal == new Point(25, 33))
+                    {
+
+                    }
 
                     BoxConflictNode conflict = conflicts.First();
                     if (agentNotConflict.HasValue && conflict.Value.Ent == agentNotConflict.Value)

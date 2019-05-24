@@ -244,7 +244,7 @@ namespace BoxProblems.Solver
                     }
                 }
             }
-            howFarIntoFreeSpace += additonalIntoFreeSpace;
+            howFarIntoFreeSpace += additonalIntoFreeSpace + 1;
 
             int[,] spacesDistance = new int[sData.Level.Width, sData.Level.Height];
             for (int y = 0; y < sData.Level.Height; y++)
@@ -291,7 +291,7 @@ namespace BoxProblems.Solver
                 //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
             }
 
-            (Point firstFreeSpace, int freeSpaceCount)[] freeSpacesByDistance = new (Point, int)[maxDistance];
+            int[] freeSpacesCounbtByDistance = new int[maxDistance];
             for (int y = 0; y < sData.Level.Height; y++)
             {
                 for (int x = 0; x < sData.Level.Width; x++)
@@ -300,50 +300,89 @@ namespace BoxProblems.Solver
                     if (distance != int.MaxValue && distance != 0)
                     {
                         int index = distance - 1;
-                        if (freeSpacesByDistance[index].freeSpaceCount == 0)
-                        {
-                            freeSpacesByDistance[index].firstFreeSpace = new Point(x, y);
-                        }
-                        freeSpacesByDistance[index].freeSpaceCount++;
+                        freeSpacesCounbtByDistance[index]++;
                     }
                 }
             }
 
-            if (howFarIntoFreeSpace < maxDistance)
+            Func<Point, int> heuristic = new Func<Point, int>(x =>
             {
-                if (freeSpacesByDistance[howFarIntoFreeSpace].freeSpaceCount != 0)
+                int h = 0;
+                INode node = sData.CurrentConflicts.GetNodeFromPosition(x);
+                if (node is BoxConflictNode)
                 {
-                    if (freeSpacesByDistance[howFarIntoFreeSpace].firstFreeSpace == new Point(0, 0))
-                    {
-
-                    }
-                    return freeSpacesByDistance[howFarIntoFreeSpace].firstFreeSpace;
+                    h += 5000;
                 }
-            }
+                if (IsCorridor(sData.Level, x))
+                {
+                    h += 100;
+                }
+                return h;
+            });
+            short[,] spacesPriorityMap = Precomputer.GetDistanceHeuristicsMap(sData.Level.Walls, conflict.Pos, heuristic, false);
 
-            //int spacesSum = 0;
-            //for (int i = 0; i < freeSpacesByDistance.Length; i++)
+            //LevelVisualizer.PrintSpaceDistances(sData.Level, sData.CurrentState, spacesDistance);
+            //LevelVisualizer.PrintSpaceDistances(sData.Level, sData.CurrentState, spacesPriorityMap);
+
+            //for (int i = howFarIntoFreeSpace - 1; i < freeSpacesCounbtByDistance.Length; i++)
             //{
-            //    spacesSum += freeSpacesByDistance[i].freeSpaceCount;
-            //    if (spacesSum >= howFarIntoFreeSpace)
+            //    if (freeSpacesCounbtByDistance[i] != 0)
             //    {
-            //        if (freeSpacesByDistance[i].freeSpaceCount != 0)
-            //        {
-            //            return freeSpacesByDistance[i].firstFreeSpace;
-            //        }
+            //        return GetBestPriorityFreeSpace(i + 1, spacesDistance, spacesPriorityMap, sData.Level);
             //    }
             //}
 
-            if (freeSpacesByDistance[freeSpacesByDistance.Length - 1].freeSpaceCount == 0)
+            int spacesSum = 0;
+            for (int i = 0; i < freeSpacesCounbtByDistance.Length; i++)
             {
-
+                spacesSum += freeSpacesCounbtByDistance[i];
+                if (spacesSum >= howFarIntoFreeSpace * 2)
+                {
+                    if (freeSpacesCounbtByDistance[i] != 0)
+                    {
+                        return GetBestPriorityFreeSpace(i + 1, spacesDistance, spacesPriorityMap, sData.Level);
+                    }
+                }
             }
-            if (freeSpacesByDistance[freeSpacesByDistance.Length - 1].firstFreeSpace == new Point(0, 0))
+
+            for (int i = freeSpacesCounbtByDistance.Length - 1; i >= 0; i--)
             {
-
+                if (freeSpacesCounbtByDistance[i] != 0)
+                {
+                    return GetBestPriorityFreeSpace(i + 1, spacesDistance, spacesPriorityMap, sData.Level);
+                }
             }
 
-            return freeSpacesByDistance[freeSpacesByDistance.Length - 1].firstFreeSpace;
+            throw new Exception("Failed to find a freespace at least one was expected to exist.");
+        }
+
+        private static Point GetBestPriorityFreeSpace(int bestDistance, int[,] spacesDistance, short[,] spacesPriorityMap, Level level)
+        {
+            int bestPriority = int.MaxValue;
+            Point bestPosition = new Point();
+            for (int y = 0; y < level.Height; y++)
+            {
+                for (int x = 0; x < level.Width; x++)
+                {
+                    int distance = spacesDistance[x, y];
+                    if (distance == bestDistance)
+                    {
+                        int priority = spacesPriorityMap[x, y];
+                        if (priority < bestPriority)
+                        {
+                            bestPriority = priority;
+                            bestPosition = new Point(x, y);
+                        }
+                    }
+                }
+            }
+
+            if (bestPriority == int.MaxValue)
+            {
+                throw new Exception($"Expected to find at least one free space with a distance of {bestDistance} but found none.");
+            }
+
+            return bestPosition;
         }
 
         private static void MergePosIntoDistanceGrid(SolverData sData, int[,] spacesDistance, Point start, Func<Point, bool> isSpaceFree)

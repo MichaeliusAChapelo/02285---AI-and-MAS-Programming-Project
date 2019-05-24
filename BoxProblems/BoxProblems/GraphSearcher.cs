@@ -177,5 +177,74 @@ namespace BoxProblems
 
             return (distances, world);
         }
+
+        public static (short[,] distanceMap, Direction[,] pathMap)? GetDistanceHeuristicBFS(bool[,] walls, Point start, Func<Point, int> heuristic)
+        {
+            int width = walls.GetLength(0);
+            int height = walls.GetLength(1);
+            short[,] distances = new short[width, height];
+            Direction[,] world = new Direction[width, height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    world[x, y] = Direction.NONE;
+                }
+            }
+
+            Queue<Point> frontier = new Queue<Point>();
+            frontier.Enqueue(start);
+
+            while (frontier.Count > 0)
+            {
+                Point leafNode = frontier.Dequeue();
+
+                //can't search outside the walls of the level so if it did anyway then that means
+                //that the start point is outside the walls of the level and therefore this
+                //distance map is useless.
+                if (leafNode.X == 0 || leafNode.Y == 0 || leafNode.X == width - 1 || leafNode.Y == height - 1)
+                {
+                    return null;
+                }
+
+                //Add children
+                Point north = leafNode + Direction.N.DirectionDelta();
+                Point east = leafNode + Direction.E.DirectionDelta();
+                Point south = leafNode + Direction.S.DirectionDelta();
+                Point west = leafNode + Direction.W.DirectionDelta();
+
+                int heu = heuristic(leafNode);
+                if (!walls[north.X, north.Y] &&
+                    world[north.X, north.Y] == Direction.NONE)
+                {
+                    world[north.X, north.Y] = Direction.S;
+                    distances[north.X, north.Y] = (short)(distances[leafNode.X, leafNode.Y] + 1 + heu);
+                    frontier.Enqueue(north);
+                }
+                if (!walls[east.X, east.Y] &&
+                    world[east.X, east.Y] == Direction.NONE)
+                {
+                    world[east.X, east.Y] = Direction.W;
+                    distances[east.X, east.Y] = (short)(distances[leafNode.X, leafNode.Y] + 1 + heu);
+                    frontier.Enqueue(east);
+                }
+                if (!walls[south.X, south.Y] &&
+                    world[south.X, south.Y] == Direction.NONE)
+                {
+                    world[south.X, south.Y] = Direction.N;
+                    distances[south.X, south.Y] = (short)(distances[leafNode.X, leafNode.Y] + 1 + heu);
+                    frontier.Enqueue(south);
+                }
+                if (!walls[west.X, west.Y] &&
+                    world[west.X, west.Y] == Direction.NONE)
+                {
+                    world[west.X, west.Y] = Direction.E;
+                    distances[west.X, west.Y] = (short)(distances[leafNode.X, leafNode.Y] + 1 + heu);
+                    frontier.Enqueue(west);
+                }
+            }
+
+            return (distances, world);
+        }
     }
 }

@@ -24,6 +24,22 @@ namespace BoxProblems
             return newData.Value.distanceMap;
         }
 
+        public static short[,] GetDistanceHeuristicsMap(bool[,] walls, Point start, Func<Point, int> heuristic, bool getFromCache = true)
+        {
+            if (getFromCache && PrecomputedDistancesAndPaths.TryGetValue(start, out (short[,] distanceMap, Direction[,] pathMap) data))
+            {
+                return data.distanceMap;
+            }
+
+            var newData = GraphSearcher.GetDistanceHeuristicBFS(walls, start, heuristic);
+            if (getFromCache)
+            {
+                PrecomputedDistancesAndPaths.Add(start, newData.Value);
+            }
+
+            return newData.Value.distanceMap;
+        }
+
         public static Direction[,] GetPathMap(bool[,] walls, Point start, bool getFromCache = true)
         {
             if (getFromCache && PrecomputedDistancesAndPaths.TryGetValue(start, out (short[,] distanceMap, Direction[,] pathMap) data))

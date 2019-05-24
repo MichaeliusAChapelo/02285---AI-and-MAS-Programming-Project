@@ -8,6 +8,48 @@ namespace BoxProblems
 {
     internal static class LevelVisualizer
     {
+        public static void PrintSpaceDistances(Level level, State state, int[,] spaceDistances)
+        {
+            string[] stateString = level.StateToString(state).Split(Environment.NewLine);
+
+            for (int y = 0; y < stateString.Length; y++)
+            {
+                for (int x = 0; x < stateString[y].Length; x++)
+                {
+                    if (spaceDistances[x, y] != 0 && spaceDistances[x, y] != int.MaxValue)
+                    {
+                        Console.Write(string.Format("{0,6}", spaceDistances[x, y]));
+                    }
+                    else
+                    {
+                        Console.Write(string.Format("{0,6}", stateString[y][x]));
+                    }
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public static void PrintSpaceDistances(Level level, State state, short[,] spaceDistances)
+        {
+            string[] stateString = level.StateToString(state).Split(Environment.NewLine);
+
+            for (int y = 0; y < stateString.Length; y++)
+            {
+                for (int x = 0; x < stateString[y].Length; x++)
+                {
+                    if (spaceDistances[x, y] != 0)
+                    {
+                        Console.Write(string.Format("{0,6}", spaceDistances[x, y]));
+                    }
+                    else
+                    {
+                        Console.Write(string.Format("{0,6}", stateString[y][x]));
+                    }
+                }
+                Console.WriteLine();
+            }
+        }
+
         public static void PrintPath(Level level, State state, List<Point> path)
         {
             string[] stateString = level.StateToString(state).Split(Environment.NewLine);

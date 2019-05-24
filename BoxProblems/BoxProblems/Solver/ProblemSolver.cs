@@ -955,10 +955,6 @@ namespace BoxProblems.Solver
                             }
                         }
                     }
-                    if (newAgentPos == null)
-                    {
-                        newAgentPos = possibleAgentPositions.First().Item1;
-                    }
 
                     var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
                     var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;

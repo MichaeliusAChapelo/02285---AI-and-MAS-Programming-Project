@@ -7,7 +7,7 @@ namespace BoxProblems.Graphing
 {
     internal static class GraphCreator
     {
-        public static void CreateGraphIgnoreEntityType(GraphSearchData gsData, Graph graph, Level level, EntityType notAHindrance)
+        public static void CreateGraphIgnoreEntityType(GraphSearchData gsData, Graph graph, List<INode> nodesToAdd, Level level, EntityType notAHindrance)
         {
             foreach (var inode in graph.Nodes)
             {
@@ -34,9 +34,9 @@ namespace BoxProblems.Graphing
                 return new GraphSearcher.GoalFound<(List<Node<EntityNodeInfo, DistanceEdgeInfo>>, int)>((value, x.distance), isGoal);
             });
 
-            for (int i = 0; i < graph.Nodes.Count; i++)
+            for (int i = 0; i < nodesToAdd.Count; i++)
             {
-                var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)graph.Nodes[i];
+                var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)nodesToAdd[i];
                 bool wasWall = level.IsWall(node.Value.Ent.Pos);
                 level.RemoveWall(node.Value.Ent.Pos);
                 var storedNodes = potentialGoals[node.Value.Ent.Pos];
@@ -54,7 +54,10 @@ namespace BoxProblems.Graphing
                             continue;
                         }
                         node.AddEdge(new Edge<DistanceEdgeInfo>(reached, new DistanceEdgeInfo(reachedList.distance)));
-                        //reached.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo(reachedList.distance)));
+                        if (nodesToAdd != graph.Nodes && !reached.Edges.Any(x => x.End == node))
+                        {
+                            reached.AddEdge(new Edge<DistanceEdgeInfo>(node, new DistanceEdgeInfo(reachedList.distance)));
+                        }
                     }
                 }
 

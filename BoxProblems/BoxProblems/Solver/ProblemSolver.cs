@@ -1031,10 +1031,26 @@ namespace BoxProblems.Solver
             //Console.WriteLine(sData.Level.WorldToString(sData.Level.GetWallsAsWorld()));
 
 
-            sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, sData.Level, sData.RemovedEntities);
+            //sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, sData.Level, sData.RemovedEntities);
+            //sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
+            //sData.SolutionGraphs.Add(sData.CurrentConflicts);
+            //solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos));
+
+            List<(BoxConflictNode, Point)> nodesToMove = new List<(BoxConflictNode, Point)>();
+            nodesToMove.Add(((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(toMove.Pos), goal));
+            if (agentToUse.HasValue)
+            {
+                nodesToMove.Add(((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(agentToUse.Value.Pos), newAgentPos.Value));
+            }
+
+            sData.CurrentConflicts.RemveFreeSpaceNodes();
+            sData.CurrentConflicts.MoveNodes(sData.gsData, sData.Level, nodesToMove);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
+
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos));
+
+
             //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
             return true;

@@ -61,7 +61,7 @@ namespace BoxProblems.Graphing
                 AddNode(new GoalNode(new EntityNodeInfo(goal.Ent, goal.EntType)));
             }
 
-            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.MOVEABLE);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, this.Nodes, level, EntityType.MOVEABLE);
         }
 
         public void AddNode(GoalNode node)

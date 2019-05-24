@@ -82,7 +82,7 @@ namespace BoxProblems.Graphing
                 AddNode(new BoxConflictNode(new EntityNodeInfo(agent, EntityType.AGENT)));
             }
 
-            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.GOAL);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, this.Nodes, level, EntityType.GOAL);
         }
 
         internal Dictionary<Point, INode> getPositionToNode()
@@ -162,7 +162,7 @@ namespace BoxProblems.Graphing
                 if (node is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal())
                 {
                     Nodes.RemoveAt(i);
-                    node.RemoveNode();
+                    node.DisconnectNode();
                 }
             }
         }
@@ -299,6 +299,48 @@ namespace BoxProblems.Graphing
                     }
                 }
             }
+        }
+
+        internal void RemveFreeSpaceNodes()
+        {
+            for (int i = Nodes.Count - 1; i >= 0; i--)
+            {
+                INode node = Nodes[i];
+                if (node is FreeSpaceNode freeNode)
+                {
+                    Nodes.RemoveAt(i);
+                    node.DisconnectNode();
+                    foreach (var pos in freeNode.Value.FreeSpaces)
+                    {
+                        PositionToNode.Remove(pos);
+                    }
+                }
+            }
+        }
+
+        internal void AddAndConnectMoveableEntity(GraphSearchData gsData, Level level, Entity entity, EntityType entityType)
+        {
+            INode newNode = new BoxConflictNode(new EntityNodeInfo(entity, entityType));
+            AddNode(newNode);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, new List<INode>() { newNode }, level, EntityType.GOAL);
+        }
+
+        internal void MoveNodes(GraphSearchData gsData, Level level, List<(BoxConflictNode node, Point newPosition)> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                node.node.DisconnectNode();
+                Nodes.Remove(node.node);
+                PositionToNode.Remove(node.node.Value.Ent.Pos);
+            }
+            List<INode> movedNodes = new List<INode>();
+            foreach (var node in nodes)
+            {
+                BoxConflictNode newNode = new BoxConflictNode(new EntityNodeInfo(node.node.Value.Ent.Move(node.newPosition), node.node.Value.EntType));
+                movedNodes.Add(newNode);
+                AddNode(newNode);
+            }
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, movedNodes, level, EntityType.GOAL);
         }
     }
 }

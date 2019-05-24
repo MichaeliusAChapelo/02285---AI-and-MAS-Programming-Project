@@ -45,7 +45,7 @@ namespace BoxProblems.Graphing
             }
         }
 
-        public void RemoveNode()
+        public void DisconnectNode()
         {
             foreach (var edge in Edges)
             {

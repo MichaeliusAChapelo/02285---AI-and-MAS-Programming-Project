@@ -9,6 +9,6 @@ namespace BoxProblems.Graphing
         IEnumerable<INode> GetNodeEnds();
         void RemoveEdge(INode toRemove);
         void RemoveBiDirectionalEdge(INode toRemove);
-        void RemoveNode();
+        void DisconnectNode();
     }
 }

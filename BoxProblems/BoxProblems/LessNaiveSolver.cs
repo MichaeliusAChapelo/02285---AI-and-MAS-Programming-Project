@@ -39,6 +39,9 @@ namespace BoxProblems
                     throw new Exception("Failed to find the agent.");
                 }
 
+                //if (plan == Plan[39])
+                //{ return solution; }
+
                 var commands = CreateOnlyFirstSolutionCommand(plan, currentState, agentIndex);
 
                 currentState = plan.CurrentState;
@@ -98,6 +101,9 @@ namespace BoxProblems
 
         public List<AgentCommand> CreateSolutionCommands(HighlevelMove plan, Point goalPos, int agentIndex, int boxIndex)
         {
+            //if (plan == Plan[75])
+            //{ }
+
             List<AgentCommand> commands = new List<AgentCommand>();
 
             var agent = plan.UsingThisAgent.Value;
@@ -124,7 +130,11 @@ namespace BoxProblems
             }
 
             if (agentToBox == null)
+            {
                 agentToBox = RunAStar(agent.Pos, box.Pos);
+                if (agentToBox.Count == 1 && 4 < Point.ManhattenDistance(agent.Pos, box.Pos))
+                    throw new Exception("LessNaiveSolver could not find path to location.");
+            }
 
             Level.RemoveWall(goalPos);
             Level.RemoveWall(box.Pos);

@@ -45,7 +45,7 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipServerLaunch = true;
+            ServerCommunicator.SkipServerLaunch = false;
             bool Parallelize = false;
 
             // Failed to find any possible distant turning point, possibly blocked by other agents.
@@ -91,7 +91,7 @@ namespace BoxRunner
 
 
             #region Mein Levels
-            string levelPath = "MAVisualKei.lvl";
+            string levelPath = "SAVisualKei.lvl";
             //string levelPath = "MAVisualKei.lvl";
             #endregion
 

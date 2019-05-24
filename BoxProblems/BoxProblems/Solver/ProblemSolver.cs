@@ -611,7 +611,7 @@ namespace BoxProblems.Solver
                                             intoFreeSpace--;
                                             sData.AddToFreePath(freeSpace);
                                             List<HighlevelMove> boxOnGoalSolution;
-                                            if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxNode.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0, false))
+                                            if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxNode.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0, false, null))
                                             {
                                                 throw new Exception("Could not move wrong box from goal.");
                                             }
@@ -682,7 +682,7 @@ namespace BoxProblems.Solver
                         Entity agent = sData.CurrentState.Entities.Single(x => x.Type == goalToSolve.Ent.Type);
                         int agentIndex = sData.GetEntityIndex(agent);
 
-                        if (!TrySolveSubProblem(agentIndex, goalToSolve.Ent.Pos, true, out solutionMoves, sData, 0, true))
+                        if (!TrySolveSubProblem(agentIndex, goalToSolve.Ent.Pos, true, out solutionMoves, sData, 0, true, null))
                         {
                             throw new Exception("Can't handle that there is no high level solution yet.");
                         }
@@ -692,7 +692,12 @@ namespace BoxProblems.Solver
                         Entity box = GetBoxToSolveProblem(sData, goalToSolve);
                         int boxIndex = sData.GetEntityIndex(box);
 
-                        if (!TrySolveSubProblem(boxIndex, goalToSolve.Ent.Pos, false, out solutionMoves, sData, 0, true))
+                        if (goalToSolve.Ent.Pos == new Point(18, 26))
+                        {
+
+                        }
+
+                        if (!TrySolveSubProblem(boxIndex, goalToSolve.Ent.Pos, false, out solutionMoves, sData, 0, true, null))
                         {
                             throw new Exception("Can't handle that there is no high level solution yet.");
                         }
@@ -759,7 +764,7 @@ namespace BoxProblems.Solver
             return new HighlevelLevelSolution(solution, sData.SolutionGraphs, level);
         }
 
-        private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, bool isGoalAnObstable)
+        private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, bool isGoalAnObstable, Point? prevGoalPos)
         {
             if (depth == 100)
             {
@@ -911,19 +916,37 @@ namespace BoxProblems.Solver
                     }
                 }
 
+                Func<Point, int> agentPosOrdering;
+                if (newAgentPos == null)
+                {
+                    if (prevGoalPos.HasValue)
+                    {
+                        var distanceMapFromPrevGoal = Precomputer.GetDistanceMap(sData.Level.Walls, prevGoalPos.Value, false);
+                        agentPosOrdering = new Func<Point, int>(x => distanceMapFromPrevGoal[x.X, x.Y]);
+                    }
+                    else
+                    {
+                        agentPosOrdering = new Func<Point, int>(x => 0);
+                    }
+                }
+                else
+                {
+                    agentPosOrdering = new Func<Point, int>(x => 0);
+                }
+
                 //If push wasn't possible then chose one of the possible pull positions
                 if (!positionFound && possibleAgentPositions.Count(x => !x.Item2) > 0)
                 {
                     if (canUturn)
                     {
-                        newAgentPos = possibleAgentPositions.First(x => !x.Item2).Item1;
+                        newAgentPos = possibleAgentPositions.OrderBy(x => agentPosOrdering(x.Item1)).First(x => !x.Item2).Item1;
                         positionFound = true;
                     }
 
                 }
                 else if (!positionFound && possibleAgentPositions.Count(x => x.Item2) == 0)
                 {
-                    newAgentPos = possibleAgentPositions.First().Item1;
+                    newAgentPos = possibleAgentPositions.OrderBy(x => agentPosOrdering(x.Item1)).First().Item1;
                 }
                 else if (!positionFound && occupiedPositionFound)
                 {
@@ -957,7 +980,7 @@ namespace BoxProblems.Solver
                     }
                     if (newAgentPos == null)
                     {
-                        newAgentPos = possibleAgentPositions.First().Item1;
+                        newAgentPos = possibleAgentPositions.OrderBy(x => agentPosOrdering(x.Item1)).First().Item1;
                     }
                     var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
                     var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;
@@ -968,7 +991,7 @@ namespace BoxProblems.Solver
                     Point freeSpace = GetFreeSpaceToMoveConflictTo(entityOnAgentEndPosition, sData);
                     sData.AddToFreePath(freeSpace);
                     List<HighlevelMove> entityOnAgentEndPositionSolution;
-                    if (!TrySolveSubProblem(entityOnAgentEndPositionIndex, freeSpace, entityOnAgentEndPositionType == EntityType.AGENT, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
+                    if (!TrySolveSubProblem(entityOnAgentEndPositionIndex, freeSpace, entityOnAgentEndPositionType == EntityType.AGENT, out entityOnAgentEndPositionSolution, sData, depth + 1, false, goal))
                     {
                         throw new Exception("Could not move wrong box from goal.");
                     }
@@ -977,12 +1000,6 @@ namespace BoxProblems.Solver
                     sData.RemoveFromRoutesUsed(pathToBox);
                     sData.RemoveFromFreePath(freeSpace);
                     sData.RemoveFromFreePath(goal);
-                }
-
-
-                if (goal == new Point(15, 18))
-                {
-
                 }
             }
             sData.CurrentState = sData.CurrentState.GetCopy();
@@ -1059,8 +1076,10 @@ namespace BoxProblems.Solver
                     sData.AddToFreePath(freeSpace);
 
                     //Console.WriteLine($"Conflict: {conflict.ToString()} -> {freeSpace}");
-                    if (TrySolveSubProblem(sData.GetEntityIndex(conflict.Value.Ent), freeSpace, conflict.Value.EntType == EntityType.AGENT, out List<HighlevelMove> solutionMoves, sData, depth + 1, true))
+                    if (TrySolveSubProblem(sData.GetEntityIndex(conflict.Value.Ent), freeSpace, conflict.Value.EntType == EntityType.AGENT, out List<HighlevelMove> solutionMoves, sData, depth + 1, true, goal))
                     {
+                        //LevelVisualizer.PrintPath(sData.Level, sData.CurrentState, toMovePath.ToList());
+                        //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
                         //solutionToSubProblem.InsertRange(0, solutionMoves);
                         solutionToSubProblem.AddRange(solutionMoves);
                     }

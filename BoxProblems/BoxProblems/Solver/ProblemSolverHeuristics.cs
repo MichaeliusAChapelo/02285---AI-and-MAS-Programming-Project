@@ -311,11 +311,11 @@ namespace BoxProblems.Solver
                 INode node = sData.CurrentConflicts.GetNodeFromPosition(x);
                 if (node is BoxConflictNode)
                 {
-                    h += 5000;
+                    h += 20;
                 }
                 if (IsCorridor(sData.Level, x))
                 {
-                    h += 100;
+                    h += 10;
                 }
                 return h;
             });
@@ -365,7 +365,7 @@ namespace BoxProblems.Solver
                 for (int x = 0; x < level.Width; x++)
                 {
                     int distance = spacesDistance[x, y];
-                    if (distance == bestDistance)
+                    if (distance >= bestDistance && distance != int.MaxValue)
                     {
                         int priority = spacesPriorityMap[x, y];
                         if (priority < bestPriority)

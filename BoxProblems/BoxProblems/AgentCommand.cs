@@ -22,6 +22,9 @@ namespace BoxProblems
             this.CType = cType;
             this.AgentDir = agentDir;
             this.BoxDir = boxDir;
+            //Console.WriteLine(this);
+            //Console.Error.WriteLine(this);
+            //Console.ReadLine();
         }
 
         public static AgentCommand CreateMove(Direction agentDir)

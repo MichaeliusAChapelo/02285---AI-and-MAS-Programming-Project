@@ -419,7 +419,7 @@ namespace BoxProblems.Solver
             SolverData sData = new SolverData(level, cancelToken);
             GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph, cancelToken);
-            //Console.WriteLine(priority.ToLevelString(level));
+            Console.WriteLine(priority);
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
             var currentLayerNode = goalPriorityLinkedLayers.First;
             while (currentLayerNode != null)
@@ -627,7 +627,7 @@ namespace BoxProblems.Solver
                             }
                         }
 
-                        if (currentLayer.Goals.Count(x => x.EntType == EntityType.BOX_GOAL) > 1)
+                        if (currentLayer.Goals.Count(x => x.EntType == EntityType.BOX_GOAL) > 1 || isGroupOtherThenMainWithGoal)
                         {
                             currentLayer.Goals.Remove(goalToSolve);
                             if (currentLayerNode.Next != null)
@@ -640,9 +640,17 @@ namespace BoxProblems.Solver
                                 goalPriorityLinkedLayers.AddAfter(currentLayerNode, new GoalPriorityLayer(goalsInLayer));
 
                             }
+
+                            //foreach (var layer in goalPriorityLinkedLayers)
+                            //{
+                            //    Console.WriteLine(string.Join(" ", layer.Goals.Select(x => char.ToLower(x.Ent.Type).ToString() + " " + x.Ent.Pos)));
+                            //}
                             continue;
                         }
+
                     }
+
+                    //GraphShower.ShowSimplifiedGraph<DistanceEdgeInfo>(sData.CurrentConflicts);
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
                     //sData.CurrentConflicts.AddGoalNodes(sData.Level, goalToSolve);
@@ -736,7 +744,7 @@ namespace BoxProblems.Solver
                 level.RemoveWall(goal.Ent.Pos);
             }
 
-//#if DEBUG
+#if DEBUG
             foreach (var goal in level.Goals)
             {
                 if (goal.EntType == EntityType.AGENT_GOAL)
@@ -754,7 +762,7 @@ namespace BoxProblems.Solver
                     }
                 }
             }
-//#endif
+#endif
 
             return new HighlevelLevelSolution(solution, sData.SolutionGraphs, level);
         }
@@ -955,7 +963,10 @@ namespace BoxProblems.Solver
                             }
                         }
                     }
+                    if (newAgentPos == null)
+                    {
 
+                    }
                     var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
                     var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;
                     int entityOnAgentEndPositionIndex = sData.GetEntityIndex(entityOnAgentEndPosition);

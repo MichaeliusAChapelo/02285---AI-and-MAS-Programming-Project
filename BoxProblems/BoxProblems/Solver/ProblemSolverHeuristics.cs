@@ -15,6 +15,7 @@ namespace BoxProblems.Solver
             {
                 return goals.First();
             }
+            //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs); 
             Entity ent = GetEntityToSolveProblem(sData, EntityType.BOX, null, goals);
             return sData.Level.Goals.Single(x => x.Ent == ent);
         }

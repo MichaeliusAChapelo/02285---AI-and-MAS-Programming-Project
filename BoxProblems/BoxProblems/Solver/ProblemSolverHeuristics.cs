@@ -252,6 +252,8 @@ namespace BoxProblems.Solver
             }
             howFarIntoFreeSpace += additonalIntoFreeSpace;
             FreeSpaceNode freeSpaceNodeToUse = null;
+            FreeSpaceNode backUpFreeSpaceNode = null;
+            int backupNumFreespaces = int.MinValue;
             var visitedNodes = new HashSet<INode>();
             (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);
             var bfsQueue = new Queue<(INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes)>();
@@ -291,6 +293,11 @@ namespace BoxProblems.Solver
                     if (newFreeSpacesCount > 0)
                     {
                         currentNumFreeSpaces += newFreeSpacesCount;
+                        if ((currentNumFreeSpaces - howFarIntoFreeSpace- currentExtraBoxes) >backupNumFreespaces)
+                        {
+                            backUpFreeSpaceNode = currentFreeSpaceNode;
+                            backupNumFreespaces = currentNumFreeSpaces - howFarIntoFreeSpace - currentExtraBoxes;
+                        }
                         if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
                         {
                             if (currentExtraBoxes + currentRepeatBoxes < minExtraBoxes)
@@ -320,10 +327,24 @@ namespace BoxProblems.Solver
                     howFarIntoFreeSpace += totalExtraBoxes;
                 }
             }
-
-            if (freeSpaceNodeToUse == null)
+            if (freeSpaceNodeToUse == null && backUpFreeSpaceNode == null)
             {
-                throw new Exception("Not enough free space is available");
+                foreach (var iNode in sData.CurrentConflicts.Nodes)
+                {
+                    if (iNode is FreeSpaceNode freeSpaceNode)
+                    {
+                        if (freeSpaceNode.Value.FreeSpaces.Count(x => isFreeSpaceAvailable(x)) > 0)
+                        {
+                            return freeSpaceNode.Value.FreeSpaces.Where(x => isFreeSpaceAvailable(x)).First();
+                        }
+
+                    }
+                }
+                //throw new Exception("Not enough free space is available");
+            }
+            else if (freeSpaceNodeToUse == null)
+            {
+                freeSpaceNodeToUse = backUpFreeSpaceNode;
             }
             var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(isFreeSpaceAvailable).ToList();
             Point freeSpacePointToUse = potentialFreeSpacePoints.First();

@@ -16,6 +16,10 @@ namespace BoxProblems.Solver
                 return goals.First();
             }
             Entity ent = GetEntityToSolveProblem(sData, EntityType.BOX, null, goals);
+            if (ent ==new Entity())
+            {
+                throw new Exception("Could not find path from any goal in the layer to a box that can solve that goal");
+            }
             return sData.Level.Goals.Single(x => x.Ent == ent);
         }
 
@@ -39,7 +43,12 @@ namespace BoxProblems.Solver
             {
                 return returnEntity;
             }
-            return GetEntityToSolveProblem(sData, EntityType.BOX, goal.Ent);
+            returnEntity = GetEntityToSolveProblem(sData, EntityType.BOX, goal.Ent);
+            if (returnEntity == new Entity())
+            {
+                throw new Exception("Could not find any path from the goal to a box of the correct type");
+            }
+            return returnEntity;
         }
 
         private static Entity GetAgentToSolveProblem(SolverData sData, Entity toMove)

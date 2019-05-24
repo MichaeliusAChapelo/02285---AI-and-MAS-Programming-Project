@@ -1034,7 +1034,7 @@ namespace BoxProblems.Solver
                 }
 
                 sData.AddToRoutesUsed(toMovePath);
-                LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
+                //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
 
                 bool toMoveMoved = false;
                 do

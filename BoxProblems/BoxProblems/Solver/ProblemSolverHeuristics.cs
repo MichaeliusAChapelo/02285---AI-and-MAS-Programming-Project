@@ -324,26 +324,26 @@ namespace BoxProblems.Solver
             //LevelVisualizer.PrintSpaceDistances(sData.Level, sData.CurrentState, spacesDistance);
             //LevelVisualizer.PrintSpaceDistances(sData.Level, sData.CurrentState, spacesPriorityMap);
 
-            //for (int i = howFarIntoFreeSpace - 1; i < freeSpacesCounbtByDistance.Length; i++)
-            //{
-            //    if (freeSpacesCounbtByDistance[i] != 0)
-            //    {
-            //        return GetBestPriorityFreeSpace(i + 1, spacesDistance, spacesPriorityMap, sData.Level);
-            //    }
-            //}
-
-            int spacesSum = 0;
-            for (int i = 0; i < freeSpacesCounbtByDistance.Length; i++)
+            for (int i = howFarIntoFreeSpace - 1; i < freeSpacesCounbtByDistance.Length; i++)
             {
-                spacesSum += freeSpacesCounbtByDistance[i];
-                if (spacesSum >= howFarIntoFreeSpace * 2)
+                if (freeSpacesCounbtByDistance[i] != 0)
                 {
-                    if (freeSpacesCounbtByDistance[i] != 0)
-                    {
-                        return GetBestPriorityFreeSpace(i + 1, spacesDistance, spacesPriorityMap, sData.Level);
-                    }
+                    return GetBestPriorityFreeSpace(i + 1, spacesDistance, spacesPriorityMap, sData.Level);
                 }
             }
+
+            //int spacesSum = 0;
+            //for (int i = 0; i < freeSpacesCounbtByDistance.Length; i++)
+            //{
+            //    spacesSum += freeSpacesCounbtByDistance[i];
+            //    if (spacesSum >= howFarIntoFreeSpace * 2)
+            //    {
+            //        if (freeSpacesCounbtByDistance[i] != 0)
+            //        {
+            //            return GetBestPriorityFreeSpace(i + 1, spacesDistance, spacesPriorityMap, sData.Level);
+            //        }
+            //    }
+            //}
 
             for (int i = freeSpacesCounbtByDistance.Length - 1; i >= 0; i--)
             {

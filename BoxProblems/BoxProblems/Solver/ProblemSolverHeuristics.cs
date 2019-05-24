@@ -215,17 +215,15 @@ namespace BoxProblems.Solver
             Func<Point, bool> isFreeSpaceAvailable = new Func<Point, bool>(freeSpace => !sData.FreePath.ContainsKey(freeSpace) && !sData.RoutesUsed.ContainsKey(freeSpace) && !agentPositions.Contains(freeSpace));
 
             //See if there is even 1 free space.
-            int avaiableFreeSpacesCount = 0;
-            foreach (var iNode in sData.CurrentConflicts.Nodes)
-            {
-                if (iNode is FreeSpaceNode freeSpaceNode)
-                {
-                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => isFreeSpaceAvailable(x) ? 1 : 0);
-                }
-            }
+            int avaiableFreeSpacesCount = GetAvailableSpaces(sData, isFreeSpaceAvailable);
             if (avaiableFreeSpacesCount < 1)
             {
-                throw new Exception("No free space is available");
+                isFreeSpaceAvailable = new Func<Point, bool>(freeSpace => !sData.FreePath.ContainsKey(freeSpace) && !agentPositions.Contains(freeSpace));
+                avaiableFreeSpacesCount = GetAvailableSpaces(sData, isFreeSpaceAvailable);
+                if (avaiableFreeSpacesCount < 1)
+                {
+                    throw new Exception("No free space is available");
+                }
 
             }
             //Get the node to start the BFS in the conflict graph, probably an easier way to do this, but not sure how this works
@@ -370,6 +368,20 @@ namespace BoxProblems.Solver
 
             return freeSpacePointToUse;
 
+        }
+
+        private static int GetAvailableSpaces(SolverData sData, Func<Point, bool> isFreeSpaceAvailable)
+        {
+            int avaiableFreeSpacesCount = 0;
+            foreach (var iNode in sData.CurrentConflicts.Nodes)
+            {
+                if (iNode is FreeSpaceNode freeSpaceNode)
+                {
+                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => isFreeSpaceAvailable(x) ? 1 : 0);
+                }
+            }
+
+            return avaiableFreeSpacesCount;
         }
 
         private static bool IsNextToTurningPoint(Level level, Point FSP)

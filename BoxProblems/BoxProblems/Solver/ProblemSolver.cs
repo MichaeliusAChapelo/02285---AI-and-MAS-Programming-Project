@@ -1034,6 +1034,7 @@ namespace BoxProblems.Solver
 #endif
 
             solutionToSubProblem = new List<HighlevelMove>();
+            int counter = 0;
             while (true)
             {
                 Entity toMove = sData.GetEntity(toMoveIndex);
@@ -1062,6 +1063,11 @@ namespace BoxProblems.Solver
                 bool toMoveMoved = false;
                 do
                 {
+                    if (counter == 50)
+                    {
+                        throw new Exception($"Failed to solve conflicts in {counter} tries.");
+                    }
+                    counter++;
                     sData.CancelToken.ThrowIfCancellationRequested();
 
                     BoxConflictNode conflict = conflicts.First();

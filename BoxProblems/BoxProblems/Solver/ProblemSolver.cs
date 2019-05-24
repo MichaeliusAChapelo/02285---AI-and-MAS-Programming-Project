@@ -877,14 +877,15 @@ namespace BoxProblems.Solver
                         if (endAgentPos == toMove.Pos)
                             continue;
 
+                        if (positionOccupied)
+                        {
+                            occupiedPositionFound = true;
+                            continue;
+                        }
+
                         //If the box path contains the agents end position then the agent must've pushed the box
                         if (toMovePath.Contains(endAgentPos))
                         {
-                            if (positionOccupied)
-                            {
-                                occupiedPositionFound = true;
-                                continue;
-                            }
                             newAgentPos = endAgentPos;
                             positionFound = true;
                             break;
@@ -895,13 +896,14 @@ namespace BoxProblems.Solver
                 {
                     foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
                     {
+                        if (positionOccupied)
+                        {
+                            occupiedPositionFound = true;
+                            continue;
+                        }
+
                         if (!toMovePath.Contains(endAgentPos))
                         {
-                            if (positionOccupied)
-                            {
-                                occupiedPositionFound = true;
-                                continue;
-                            }
                             newAgentPos = endAgentPos;
                             positionFound = true;
                             break;
@@ -953,6 +955,11 @@ namespace BoxProblems.Solver
                             }
                         }
                     }
+                    if (newAgentPos == null)
+                    {
+                        newAgentPos = possibleAgentPositions.First().Item1;
+                    }
+
                     var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
                     var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;
                     int entityOnAgentEndPositionIndex = sData.GetEntityIndex(entityOnAgentEndPosition);

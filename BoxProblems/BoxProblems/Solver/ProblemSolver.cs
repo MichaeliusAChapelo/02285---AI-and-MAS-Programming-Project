@@ -913,8 +913,8 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
             solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos));
-            LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
-            LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
+            //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+            //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.FreePath);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
             return true;
         }

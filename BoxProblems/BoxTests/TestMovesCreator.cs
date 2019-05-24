@@ -448,16 +448,22 @@ namespace BoxTests
         private static void VerifyMoveBoxToGoalCreator(string levelString, List<AgentCommand> expectedCommands)
         {
             Level level = TestTools.StringToLevel(levelString);
-            Level clearedLevel = TestTools.StringToLevel(levelString.Replace('G', ' ').Replace('F', ' '));
+            Level clearedLevel = TestTools.StringToLevel(levelString.Replace('G', 'b').Replace('F', ' '));
 
             Entity agent = level.InitialState.Entities.Single(x => x.Type == '0');
             Entity box = level.InitialState.Entities.Single(x => x.Type == 'B');
             Entity goal = level.InitialState.Entities.Single(x => x.Type == 'G');
             Point agentFinalPos = level.InitialState.Entities.Single(x => x.Type == 'F').Pos;
 
-            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, box, goal.Pos, agent, agentFinalPos);
+            HighlevelMove expectedMove = new HighlevelMove(clearedLevel.InitialState, box, goal.Pos, agent, agentFinalPos);
 
-            VerifyCommands(clearedLevel, move, expectedCommands);
+            var solution = ProblemSolver.SolveLevel(clearedLevel, TimeSpan.FromSeconds(3), false);
+            Assert.AreEqual(1, solution.Count);
+            Assert.AreEqual(1, solution.First().SolutionMovesParts.Count);
+            HighlevelMove actualMove = solution.First().SolutionMovesParts.First();
+            Assert.IsTrue(expectedMove == actualMove, $"Expected:{Environment.NewLine}{expectedMove}{Environment.NewLine}Actual:{Environment.NewLine}{actualMove}");
+
+            VerifyCommands(clearedLevel, expectedMove, expectedCommands);
         }
 
         private static void VerifyMoveAgentToGoalCreator(string levelString, List<AgentCommand> expectedCommands)
@@ -468,9 +474,9 @@ namespace BoxTests
             Entity agent = level.InitialState.Entities.Single(x => x.Type == '0');
             Entity goal = level.InitialState.Entities.Single(x => x.Type == 'G');
 
-            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, agent, goal.Pos, null, null);
+            HighlevelMove expectedMove = new HighlevelMove(clearedLevel.InitialState, agent, goal.Pos, null, null);
 
-            VerifyCommands(clearedLevel, move, expectedCommands);
+            VerifyCommands(clearedLevel, expectedMove, expectedCommands);
         }
 
         private static void VerifyCommands(Level level, HighlevelMove move, List<AgentCommand> expectedCommands)

@@ -22,6 +22,19 @@ namespace BoxProblems.Solver
             this.AgentFinalPos = agentFinalPos;
         }
 
+        public static bool operator ==(HighlevelMove a, HighlevelMove b)
+        {
+            return a.MoveThis == b.MoveThis &&
+                   a.ToHere == b.ToHere &&
+                   a.UsingThisAgent == b.UsingThisAgent &&
+                   a.AgentFinalPos == b.AgentFinalPos;
+        }
+
+        public static bool operator !=(HighlevelMove a, HighlevelMove b)
+        {
+            return !(a == b);
+        }
+
         public override string ToString()
         {
             return $"{MoveThis} -> {ToHere} " + (UsingThisAgent.HasValue ? $"Using {UsingThisAgent} to {AgentFinalPos}" : string.Empty);

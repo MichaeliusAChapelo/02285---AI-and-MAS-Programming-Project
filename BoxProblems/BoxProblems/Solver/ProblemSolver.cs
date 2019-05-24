@@ -769,7 +769,7 @@ namespace BoxProblems.Solver
 
         private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, bool isGoalAnObstable)
         {
-            if (depth == 100)
+            if (depth == 200)
             {
                 throw new Exception("sub problem depth limit reached.");
             }
@@ -863,7 +863,24 @@ namespace BoxProblems.Solver
 
                 if (possibleAgentPositions.Count == 0)
                 {
-                    throw new Exception("No agent position found at the goal");
+                    foreach (var dirDelta in Direction.NONE.DirectionDeltas())
+                    {
+                        Point possibleAgentPos = goal + dirDelta;
+
+                        //Can't place the agent inside a wall
+                        if (sData.Level.IsWall(possibleAgentPos))
+                        {
+                            continue;
+                        }
+
+                        //Don't place the agent at an illegal position
+                        if (sData.FreePath.ContainsKey(possibleAgentPos))
+                        {
+                            newAgentPos = possibleAgentPos;
+                            break;
+                        }
+                    }
+                    return true;
                 }
                 //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
                 bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
@@ -885,15 +902,14 @@ namespace BoxProblems.Solver
                         if (endAgentPos == toMove.Pos)
                             continue;
 
-                        if (positionOccupied)
-                        {
-                            occupiedPositionFound = true;
-                            continue;
-                        }
-
                         //If the box path contains the agents end position then the agent must've pushed the box
                         if (toMovePath.Contains(endAgentPos))
                         {
+                            if (positionOccupied)
+                            {
+                                occupiedPositionFound = true;
+                                continue;
+                            }
                             newAgentPos = endAgentPos;
                             positionFound = true;
                             break;
@@ -904,21 +920,20 @@ namespace BoxProblems.Solver
                 {
                     foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
                     {
-                        if (positionOccupied)
-                        {
-                            occupiedPositionFound = true;
-                            continue;
-                        }
 
                         if (!toMovePath.Contains(endAgentPos))
                         {
+                            if (positionOccupied)
+                            {
+                                occupiedPositionFound = true;
+                                continue;
+                            }
                             newAgentPos = endAgentPos;
                             positionFound = true;
                             break;
                         }
                     }
                 }
-
                 //If push wasn't possible then chose one of the possible pull positions
                 if (!positionFound && possibleAgentPositions.Count(x => !x.Item2) > 0)
                 {
@@ -933,40 +948,45 @@ namespace BoxProblems.Solver
                 {
                     newAgentPos = possibleAgentPositions.First().Item1;
                 }
-                if (!positionFound && occupiedPositionFound)
+                else if (!positionFound)
                 {
-                    if (startPush)
+                    if (occupiedPositionFound)
                     {
-                        foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                        if (startPush)
                         {
-                            // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
-                            if (endAgentPos == toMove.Pos)
-                                continue;
-
-                            //If the box path contains the agents end position then the agent must've pushed the box
-                            if (toMovePath.Contains(endAgentPos))
+                            foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
                             {
-                                newAgentPos = endAgentPos;
-                                break;
+                                // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
+                                if (endAgentPos == toMove.Pos)
+                                    continue;
+
+                                //If the box path contains the agents end position then the agent must've pushed the box
+                                if (toMovePath.Contains(endAgentPos))
+                                {
+                                    newAgentPos = endAgentPos;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                            {
+                                if (!toMovePath.Contains(endAgentPos))
+                                {
+                                    newAgentPos = endAgentPos;
+
+                                    break;
+                                }
                             }
                         }
                     }
                     else
                     {
-                        foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
-                        {
-                            if (!toMovePath.Contains(endAgentPos))
-                            {
-                                newAgentPos = endAgentPos;
-
-                                break;
-                            }
-                        }
+                        newAgentPos= possibleAgentPositions.First().Item1;
                     }
-                    if (newAgentPos == null)
-                    {
+                    
 
-                    }
                     var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
                     var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;
                     int entityOnAgentEndPositionIndex = sData.GetEntityIndex(entityOnAgentEndPosition);
@@ -986,6 +1006,7 @@ namespace BoxProblems.Solver
                     sData.RemoveFromFreePath(freeSpace);
                     sData.RemoveFromFreePath(goal);
                 }
+
             }
             sData.CurrentState = sData.CurrentState.GetCopy();
             sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);

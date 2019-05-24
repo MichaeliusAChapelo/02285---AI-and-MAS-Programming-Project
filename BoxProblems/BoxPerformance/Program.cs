@@ -73,7 +73,8 @@ namespace BoxPerformance
                 Console.WriteLine(string.Join(Environment.NewLine, orderedErrors.Select(x => x.LevelName)));
                 Console.WriteLine();
                 Console.WriteLine("Error: ");
-                Console.WriteLine(orderedErrors.First().ErrorThrown.Message + Environment.NewLine + orderedErrors.First().ErrorThrown.StackTrace);
+                var splittedError = orderedErrors.First().ErrorThrown.StackTrace.Split(Environment.NewLine);
+                Console.WriteLine(orderedErrors.First().ErrorThrown.Message + Environment.NewLine + string.Join(Environment.NewLine, splittedError.Take(Math.Min(15, splittedError.Length))));
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine();

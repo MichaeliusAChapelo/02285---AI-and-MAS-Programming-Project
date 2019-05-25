@@ -856,6 +856,7 @@ namespace BoxProblems.Solver
                 {
                     return false;
                 }
+                agentToUse = sData.GetEntity(agentIndex.Value);
                 toMove = sData.GetEntity(toMoveIndex);
                 if (solveAgentConflictMoves != null)
                 {
@@ -865,74 +866,10 @@ namespace BoxProblems.Solver
                 sData.RemoveFromRoutesUsed(toMovePath);
             }
 
-
-
             Point? newAgentPos = null;
-            if (agentIndex.HasValue) // then set agent pos
+            if (needAgent) // then set agent pos
             {
-                agentToUse = sData.CurrentState.Entities[agentIndex.Value];
-                List<(Point, bool)> possibleAgentPositions = new List<(Point, bool)>();
-                foreach (var dirDelta in Direction.NONE.DirectionDeltas())
-                {
-                    Point possibleAgentPos = goal + dirDelta;
-
-                    //Can't place the agent inside a wall
-                    if (sData.Level.IsWall(possibleAgentPos))
-                    {
-                        continue;
-                    }
-
-                    //Don't place the agent at an illegal position
-                    if (sData.FreePath.ContainsKey(possibleAgentPos))
-                    {
-                        continue;
-                    }
-
-                    //Can may place the box on another agent or box
-                    INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
-                    if (nodeAtPos is BoxConflictNode boxNode && boxNode.Value.EntType.IsMoveable())
-                    {
-                        if (boxNode.Value.Ent == toMove || boxNode.Value.Ent == agentToUse.Value)
-                        {
-                            possibleAgentPositions.Add((possibleAgentPos, false));
-
-                        }
-                        else
-                        {
-                            possibleAgentPositions.Add((possibleAgentPos, true));
-                        }
-                    }
-                    else
-                    {
-                        possibleAgentPositions.Add((possibleAgentPos, false));
-                    }
-
-
-                }
-
-                if (possibleAgentPositions.Count == 0)
-                {
-                    foreach (var dirDelta in Direction.NONE.DirectionDeltas())
-                    {
-                        Point possibleAgentPos = goal + dirDelta;
-
-                        //Can't place the agent inside a wall
-                        if (sData.Level.IsWall(possibleAgentPos))
-                        {
-                            continue;
-                        }
-
-                        //Don't place the agent at an illegal position
-                        if (sData.FreePath.ContainsKey(possibleAgentPos))
-                        {
-                            newAgentPos = possibleAgentPos;
-                            break;
-                        }
-                    }
-                    return true;
-                }
-                //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
-                newAgentPos = GetNewAgentPosition(toMoveIndex, goal, solutionToSubProblem, sData, depth, agentToUse.Value, agentIndex.Value, toMovePath, pathToBox, possibleAgentPositions);
+                newAgentPos = GetNewAgentPosition(toMoveIndex, goal, solutionToSubProblem, sData, depth, agentToUse.Value, agentIndex.Value, toMove, toMovePath, pathToBox);
                 agentToUse = sData.GetEntity(agentIndex.Value);
                 toMove = sData.GetEntity(toMoveIndex);
             }
@@ -956,8 +893,45 @@ namespace BoxProblems.Solver
             return true;
         }
 
-        private static Point GetNewAgentPosition(int toMoveIndex, Point goal, List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, Entity agentToUse, int agentIndex, Point[] toMovePath, Point[] pathToBox, List<(Point, bool)> possibleAgentPositions)
+        private static Point GetNewAgentPosition(int toMoveIndex, Point goal, List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, Entity agentToUse, int agentIndex, Entity toMove, Point[] toMovePath, Point[] pathToBox)
         {
+            List<(Point, bool)> possibleAgentPositions = new List<(Point, bool)>();
+            foreach (var dirDelta in Direction.NONE.DirectionDeltas())
+            {
+                Point possibleAgentPos = goal + dirDelta;
+
+                //Can't place the agent inside a wall
+                if (sData.Level.IsWall(possibleAgentPos))
+                {
+                    continue;
+                }
+
+                //Don't place the agent at an illegal position
+                if (sData.FreePath.ContainsKey(possibleAgentPos))
+                {
+                    continue;
+                }
+
+                //Can may place the box on another agent or box
+                INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
+                if (nodeAtPos is BoxConflictNode boxNode)
+                {
+                    if (boxNode.Value.Ent == toMove || boxNode.Value.Ent == agentToUse)
+                    {
+                        possibleAgentPositions.Add((possibleAgentPos, false));
+
+                    }
+                    else
+                    {
+                        possibleAgentPositions.Add((possibleAgentPos, true));
+                    }
+                }
+                else
+                {
+                    possibleAgentPositions.Add((possibleAgentPos, false));
+                }
+            }
+
             Point newAgentPos;
             bool startPush = pathToBox[pathToBox.Length - 2] != toMovePath[1];
             bool canEndPush = possibleAgentPositions.Any(x => x.Item1 == toMovePath[toMovePath.Length - 2]);
@@ -984,28 +958,7 @@ namespace BoxProblems.Solver
                         throw new Exception("Need Uturn but we can't");
                     }
 
-                    sData.AddToRoutesUsed(toMovePath);
-                    sData.AddToRoutesUsed(pathToBox);
-                    sData.AddToFreePath(goal);
-                    sData.AddToFreePath(uTurnPos.Value);
-                    sData.AddToFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
-                    sData.AddToFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
-                    sData.AddToFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
-                    sData.AddToFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
-                    List<HighlevelMove> entityOnAgentEndPositionSolution;
-                    if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
-                    {
-                        throw new Exception("Could not move wrong box from goal.");
-                    }
-                    solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
-                    sData.RemoveFromRoutesUsed(toMovePath);
-                    sData.RemoveFromRoutesUsed(pathToBox);
-                    sData.RemoveFromFreePath(uTurnPos.Value);
-                    sData.RemoveFromFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
-                    sData.RemoveFromFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
-                    sData.RemoveFromFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
-                    sData.RemoveFromFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
-                    sData.RemoveFromFreePath(goal);
+                    AddPathToUTurn(toMoveIndex, goal, solutionToSubProblem, sData, depth, toMovePath, pathToBox, uTurnPos);
                     agentToUse = sData.GetEntity(agentIndex);
                 }
 
@@ -1038,27 +991,56 @@ namespace BoxProblems.Solver
 
             if (isEntityOnAgentEnd)
             {
-                var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos)).Value.Ent;
-                var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos)).Value.EntType;
-                int entityOnAgentEndPositionIndex = sData.GetEntityIndex(entityOnAgentEndPosition);
-                sData.AddToRoutesUsed(toMovePath);
-                sData.AddToRoutesUsed(pathToBox);
-                sData.AddToFreePath(goal);
-                Point freeSpace = GetFreeSpaceToMoveConflictTo(entityOnAgentEndPosition, sData);
-                sData.AddToFreePath(freeSpace);
-                List<HighlevelMove> entityOnAgentEndPositionSolution;
-                if (!TrySolveSubProblem(entityOnAgentEndPositionIndex, freeSpace, entityOnAgentEndPositionType == EntityType.AGENT, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
-                {
-                    throw new Exception("Could not move wrong box from goal.");
-                }
-                solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
-                sData.RemoveFromRoutesUsed(toMovePath);
-                sData.RemoveFromRoutesUsed(pathToBox);
-                sData.RemoveFromFreePath(freeSpace);
-                sData.RemoveFromFreePath(goal);
-
+                MoveEntityFromAgentEndPosition(goal, solutionToSubProblem, sData, depth, toMovePath, pathToBox, newAgentPos);
             }
             return newAgentPos;
+        }
+
+        private static void MoveEntityFromAgentEndPosition(Point goal, List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, Point[] toMovePath, Point[] pathToBox, Point newAgentPos)
+        {
+            var boxNode = (BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos);
+            int entityOnAgentEndPositionIndex = sData.GetEntityIndex(boxNode.Value.Ent);
+            sData.AddToRoutesUsed(toMovePath);
+            sData.AddToRoutesUsed(pathToBox);
+            sData.AddToFreePath(goal);
+            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData);
+            sData.AddToFreePath(freeSpace);
+            List<HighlevelMove> entityOnAgentEndPositionSolution;
+            if (!TrySolveSubProblem(entityOnAgentEndPositionIndex, freeSpace, boxNode.Value.EntType == EntityType.AGENT, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
+            {
+                throw new Exception("Could not move wrong box from goal.");
+            }
+            solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
+            sData.RemoveFromRoutesUsed(toMovePath);
+            sData.RemoveFromRoutesUsed(pathToBox);
+            sData.RemoveFromFreePath(freeSpace);
+            sData.RemoveFromFreePath(goal);
+        }
+
+        private static void AddPathToUTurn(int toMoveIndex, Point goal, List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, Point[] toMovePath, Point[] pathToBox, Point? uTurnPos)
+        {
+            sData.AddToRoutesUsed(toMovePath);
+            sData.AddToRoutesUsed(pathToBox);
+            sData.AddToFreePath(goal);
+            sData.AddToFreePath(uTurnPos.Value);
+            sData.AddToFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
+            sData.AddToFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
+            sData.AddToFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
+            sData.AddToFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
+            List<HighlevelMove> entityOnAgentEndPositionSolution;
+            if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
+            {
+                throw new Exception("Could not move wrong box from goal.");
+            }
+            solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
+            sData.RemoveFromRoutesUsed(toMovePath);
+            sData.RemoveFromRoutesUsed(pathToBox);
+            sData.RemoveFromFreePath(uTurnPos.Value);
+            sData.RemoveFromFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
+            sData.RemoveFromFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
+            sData.RemoveFromFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
+            sData.RemoveFromFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
+            sData.RemoveFromFreePath(goal);
         }
 
         private static bool TrySolveConflicts(int toMoveIndex, Point goal, out List<HighlevelMove> solutionToSubProblem, out Point[] toMovePath, SolverData sData, Entity? agentNotConflict, int depth, bool isGoalAnObstable)

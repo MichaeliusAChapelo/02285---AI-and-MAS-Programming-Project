@@ -303,6 +303,27 @@ namespace BoxProblems
 
             // Reach turning point.
             var pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
+
+            // If we found no path to this turning point; Pick another.
+            while (pathToTurnIntoPoint.Count == 1)
+            { 
+                if (turningPoints.Count == 0)
+                    throw new Exception("Distant turning point exists, but none can be reached due to blockage by other boxes.");
+                (x, y) = turningPoints.DequeueWithPriority().Value;
+                turnPoint = new Point(x, y);
+
+                // Find spot beside turning point.
+                foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
+                    if (!Level.IsWall(turnPoint.Value + dirDelta))
+                    {
+                        turnIntoPoint = turnPoint.Value + dirDelta;
+                        break;
+                    }
+
+                pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
+            }
+
+            // If A* doesn't go through selected turn(into) points
             if (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
             {
                 List<Point> blocks = new List<Point>();
@@ -319,28 +340,6 @@ namespace BoxProblems
 
 
 
-            if (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
-            {
-                pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] = turnPoint.Value;
-            }
-
-            while (pathToTurnIntoPoint.Count == 1)
-            { // Found no path to this turning point; Pick another.
-                if (turningPoints.Count == 0)
-                    throw new Exception("Distant turning point exists, but none can be reached due to blockage by other boxes.");
-                (x, y) = turningPoints.DequeueWithPriority().Value;
-                turnPoint = new Point(x, y);
-
-                // Find spot beside turning point.
-                foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
-                    if (!Level.IsWall(turnPoint.Value + dirDelta))
-                    {
-                        turnIntoPoint = turnPoint.Value + dirDelta;
-                        break;
-                    }
-
-                pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
-            }
 
             startPull = !pathToTurnIntoPoint.Contains(agentNextToBox);
 

@@ -228,12 +228,7 @@ namespace BoxProblems.Solver
             int avaiableFreeSpacesCount = GetAvailableSpaces(sData, isFreeSpaceAvailable);
             if (avaiableFreeSpacesCount < 1)
             {
-                isFreeSpaceAvailable = new Func<Point, bool>(freeSpace => !sData.FreePath.ContainsKey(freeSpace) && !agentPositions.Contains(freeSpace));
-                avaiableFreeSpacesCount = GetAvailableSpaces(sData, isFreeSpaceAvailable);
-                if (avaiableFreeSpacesCount < 1)
-                {
-                    throw new Exception("No free space is available");
-                }
+                throw new Exception("No free space is available");
 
             }
             //Get the node to start the BFS in the conflict graph, probably an easier way to do this, but not sure how this works

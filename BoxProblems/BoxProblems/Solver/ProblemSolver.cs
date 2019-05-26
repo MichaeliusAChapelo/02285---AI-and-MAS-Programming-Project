@@ -1039,7 +1039,7 @@ namespace BoxProblems.Solver
                             sData.AddToFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
                             sData.AddToFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
                             List<HighlevelMove> entityOnAgentEndPositionSolution;
-                            if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
+                            if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, true))
                             {
                                 throw new Exception("Could not move wrong box from goal.");
                             }
@@ -1353,29 +1353,29 @@ namespace BoxProblems.Solver
                 return agentpos;
             }
             short[,] distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, agentpos, false);
-            var turningPoints = new PriorityQueue<(int x, int y), int>();
+            Point? bestTurningPoint = null;
+            int bestScore = int.MaxValue;
             for (int x = 1; x < sData.Level.Width - 1; x++)
             {
                 for (int y = 1; y < sData.Level.Height - 1; y++)
                 {
-                    if (!sData.Level.Walls[x, y] && !IsCorridor(sData.Level, new Point(x, y)))
+                    Point p = new Point(x, y);
+                    if (!sData.Level.Walls[x, y] && !IsCorridor(sData.Level, p))
                     {
                         if (distanceMap[x, y] != 0)
                         {
-                            turningPoints.Enqueue((x, y), distanceMap[x, y]);
+                            int score = distanceMap[x, y] + ((sData.CurrentConflicts.PositionHasNode(p) && sData.CurrentConflicts.GetNodeFromPosition(p) is BoxConflictNode) ? 5 : 0);
+                            if (score < bestScore)
+                            {
+                                bestTurningPoint = p;
+                                bestScore = score;
+                            }
                         }
                     }
                 }
             }
-            if (turningPoints.Count==0)
-            {
-                return null;
-            }
-            else
-            {
-                (int x, int y) = turningPoints.DequeueWithPriority().Value;
-                return new Point(x, y);
-            }
+
+            return bestTurningPoint;
         }
     }
 }

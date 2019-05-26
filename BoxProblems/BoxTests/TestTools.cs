@@ -15,7 +15,7 @@ namespace BoxTests
             return Level.ReadLevel(levelLines, levelName);
         }
 
-        internal static Level StringToOldFormatLevel(string levelString)
+        internal static Level StringToLevel(string levelString)
         {
             return Level.ReadLevel(levelString);
         }

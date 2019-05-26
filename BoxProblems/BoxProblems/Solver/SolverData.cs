@@ -95,7 +95,7 @@ namespace BoxProblems.Solver
             }
 
             public Entity GetEntity(int index)
-            {
+            { 
                 return CurrentState.Entities[index];
             }
 

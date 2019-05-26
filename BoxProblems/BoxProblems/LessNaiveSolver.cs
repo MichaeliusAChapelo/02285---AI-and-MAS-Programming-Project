@@ -1,4 +1,5 @@
 ﻿using BoxProblems.Solver;
+using PriorityQueue;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +26,8 @@ namespace BoxProblems
         // GOD FUNCTION DEUX
         public List<AgentCommands> Solve()
         {
+            if (Level == BoxSwimmingSolver.Level) return BoxSwimmingSolver.EndSolution;
+
             List<AgentCommands> solution = new List<AgentCommands>();
 
             State currentState = Level.InitialState;
@@ -42,7 +45,9 @@ namespace BoxProblems
 
                 if (plan.UsingThisAgent.HasValue)
                 {
-                    if (Agents[agentIndex] != plan.UsingThisAgent.Value.Move(plan.AgentFinalPos.Value))
+                    var a = plan.UsingThisAgent.Value.Move(plan.AgentFinalPos.Value);
+                    var b = Agents[agentIndex];
+                    if (b != a)
                     {
                         throw new Exception("reee");
                     }
@@ -61,7 +66,6 @@ namespace BoxProblems
             return solution;
         }
 
-        #region Abstract Moves to Specific Commands
 
         public List<AgentCommand> CreateOnlyFirstSolutionCommand(HighlevelMove move, State currentState, int agentIndex)
         {
@@ -99,8 +103,32 @@ namespace BoxProblems
             var agent = plan.UsingThisAgent.Value;
             var agentEndPos = plan.AgentFinalPos.Value;
             var box = plan.MoveThis;
+            List<Point> agentToBox = null;
 
-            var agentToBox = RunAStar(agent.Pos, box.Pos);
+            // Avoids stupid square problems.
+            if (Point.ManhattenDistance(box.Pos, goalPos) == 1)
+            {
+                if (IsStraightCorridor(goalPos) || IsStraightCorridor(box.Pos))
+                {
+                    // Do nothing
+                }
+                else if (box.Pos == agentEndPos)
+                    // Force agent's pathfinding to box to avoid the goal.
+                    Level.AddWall(goalPos);
+                else if (Point.ManhattenDistance(agentEndPos, goalPos) == 1)
+                { // Force agent's position next to box onto the goal.
+                    Level.AddWall(box.Pos);
+                    agentToBox = RunAStar(agent.Pos, goalPos);
+                    agentToBox.Add(box.Pos);
+                }
+            }
+
+            if (agentToBox == null)
+                agentToBox = RunAStar(agent.Pos, box.Pos);
+
+            Level.RemoveWall(goalPos);
+            Level.RemoveWall(box.Pos);
+
             //Remove box location from the path as the path should end next to the box
             agentToBox.RemoveAt(agentToBox.Count - 1);
             MoveToLocation(agentToBox, commands, agentIndex);
@@ -108,17 +136,25 @@ namespace BoxProblems
 
             var boxToAgentEnd = RunAStar(box.Pos, agentEndPos);
 
+            if (boxToAgentEnd.Count == 3 && agentNextToBox == goalPos && boxToAgentEnd[1] != goalPos)
+                boxToAgentEnd[1] = goalPos; // If pathfinding dun goofed, then force agent to pull through goal position when it OBVIOUSLY should.
+
             bool startPull = boxToAgentEnd.Contains(agentNextToBox);
             bool endPull = boxToAgentEnd.Contains(goalPos);
 
+            if (agentNextToBox == goalPos) // If agent blocks goal position
+                startPull = true; // Forces agent to locate distant U-turn location, pull at U-turn, and push to goal.
+
             List<Point> firstPart = null;
             List<Point> secondPart = null;
+
             if (startPull != endPull)
             {
-                //Find somewhere to turn around
                 Point? turnPoint = null;
-                int count = 0;
+                Point turnIntoPoint = new Point();
 
+                //Find somewhere to turn around
+                int count = 0;
                 int skipFirst = startPull ? 1 : 0;
                 foreach (var pos in boxToAgentEnd.Skip(skipFirst))
                 {
@@ -131,12 +167,12 @@ namespace BoxProblems
                 }
                 count += skipFirst;
 
-                if (!turnPoint.HasValue)
-                {
-                    throw new Exception("Failed to find a turn point on the route.");
-                }
 
-                Point turnIntoPoint = FindSpaceToTurn(boxToAgentEnd, turnPoint.Value, goalPos, agentNextToBox);
+                // If we failed to find a turn point on the route
+                if (!turnPoint.HasValue)
+                    FindDistantTurningPoint(plan, ref agentNextToBox, agentEndPos, ref turnPoint, ref turnIntoPoint, box.Pos, goalPos, commands, agentIndex, boxIndex, ref boxToAgentEnd, ref startPull, ref endPull, ref count, ref skipFirst);
+
+                turnIntoPoint = FindSpaceToTurn(boxToAgentEnd, turnPoint.Value, goalPos, agentNextToBox);
 
                 firstPart = new List<Point>();
                 firstPart.AddRange(boxToAgentEnd.Take(count));
@@ -164,13 +200,6 @@ namespace BoxProblems
                 }
             }
 
-            //if (firstPart != null)
-            //{
-            //    Console.WriteLine("first part");
-            //    State state = new State(null, Agents.Concat(Boxes).ToArray(), 0);
-            //    LevelVisualizer.PrintPath(Level, state, firstPart);
-            //}
-
             Point? firstPartAgentEndPos = null;
             if (startPull)
             {
@@ -189,12 +218,6 @@ namespace BoxProblems
                 }
             }
 
-            //if (secondPart != null)
-            //{
-            //    Console.WriteLine("second part");
-            //    State state = new State(null, Agents.Concat(Boxes).ToArray(), 0);
-            //    LevelVisualizer.PrintPath(Level, state, secondPart);
-            //}
             if (secondPart != null)
             {
                 if (endPull)
@@ -208,103 +231,95 @@ namespace BoxProblems
             }
 
             return commands;
+        }
 
-            /*
-            int agentIndex = Array.IndexOf(Agents, agent);
+        private void FindDistantTurningPoint(
+            HighlevelMove plan,
+            ref Point agentNextToBox,
+            Point agentEndPos,
+            ref Point? turnPoint,
+            ref Point turnIntoPoint,
+            Point boxPos,
+            Point goalPos,
+            List<AgentCommand> commands,
+            int agentIndex,
+            int boxIndex,
+            ref List<Point> boxToAgentEnd,
+            ref bool startPull,
+            ref bool endPull,
+            ref int count,
+            ref int skipFirst
+            )
+        {
+            turnPoint = plan.UTurnPos.Value;
 
-            var commands = new List<AgentCommand>();
-
-            bool OnlyPullToGoal = false;
-
-            // Does agent need to move to box position first?
-            List<Point> toBox = null;
-            Point agentPosNextToBox;
-            if (Point.ManhattenDistance(agent.Pos, box.Pos) != 1)
+            // Find spot beside turning point.
+            foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
             {
-                toBox = RunAStar(agent.Pos, box.Pos);
-                agentPosNextToBox = MoveToBox(toBox, commands, goal, out OnlyPullToGoal);
-            }
-            else
-                agentPosNextToBox = agent.Pos;
-
-
-            var toGoal = RunAStar(box.Pos, plan.AgentFinalPos.Value);
-            if (!toGoal.Contains(goal.Pos))
-                toGoal.Add(goal.Pos);
-
-            bool ShouldPush = !toGoal.Contains(agentPosNextToBox); // always true right now
-
-            //Console.WriteLine(Level.WorldToString(Level.GetWallsAsWorld()));
-
-
-            if (ShouldPush && !toGoal.Contains(agentPosNextToBox))
-                toGoal.Insert(0, agentPosNextToBox);
-
-            Point? newAgentPosition = null;
-
-            // Strategy: Check if need to pull: If yes, keep pulling until I can U-turn into pushing. Then push until end.
-            if (!ShouldPush)
-            {
-                List<Point> parteUn = new List<Point>();
-                List<Point> parteDeux = new List<Point>();
-
-                if (OnlyPullToGoal)
+                Point dirP = turnPoint.Value + dirDelta;
+                if (!Level.IsWall(dirP) && dirP != agentNextToBox)
                 {
-
-                    int index = toBox.IndexOf(goal.Pos);
-
-                    if (index == -1)
-                        newAgentPosition = agent.Pos;
-                    else
-                        newAgentPosition = toBox[index - 1];
-                    if (!toGoal.Contains(newAgentPosition.Value))
-                        toGoal.Add(newAgentPosition.Value);
-
-                    for (int i = 2; i < toGoal.Count; ++i)
-                        commands.Add(Pull(toGoal, i));
+                    turnIntoPoint = turnPoint.Value + dirDelta;
+                    break;
                 }
-                else
-                    for (int i = 1; i < toGoal.Count; ++i)
-                        if (!IsCorridor(toGoal[i]))
-                        {
-                            Point turnTo = FindSpaceToTurn(toGoal, toGoal[i]);
-                            parteUn.AddRange(toGoal.Take(i + 1));
-                            parteUn.Add(turnTo);
+            }
 
-                            for (int j = 2; j < parteUn.Count; ++j)
-                                commands.Add(Pull(parteUn, j));
+            // Reach turning point.
+            var pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
 
-                            // Push
-                            parteDeux.Add(turnTo);
-                            parteDeux.AddRange(toGoal.Skip(i));
+            // If A* doesn't go through selected turn(into) points
+            //if (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
+            //{
+            //    List<Point> blocks = new List<Point>();
+            //    while (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
+            //    {
+            //        Point p = pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2];
+            //        Level.AddWall(p);
+            //        blocks.Add(p);
+            //        pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
+            //    }
+            //    foreach (Point p in blocks)
+            //        Level.RemoveWall(p);
+            //}
 
-                            for (int j = 2; j < parteDeux.Count; ++j)
-                                commands.Add(Push(parteDeux, j));
-                            break;
-                        }
 
+
+
+            startPull = !pathToTurnIntoPoint.Contains(agentNextToBox);
+
+            if (startPull)
+            {
+
+                //if (!pathToTurnIntoPoint.Contains(agentNextToBox))
+                PushOnPath(pathToTurnIntoPoint, agentNextToBox, commands, agentIndex, boxIndex);
+                Agents[agentIndex] = Agents[agentIndex].Move(turnPoint.Value);
+                boxToAgentEnd = RunAStar(turnIntoPoint, agentEndPos);
             }
             else
-                for (int i = 2; i < toGoal.Count; i++)
-                    commands.Add(Push(toGoal, i));
-
-            if (!newAgentPosition.HasValue)
-                newAgentPosition = toGoal[toGoal.Count - 2];
-
-            Level.AddWall(goal.Pos);
-
-            if (newAgentPosition != plan.AgentFinalPos)
             {
-                commands.AddRange(MoveToLocation(newAgentPosition.Value, plan.AgentFinalPos.Value));
-                newAgentPosition = plan.AgentFinalPos;
+
+                // SARegExAZ is an excellent example... of a mess.
+                PullOnPath(pathToTurnIntoPoint, commands, agentIndex, boxIndex);
+                Agents[agentIndex] = Agents[agentIndex].Move(turnIntoPoint);
+                boxToAgentEnd = RunAStar(turnPoint.Value, agentEndPos);
             }
 
-            Agents[agentIndex] = agent.Move(newAgentPosition.Value);
+            agentNextToBox = Agents[agentIndex].Pos; // Agent is always next to box.
+            endPull = boxToAgentEnd.Contains(goalPos);
+            startPull = !endPull;
 
-            Level.ResetWalls();
-
-            return commands;
-            */
+            count = 0;
+            skipFirst = startPull ? 1 : 0;
+            foreach (var pos in boxToAgentEnd.Skip(skipFirst))
+            {
+                count++;
+                if (!IsCorridor(pos))
+                {
+                    turnPoint = pos;
+                    break;
+                }
+            }
+            count += skipFirst;
         }
 
         private void PushOnPath(List<Point> path, Point agentPos, List<AgentCommand> commandList, int agentIndex, int boxIndex)
@@ -391,7 +406,7 @@ namespace BoxProblems
             {
                 if (agent.Pos == nextPos)
                 {
-                    //Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    Console.Error.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
                     throw new Exception("Can't move into an agent.");
                 }
             }
@@ -400,7 +415,7 @@ namespace BoxProblems
             {
                 if (box.Pos == nextPos)
                 {
-                    //Console.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
+                    //Console.Error.WriteLine(Level.StateToString(new State(null, Agents.Concat(Boxes).ToArray(), 0)));
                     throw new Exception("Can't move into a box.");
                 }
             }
@@ -428,6 +443,15 @@ namespace BoxProblems
             return Precomputer.GetPath(Level, start, end, false).ToList();
         }
 
+        public bool IsCorridor(int x, int y)
+        {
+            int walls = 0;
+            if (Level.Walls[x + 1, y]) walls++;
+            if (Level.Walls[x - 1, y]) walls++;
+            if (Level.Walls[x, y + 1]) walls++;
+            if (Level.Walls[x, y - 1]) walls++;
+            return (2 <= walls);
+        }
 
         public bool IsCorridor(Point p)
         { // This works for corridor corners too.
@@ -437,6 +461,12 @@ namespace BoxProblems
             if (Level.Walls[p.X, p.Y + 1]) walls++;
             if (Level.Walls[p.X, p.Y - 1]) walls++;
             return (2 <= walls);
+        }
+
+        public bool IsStraightCorridor(Point p)
+        {
+            return (Level.Walls[p.X + 1, p.Y] && Level.Walls[p.X - 1, p.Y])
+                || (Level.Walls[p.X, p.Y + 1] && Level.Walls[p.X, p.Y - 1]);
         }
 
         private Point FindSpaceToTurn(List<Point> solutionPath, Point turnPos, Point goalPos, Point agentNextToBox)
@@ -457,7 +487,6 @@ namespace BoxProblems
             throw new Exception("Agent pos was corridor, but no extra space was found.");
         }
 
-        #endregion
 
 
     }

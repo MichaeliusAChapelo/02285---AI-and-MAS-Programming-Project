@@ -1,4 +1,5 @@
 ﻿using BoxProblems.Graphing;
+using PriorityQueue;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,13 +28,17 @@ namespace BoxProblems.Solver
     internal class GroupInformation
     {
         public readonly Dictionary<int, int> agentColors;
+        public readonly Dictionary<char, int> agentTypes;
         public readonly Dictionary<char, int> boxeTypes;
-        public readonly Dictionary<(int color, char type), int> goalTypeAndColor;
+        public readonly Dictionary<(int color, char type), int> boxGoalTypeAndColor;
+        public readonly Dictionary<(int color, char type), int> agentGoalTypeAndColor;
         internal GroupInformation(List<INode> group)
         {
             this.agentColors = new Dictionary<int, int>();
+            this.agentTypes = new Dictionary<char, int>();
             this.boxeTypes = new Dictionary<char, int>();
-            this.goalTypeAndColor = new Dictionary<(int, char), int>();
+            this.boxGoalTypeAndColor = new Dictionary<(int, char), int>();
+            this.agentGoalTypeAndColor = new Dictionary<(int color, char type), int>();
             foreach (var iNode in group)
             {
                 if (iNode is FreeSpaceNode)
@@ -46,11 +51,11 @@ namespace BoxProblems.Solver
                 switch (boxNode.Value.EntType)
                 {
                     case EntityType.AGENT:
-                        if (!agentColors.ContainsKey(entityColor))
-                        {
-                            agentColors.Add(entityColor, 0);
-                        }
+                        agentColors.TryAdd(entityColor, 0);
                         agentColors[entityColor] += 1;
+
+                        agentTypes.TryAdd(entityType, 0);
+                        agentTypes[entityType] += 1;
                         break;
                     case EntityType.BOX:
                         if (!boxeTypes.ContainsKey(entityType))
@@ -59,13 +64,21 @@ namespace BoxProblems.Solver
                         }
                         boxeTypes[entityType] += 1;
                         break;
-                    case EntityType.GOAL:
-                        var goalKey = (entityColor, entityType);
-                        if (!goalTypeAndColor.ContainsKey(goalKey))
+                    case EntityType.BOX_GOAL:
+                        var boxGoalKey = (entityColor, entityType);
+                        if (!boxGoalTypeAndColor.ContainsKey(boxGoalKey))
                         {
-                            goalTypeAndColor.Add(goalKey, 0);
+                            boxGoalTypeAndColor.Add(boxGoalKey, 0);
                         }
-                        goalTypeAndColor[goalKey] += 1;
+                        boxGoalTypeAndColor[boxGoalKey] += 1;
+                        break;
+                    case EntityType.AGENT_GOAL:
+                        var agentGoalKey = (entityColor, entityType);
+                        if (!agentGoalTypeAndColor.ContainsKey(agentGoalKey))
+                        {
+                            agentGoalTypeAndColor.Add(agentGoalKey, 0);
+                        }
+                        agentGoalTypeAndColor[agentGoalKey] += 1;
                         break;
                     default:
                         throw new Exception("Unknown entity type.");
@@ -132,20 +145,50 @@ namespace BoxProblems.Solver
                 {
                     Parallel.ForEach(levels, x =>
                     {
-                        var solution = SolvePartialLevel(x, cancelSource.Token);
-                        solution = HighLevelOptimizer.Optimize(solution);
-                        //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(solution);
+                        if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
+                        {
+                            Point p = new Point();
+                            foreach (Goal g in x.Goals)
+                                if (g.EntType == EntityType.AGENT_GOAL)
+                                {
+                                    p = g.Ent.Pos;
+                                    break;
+                                }
+                            (new BoxSwimmingSolver(x, p)).Solve(); // Set point to agent pos goal.
+                            solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
+                        }
+                        else
+                        {
+                            var solution = SolvePartialLevel(x, cancelSource.Token);
+                            solution = HighLevelOptimizer.Optimize(solution);
+                            //WriteToFile(optimizedSolution);
+                            solutionPieces.Add(solution);
+                        }
                     });
                 }
                 else
                 {
                     foreach (var x in levels)
                     {
-                        var solution = SolvePartialLevel(x, cancelSource.Token);
-                        solution = HighLevelOptimizer.Optimize(solution);
-                        //WriteToFile(optimizedSolution);
-                        solutionPieces.Add(solution);
+                        if (BoxSwimming.MeasureBoxDensity(x) > 0.99)
+                        {
+                            Point p = new Point();
+                            foreach (Goal g in x.Goals)
+                                if (g.EntType == EntityType.AGENT_GOAL)
+                                {
+                                    p = g.Ent.Pos;
+                                    break;
+                                }
+                            (new BoxSwimmingSolver(x, p)).Solve(); // Set point to agent pos goal.
+                            solutionPieces.Add(new HighlevelLevelSolution(null, null, x));
+                        }
+                        else
+                        {
+                            var solution = SolvePartialLevel(x, cancelSource.Token);
+                            solution = HighLevelOptimizer.Optimize(solution);
+                            //WriteToFile(optimizedSolution);
+                            solutionPieces.Add(solution);
+                        }
                     }
                 }
             }
@@ -214,7 +257,7 @@ namespace BoxProblems.Solver
                 int goalsCount = 0;
                 foreach (var node in group)
                 {
-                    if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
+                    if (node is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal())
                     {
                         goalsCount++;
                     }
@@ -252,68 +295,72 @@ namespace BoxProblems.Solver
 
 
 
-        private static bool EveryGroupHasEverythingNeeded(List<List<INode>> graphGroups, List<INode> mainGroup, Entity goalEntity)
+        private static bool EveryGroupHasEverythingNeeded(List<List<INode>> graphGroups, List<INode> mainGroup, Goal goal)
         {
             foreach (var group in graphGroups)
             {
-                HashSet<int> agentColors = new HashSet<int>();
-                Dictionary<char, int> boxeTypes = new Dictionary<char, int>();
-                Dictionary<(int color, char type), int> goalTypeAndColor = new Dictionary<(int, char), int>();
-                foreach (var iNode in group)
-                {
-                    if (iNode is FreeSpaceNode)
-                    {
-                        continue;
-                    }
-                    BoxConflictNode boxNode = (BoxConflictNode)iNode;
-                    char entityType = boxNode.Value.Ent.Type;
-                    int entityColor = boxNode.Value.Ent.Color;
-                    switch (boxNode.Value.EntType)
-                    {
-                        case EntityType.AGENT:
-                            agentColors.Add(entityColor);
-                            break;
-                        case EntityType.BOX:
-                            if (!boxeTypes.ContainsKey(entityType))
-                            {
-                                boxeTypes.Add(entityType, 0);
-                            }
-                            boxeTypes[entityType] += 1;
-                            break;
-                        case EntityType.GOAL:
-                            var goalKey = (entityColor, entityType);
-                            if (!goalTypeAndColor.ContainsKey(goalKey))
-                            {
-                                goalTypeAndColor.Add(goalKey, 0);
-                            }
-                            goalTypeAndColor[goalKey] += 1;
-                            break;
-                        default:
-                            throw new Exception("Unknown entity type.");
-                    }
-                }
+                GroupInformation groupInfo = new GroupInformation(group);
 
                 if (group == mainGroup)
                 {
-                    if (boxeTypes.ContainsKey(goalEntity.Type))
+                    if (goal.EntType == EntityType.AGENT_GOAL)
                     {
-                        boxeTypes[goalEntity.Type] += 1;
+                        if (groupInfo.agentTypes.ContainsKey(goal.Ent.Type))
+                        {
+                            groupInfo.agentTypes[goal.Ent.Type] += 1;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else if (goal.EntType == EntityType.BOX_GOAL)
+                    {
+                        if (groupInfo.boxeTypes.ContainsKey(goal.Ent.Type))
+                        {
+                            groupInfo.boxeTypes[goal.Ent.Type] += 1;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
                     else
+                    {
+                        throw new Exception($"Unknown entity type: {goal.EntType}");
+                    }
+                }
+                var goalTuple = (goal.Ent.Color, goal.Ent.Type);
+                if (goal.EntType == EntityType.AGENT_GOAL)
+                {
+                    groupInfo.agentGoalTypeAndColor.TryAdd(goalTuple, 0);
+                    groupInfo.agentGoalTypeAndColor[goalTuple] += 1;
+                }
+                else if (goal.EntType == EntityType.BOX_GOAL)
+                {
+                    groupInfo.boxGoalTypeAndColor.TryAdd(goalTuple, 0);
+                    groupInfo.boxGoalTypeAndColor[goalTuple] += 1;
+                }
+                else
+                {
+                    throw new Exception($"Unknown entity type: {goal.EntType}");
+                }
+
+                foreach (var goalInfo in groupInfo.boxGoalTypeAndColor)
+                {
+                    if (!groupInfo.boxeTypes.TryGetValue(goalInfo.Key.type, out int boxCount) || boxCount < goalInfo.Value)
+                    {
+                        return false;
+                    }
+                    if (!groupInfo.agentColors.TryGetValue(goalInfo.Key.color, out int agentCount))
                     {
                         return false;
                     }
                 }
-                var goalTuple = (goalEntity.Color, goalEntity.Type);
-                goalTypeAndColor.TryAdd(goalTuple, 0);
-                goalTypeAndColor[goalTuple] += 1;
-                foreach (var goalInfo in goalTypeAndColor)
+
+                foreach (var goalInfo in groupInfo.agentGoalTypeAndColor)
                 {
-                    if (!boxeTypes.TryGetValue(goalInfo.Key.type, out int boxCount) || boxCount < goalInfo.Value)
-                    {
-                        return false;
-                    }
-                    if (!agentColors.TryGetValue(goalInfo.Key.color, out int agentCount))
+                    if (!groupInfo.agentTypes.TryGetValue(goalInfo.Key.type, out int agentCount) || agentCount < goalInfo.Value)
                     {
                         return false;
                     }
@@ -342,14 +389,48 @@ namespace BoxProblems.Solver
             return GraphSearcher.GetReachedGoalsBFS(gsData, level, start, foundFreeSpace);
         }
 
+        private static bool DoesMainGroupNeedTheEntity(BoxConflictNode boxNode, Dictionary<(int color, char type), int> goalsNeeded, Dictionary<char, int> entities)
+        {
+            int entitiesNeeded = 0;
+            if (boxNode.Value.EntType==EntityType.BOX)
+            {
+                if (!goalsNeeded.TryGetValue((0, boxNode.Value.Ent.Type), out entitiesNeeded))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (!goalsNeeded.TryGetValue((boxNode.Value.Ent.Color, boxNode.Value.Ent.Type), out entitiesNeeded))
+                {
+                    return false;
+                }
+            }
+
+            int boxesInMain = 0;
+            if (entities.TryGetValue(boxNode.Value.Ent.Type, out boxesInMain))
+            {
+                if (boxesInMain >= entitiesNeeded)
+                {
+                    goalsNeeded.Remove((boxNode.Value.Ent.Color, boxNode.Value.Ent.Type));
+                    return false;
+                }
+                else
+                {
+                    goalsNeeded[(boxNode.Value.Ent.Color, boxNode.Value.Ent.Type)] -= 1;
+                }
+            }
+
+            return true;
+        }
+
         private static HighlevelLevelSolution SolvePartialLevel(Level level, CancellationToken cancelToken)
         {
             List<HighlevelMove> solution = new List<HighlevelMove>();
             SolverData sData = new SolverData(level, cancelToken);
             GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph, cancelToken);
-            HashSet<Entity> solvedGoals = new HashSet<Entity>();
-
+            //Console.WriteLine(priority.ToLevelString(sData.Level));
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
             var currentLayerNode = goalPriorityLinkedLayers.First;
             while (currentLayerNode != null)
@@ -360,58 +441,114 @@ namespace BoxProblems.Solver
                 while (currentLayer.Goals.Count > 0)
                 {
                     cancelToken.ThrowIfCancellationRequested();
+                    sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
+                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, level);//Something is wrong in here in SAGroupName missing edges from freespace to X
+                    Goal goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData);
+
+                    sData.Level.AddPermanentWalll(goalToSolve.Ent.Pos);
+                    sData.Level.AddWall(goalToSolve.Ent.Pos);
+                    bool[] boxesOfAgentColor = null;
+                    if (goalToSolve.EntType==EntityType.AGENT_GOAL)
+                    {
+                        var agentWithGoalType = sData.CurrentConflicts.Nodes.Where(x => x is BoxConflictNode boxNode &&
+                                                                                       boxNode.Value.EntType == EntityType.AGENT &&
+                                                                                       boxNode.Value.Ent.Type == goalToSolve.Ent.Type).Cast<BoxConflictNode>().ToList();
+
+                        // should only do this if this is the only agent of that color
+                        if (agentWithGoalType.Count==1)
+                        {
+                            var boxes = sData.CurrentState.GetBoxes(sData.Level);
+                            boxesOfAgentColor = new bool[sData.Level.BoxCount];
+                            for (int i = 0; i < boxes.Length; i++)
+                            {
+                                if (boxes[i].Color == agentWithGoalType.First().Value.Ent.Color && !sData.RemovedEntities.Contains(boxes[i]))
+                                {
+                                    sData.Level.AddPermanentWalll(boxes[i].Pos);
+                                    sData.RemovedEntities.Add(boxes[i]);
+                                    boxesOfAgentColor[i] = true;
+                                }
+                            }
+                        }
+
+                    }
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, level);
-                    Entity goalToSolve = GetGoalToSolve(currentLayer.Goals, goalGraph, sData);
-
-
-                    sData.Level.AddPermanentWalll(goalToSolve.Pos);
-                    sData.Level.AddWall(goalToSolve.Pos);
-                    sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddGoalNodes(sData.gsData, sData.Level, goalToSolve);
+                    sData.CurrentConflicts.AddGoalNodes(sData.gsData, sData.Level, goalToSolve.Ent);
                     sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
-                    sData.Level.RemovePermanentWall(goalToSolve.Pos);
-                    sData.Level.RemoveWall(goalToSolve.Pos);
+                    sData.Level.RemovePermanentWall(goalToSolve.Ent.Pos);
+                    sData.Level.RemoveWall(goalToSolve.Ent.Pos);
+                    if (boxesOfAgentColor!=null)
+                    {
+                        var boxes = sData.CurrentState.GetBoxes(sData.Level);
+                        for (int i = 0; i < boxesOfAgentColor.Length; i++)
+                        {
+                            if (boxesOfAgentColor[i])
+                            {
+                                sData.Level.RemovePermanentWall(boxes[i].Pos);
+                                sData.RemovedEntities.Remove(boxes[i]);
+                            }
+                        }
 
-                    //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
-                    //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
-                    var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Pos);
+                    }
+                    //GraphShower.ShowGraph(sData.CurrentConflicts);
+                    var graphGroups = GetGraphGroups(sData.CurrentConflicts, goalToSolve.Ent.Pos);
                     var mainGroup = GetMainGraphGroup(graphGroups);
-                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 && 
+                    if (goalToSolve.EntType == EntityType.AGENT_GOAL)
+                    {
+                        var agentWithGoalType = sData.CurrentConflicts.Nodes.Where(x => x is BoxConflictNode boxNode && 
+                                                                                        boxNode.Value.EntType == EntityType.AGENT && 
+                                                                                        boxNode.Value.Ent.Type == goalToSolve.Ent.Type).Cast<BoxConflictNode>().ToList();
+                        var boxesWithGoalType = level.InitialState.GetBoxes(level).ToArray().Where(x => x.Color == agentWithGoalType.First().Value.Ent.Color).ToList();
+                        var unsolvedGoalsWithAgentColor = goalPriorityLinkedLayers.SelectMany(x => x.Goals.Where(y => boxesWithGoalType.Any(z => z.Type == y.Ent.Type) && y.Ent != goalToSolve.Ent)).ToList();
+
+                        if ((agentWithGoalType.Count == 1 && unsolvedGoalsWithAgentColor.Count > 0)||graphGroups.Count(x=>x.Any(y => y is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal()))>1)
+                        {
+                            currentLayer.Goals.Remove(goalToSolve);
+                            if (currentLayerNode.Next != null)
+                            {
+                                currentLayerNode.Next.Value.Goals.Add(goalToSolve);
+                            }
+                            else
+                            {
+                                var goalsInLayer = new HashSet<Goal>() { goalToSolve };
+                                goalPriorityLinkedLayers.AddAfter(currentLayerNode, new GoalPriorityLayer(goalsInLayer));
+
+                            }
+                            continue;
+                        }
+                    }
+
+
+
+
+                    if (graphGroups.Where(x => x.Any(y => y is BoxConflictNode)).Count() > 1 &&
                         !EveryGroupHasEverythingNeeded(graphGroups, mainGroup, goalToSolve) &&
-                        mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
+                        mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal()))
                     {
                         var mainGroupInformation = new GroupInformation(mainGroup);
-                        bool movedSomething = false;
-                        List<Entity> goalsWithHigherPriority = new List<Entity>();
+                        bool isGroupOtherThenMainWithGoal = false;
                         foreach (var group in graphGroups)
                         {
                             if (group != mainGroup)
                             {
                                 foreach (var node in group)
                                 {
-                                    if (node is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL)
+                                    if (node is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal())
                                     {
-                                        goalsWithHigherPriority.Add(boxNode.Value.Ent);
+                                        isGroupOtherThenMainWithGoal = true;
+                                        goto groupDone;
                                     }
                                 }
                             }
                         }
+                        groupDone:
 
-                        if (goalsWithHigherPriority.Count == 0)
+                        if (!isGroupOtherThenMainWithGoal)
                         {
-                            goalsWithHigherPriority.AddRange(currentLayer.Goals);
-                            goalsWithHigherPriority.Remove(goalToSolve);
-                            foreach (var higherGoal in goalsWithHigherPriority)
-                            {
-                                currentLayer.Goals.Remove(higherGoal);
-                            }
-
-                            if (goalsWithHigherPriority.Count == 0)
+                            if (currentLayer.Goals.Count == 1)
                             {
 
-                                sData.Level.AddWall(goalToSolve.Pos);
+                                sData.Level.AddWall(goalToSolve.Ent.Pos);
                                 foreach (var group in graphGroups)
                                 {
                                     if (group != mainGroup)
@@ -424,8 +561,8 @@ namespace BoxProblems.Solver
                                         }
                                     }
                                 }
-                                sData.FreePath.Add(goalToSolve.Pos, 1);
-                                sData.Level.RemoveWall(goalToSolve.Pos);
+                                sData.FreePath.Add(goalToSolve.Ent.Pos, 1);
+                                sData.Level.RemoveWall(goalToSolve.Ent.Pos);
                                 sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
                                 sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
                                 var newGraphGroups = GetGraphGroups(sData.CurrentConflicts, new Point(-1, -1));
@@ -472,55 +609,60 @@ namespace BoxProblems.Solver
                                         {
                                             continue;
                                         }
+
                                         var groupinfo = new GroupInformation(group);
+                                        int intoFreeSpace = group.Where(x => x is BoxConflictNode boxNode && boxNode.Value.EntType.IsMoveable()).Count();
                                         foreach (var iNode in group)
                                         {
                                             if (iNode is FreeSpaceNode)
                                             {
                                                 continue;
                                             }
-                                            
+
                                             BoxConflictNode boxNode = (BoxConflictNode)iNode;
 
-                                            if (boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type != goalToSolve.Type)
+                                            if (goalToSolve.EntType == EntityType.AGENT_GOAL)
                                             {
-                                                int boxesNeeded = 0;
-                                                if (!mainGroupInformation.goalTypeAndColor.TryGetValue((boxNode.Value.Ent.Color, boxNode.Value.Ent.Type), out boxesNeeded))
+                                                if (boxNode.Value.EntType == EntityType.AGENT)
                                                 {
-                                                    continue;
-                                                }
-                                                else
-                                                {
-                                                    int boxesInMain = 0;
-                                                    if (mainGroupInformation.boxeTypes.TryGetValue(boxNode.Value.Ent.Type,out boxesInMain))
+                                                    if (!DoesMainGroupNeedTheEntity(boxNode, mainGroupInformation.agentGoalTypeAndColor, mainGroupInformation.agentTypes))
                                                     {
-                                                        if (boxesInMain >= boxesNeeded)
-                                                        {
-                                                            mainGroupInformation.goalTypeAndColor.Remove((boxNode.Value.Ent.Color, boxNode.Value.Ent.Type));
-                                                            continue;
-                                                        }
-                                                        else
-                                                        {
-                                                            mainGroupInformation.goalTypeAndColor[(boxNode.Value.Ent.Color, boxNode.Value.Ent.Type)] -= 1;
-                                                        }
+                                                        continue;
                                                     }
                                                 }
-
                                             }
+                                            else if (goalToSolve.EntType == EntityType.BOX_GOAL)
+                                            {
+                                                if (boxNode.Value.EntType == EntityType.BOX)
+                                                {
+                                                    if (!DoesMainGroupNeedTheEntity(boxNode, mainGroupInformation.boxGoalTypeAndColor, mainGroupInformation.boxeTypes))
+                                                    {
+                                                        continue;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                throw new Exception($"Unknown entity type: {goalToSolve.EntType}");
+                                            }
+
                                             int boxOnGoalIndex = sData.GetEntityIndex(boxNode.Value.Ent);
                                             if (boxOnGoalIndex == -1)
                                             {
                                                 continue;
                                             }
-                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData);
+                                            //LevelVisualizer.PrintLatestStateDiff(sData.Level,sData.SolutionGraphs);
+                                           //LevelVisualizer.PrintFreeSpace(sData.Level,sData.CurrentState,sData.FreePath);
+                                            Point freeSpace = GetFreeSpaceToMoveConflictTo(boxNode.Value.Ent, sData, intoFreeSpace);
+                                            intoFreeSpace--;
                                             sData.AddToFreePath(freeSpace);
                                             List<HighlevelMove> boxOnGoalSolution;
                                             if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxNode.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0, false))
                                             {
                                                 throw new Exception("Could not move wrong box from goal.");
                                             }
+                                            sData.RemoveFromFreePath(freeSpace);
                                             solution.AddRange(boxOnGoalSolution);
-                                            movedSomething = true;
                                         }
                                     }
                                 }
@@ -530,27 +672,31 @@ namespace BoxProblems.Solver
                                 //throw new Exception("level will be split by this action.");
                             }
                         }
-                        else
+
+                        if (currentLayer.Goals.Count(x => x.EntType == EntityType.BOX_GOAL) > 1 || isGroupOtherThenMainWithGoal)
                         {
-                            movedSomething = true;
-                            foreach (var layer in goalPriorityLinkedLayers)
+                            currentLayer.Goals.Remove(goalToSolve);
+                            if (currentLayerNode.Next != null)
                             {
-                                foreach (var goal in goalsWithHigherPriority)
-                                {
-                                    layer.Goals.Remove(goal);
-                                }
+                                currentLayerNode.Next.Value.Goals.Add(goalToSolve);
+                            }
+                            else
+                            {
+                                var goalsInLayer = new HashSet<Goal>() { goalToSolve };
+                                goalPriorityLinkedLayers.AddAfter(currentLayerNode, new GoalPriorityLayer(goalsInLayer));
 
                             }
+
+                            //foreach (var layer in goalPriorityLinkedLayers)
+                            //{
+                            //    Console.WriteLine(string.Join(" ", layer.Goals.Select(x => char.ToLower(x.Ent.Type).ToString() + " " + x.Ent.Pos)));
+                            //}
+                            continue;
                         }
 
-                        if (movedSomething)
-                        {
-                            goalPriorityLinkedLayers.AddBefore(currentLayerNode, new GoalPriorityLayer(goalsWithHigherPriority.ToHashSet()));
-                            currentLayerNode = currentLayerNode.Previous;
-                            goToNextLayer = false;
-                            break;
-                        }
                     }
+
+                    //GraphShower.ShowSimplifiedGraph<DistanceEdgeInfo>(sData.CurrentConflicts);
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
                     //sData.CurrentConflicts.AddGoalNodes(sData.Level, goalToSolve);
@@ -560,9 +706,9 @@ namespace BoxProblems.Solver
 
 
                     Dictionary<Point, int> freeSpaceInSplitGroups = new Dictionary<Point, int>();
-                    if (mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.GOAL))
+                    if (mainGroup.Any(x => x is BoxConflictNode boxNode && boxNode.Value.EntType.IsGoal()))
                     {
-                        sData.Level.AddWall(goalToSolve.Pos);
+                        sData.Level.AddWall(goalToSolve.Ent.Pos);
                         foreach (var group in graphGroups)
                         {
                             if (group != mainGroup)
@@ -576,59 +722,48 @@ namespace BoxProblems.Solver
                             }
                         }
 
-                        sData.Level.RemoveWall(goalToSolve.Pos);
+                        sData.Level.RemoveWall(goalToSolve.Ent.Pos);
                         foreach (var freespace in freeSpaceInSplitGroups)
                         {
                             sData.FreePath.TryAdd(freespace.Key, freespace.Value);
                         }
                     }
-
-
-                    
                     //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
 
-                    Entity box = GetBoxToSolveProblem(sData, goalToSolve);
-                    int boxIndex = sData.GetEntityIndex(box);
-
-                    //if (sData.CurrentConflicts.PositionHasNode(goalToSolve.Pos))
-                    //{
-                    //    INode nodeOnGoal = sData.CurrentConflicts.GetNodeFromPosition(goalToSolve.Pos);
-                    //    if (nodeOnGoal is BoxConflictNode boxOnGoal && boxOnGoal.Value.EntType != EntityType.GOAL)
-                    //    {
-                    //        int boxOnGoalIndex = sData.GetEntityIndex(boxOnGoal.Value.Ent);
-                    //        Point freeSpace = GetFreeSpaceToMoveConflictTo(boxOnGoal.Value.Ent, sData);
-                    //        sData.AddToFreePath(freeSpace);
-                    //        List<HighlevelMove> boxOnGoalSolution;
-                    //        if (!TrySolveSubProblem(boxOnGoalIndex, freeSpace, boxOnGoal.Value.EntType == EntityType.AGENT, out boxOnGoalSolution, sData, 0))
-                    //        {
-                    //            throw new Exception("Could not move wrong box from goal.");
-                    //        }
-                    //        solution.AddRange(boxOnGoalSolution);
-                    //        sData.FreePath.Clear();
-                    //        foreach (var freespace in freeSpaceInSplitGroups)
-                    //        {
-                    //            sData.FreePath.Add(freespace.Key, freespace.Value);
-                    //        }
-                    //    }
-                    //}
-
-                    var storeConflicts = sData.CurrentConflicts;
-                    var storeState = sData.CurrentState;
                     List<HighlevelMove> solutionMoves;
-
-                    if (!TrySolveSubProblem(boxIndex, goalToSolve.Pos, false, out solutionMoves, sData, 0, true))
+                    if (goalToSolve.EntType == EntityType.AGENT_GOAL)
                     {
-                        sData.CurrentConflicts = storeConflicts;
-                        sData.CurrentState = storeState;
-
-                        throw new Exception("Can't handle that there is no high level solution yet.");
+                        Entity agent = sData.CurrentState.Entities.Single(x => x.Type == goalToSolve.Ent.Type);
+                        int agentIndex = sData.GetEntityIndex(agent);
+                        sData.AddToFreePath(goalToSolve.Ent.Pos);
+                        if (!TrySolveSubProblem(agentIndex, goalToSolve.Ent.Pos, true, out solutionMoves, sData, 0, true))
+                        {
+                            throw new Exception("Can't handle that there is no high level solution yet.");
+                        }
+                        sData.RemoveFromFreePath(goalToSolve.Ent.Pos);
+                        sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, agent.Color, agent.Type));
+                    }
+                    else if (goalToSolve.EntType == EntityType.BOX_GOAL)
+                    {
+                        Entity box = GetBoxToSolveProblem(sData, goalToSolve);
+                        int boxIndex = sData.GetEntityIndex(box);
+                        sData.AddToFreePath(goalToSolve.Ent.Pos);
+                        if (!TrySolveSubProblem(boxIndex, goalToSolve.Ent.Pos, false, out solutionMoves, sData, 0, true))
+                        {
+                            throw new Exception("Can't handle that there is no high level solution yet.");
+                        }
+                        sData.RemoveFromFreePath(goalToSolve.Ent.Pos);
+                        sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, box.Color, box.Type));
+                    }
+                    else
+                    {
+                        throw new Exception($"Unknown entity type: {goalToSolve.EntType}");
                     }
 
                     solution.AddRange(solutionMoves);
-                    solvedGoals.Add(goalToSolve);
 
-                    level.AddPermanentWalll(goalToSolve.Pos);
-                    sData.RemovedEntities.Add(new Entity(solutionMoves.Last().ToHere, box.Color, box.Type));
+                    level.AddPermanentWalll(goalToSolve.Ent.Pos);
+
                     currentLayer.Goals.Remove(goalToSolve);
                     //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
                     Debug.Assert(sData.FreePath.Count == freeSpaceInSplitGroups.Count, "Expecting FreePath to be empty after each problem has been solved.");
@@ -653,23 +788,38 @@ namespace BoxProblems.Solver
 
             foreach (var goal in level.Goals)
             {
-                level.RemovePermanentWall(goal.Pos);
-                level.RemoveWall(goal.Pos);
+                level.RemovePermanentWall(goal.Ent.Pos);
+                level.RemoveWall(goal.Ent.Pos);
             }
+
+#if DEBUG
+            foreach (var goal in level.Goals)
+            {
+                if (goal.EntType == EntityType.AGENT_GOAL)
+                {
+                    if (!sData.CurrentState.GetAgents(sData.Level).ToArray().Any(x => x.Pos == goal.Ent.Pos && x.Type == goal.Ent.Type))
+                    {
+                        throw new Exception("Didn't fix all agent goals");
+                    }
+                }
+                else
+                {
+                    if (!sData.CurrentState.GetBoxes(sData.Level).ToArray().Any(x => x.Pos == goal.Ent.Pos && x.Type == goal.Ent.Type))
+                    {
+                        throw new Exception("Didn't fix all goals");
+                    }
+                }
+            }
+#endif
 
             return new HighlevelLevelSolution(solution, sData.SolutionGraphs, level);
         }
 
         private static bool TrySolveSubProblem(int toMoveIndex, Point goal, bool toMoveIsAgent, out List<HighlevelMove> solutionToSubProblem, SolverData sData, int depth, bool isGoalAnObstable)
         {
-            if (depth == 100)
+            if (depth == 200)
             {
                 throw new Exception("sub problem depth limit reached.");
-            }
-
-            if (goal == new Point(6, 13))
-            {
-
             }
 
             Entity toMove = sData.GetEntity(toMoveIndex);
@@ -714,15 +864,14 @@ namespace BoxProblems.Solver
                 sData.RemoveFromRoutesUsed(toMovePath);
             }
 
-            sData.CurrentState = sData.CurrentState.GetCopy();
-            sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
+
 
             Point? newAgentPos = null;
+            Point? uTurnPos = null;
             if (agentIndex.HasValue) // then set agent pos
             {
                 agentToUse = sData.CurrentState.Entities[agentIndex.Value];
-
-                List<Point> possibleAgentPositions = new List<Point>();
+                List<(Point, bool)> possibleAgentPositions = new List<(Point, bool)>();
                 foreach (var dirDelta in Direction.NONE.DirectionDeltas())
                 {
                     Point possibleAgentPos = goal + dirDelta;
@@ -739,34 +888,64 @@ namespace BoxProblems.Solver
                         continue;
                     }
 
-                    //Can't place the box on another agent or box
+                    //Can may place the box on another agent or box
                     INode nodeAtPos = sData.CurrentConflicts.GetNodeFromPosition(possibleAgentPos);
-                    if (nodeAtPos is BoxConflictNode boxNode && 
-                        (boxNode.Value.EntType == EntityType.AGENT || 
-                         boxNode.Value.EntType == EntityType.BOX) && 
-                        boxNode.Value.Ent != toMove && 
-                        boxNode.Value.Ent != agentToUse.Value)
+                    if (nodeAtPos is BoxConflictNode boxNode && boxNode.Value.EntType.IsMoveable())
                     {
-                        continue;
+                        if (boxNode.Value.Ent == toMove || boxNode.Value.Ent == agentToUse.Value)
+                        {
+                            possibleAgentPositions.Add((possibleAgentPos, false));
+
+                        }
+                        else
+                        {
+                            possibleAgentPositions.Add((possibleAgentPos, true));
+                        }
+                    }
+                    else
+                    {
+                        possibleAgentPositions.Add((possibleAgentPos, false));
                     }
 
-                    possibleAgentPositions.Add(possibleAgentPos);
+
                 }
 
                 if (possibleAgentPositions.Count == 0)
                 {
-                    throw new Exception("No agent position found.");
-                }
+                    foreach (var dirDelta in Direction.NONE.DirectionDeltas())
+                    {
+                        Point possibleAgentPos = goal + dirDelta;
 
+                        //Can't place the agent inside a wall
+                        if (sData.Level.IsWall(possibleAgentPos))
+                        {
+                            continue;
+                        }
+
+                        //Don't place the agent at an illegal position
+                        if (sData.FreePath.ContainsKey(possibleAgentPos))
+                        {
+                            newAgentPos = possibleAgentPos;
+                            break;
+                        }
+                    }
+                    return true;
+                }
                 //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
                 bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
+                uTurnPos = GetUTurnPos(sData, agentToUse.Value.Pos);
+                if (!uTurnPos.HasValue)
+                {
+                    startPush = startPush && !pathToBox.Contains(goal);
+                }
 
                 //If the agent starts by pushing then it should also try to end by pushing
                 //as turning around to pull is more moves
-                bool isPushPossible = false;
+                bool positionFound = false;
+                bool occupiedPositionFound = false;
                 if (startPush)
                 {
-                    foreach (var endAgentPos in possibleAgentPositions)
+                    foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
                     {
                         // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
                         if (endAgentPos == toMove.Pos)
@@ -775,41 +954,201 @@ namespace BoxProblems.Solver
                         //If the box path contains the agents end position then the agent must've pushed the box
                         if (toMovePath.Contains(endAgentPos))
                         {
+                            if (positionOccupied)
+                            {
+                                occupiedPositionFound = true;
+                                continue;
+                            }
                             newAgentPos = endAgentPos;
-                            isPushPossible = true;
+                            positionFound = true;
                             break;
                         }
                     }
                 }
                 else
                 {
-                    foreach (var endAgentPos in possibleAgentPositions)
+                    foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
                     {
+
                         if (!toMovePath.Contains(endAgentPos))
                         {
+                            if (positionOccupied)
+                            {
+                                occupiedPositionFound = true;
+                                continue;
+                            }
                             newAgentPos = endAgentPos;
-                            isPushPossible = true;
+                            positionFound = true;
                             break;
                         }
                     }
                 }
 
-                //If push wasn't possible then chose one of the possible pull positions
-                if (!isPushPossible)
+                bool needUTurn = true;
+                if (startPush)
                 {
-                    newAgentPos = possibleAgentPositions.First();
+                    foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                    {
+                        // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
+                        if (endAgentPos == toMove.Pos)
+                            continue;
+
+                        //If the box path contains the agents end position then the agent must've pushed the box
+                        if (toMovePath.Contains(endAgentPos))
+                        {
+                            needUTurn = false;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                    {
+
+                        if (!toMovePath.Contains(endAgentPos))
+                        {
+                            needUTurn = false;
+                            break;
+                        }
+                    }
                 }
 
+                if (needUTurn)
+                {
+                    bool hasTurnOnPath = false;
+                    for (int i = 1; i < toMovePath.Length - 1; i++)
+                    {
+                        if (!IsCorridor(sData.Level, toMovePath[i]))
+                        {
+                            hasTurnOnPath = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasTurnOnPath)
+                    {
+                        if (uTurnPos.HasValue)
+                        {
+                            sData.AddToRoutesUsed(toMovePath);
+                            sData.AddToRoutesUsed(pathToBox);
+                            sData.AddToFreePath(goal);
+                            sData.AddToFreePath(uTurnPos.Value);
+                            sData.AddToFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
+                            sData.AddToFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
+                            sData.AddToFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
+                            sData.AddToFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
+                            List<HighlevelMove> entityOnAgentEndPositionSolution;
+                            if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, true))
+                            {
+                                throw new Exception("Could not move wrong box from goal.");
+                            }
+                            solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
+                            sData.RemoveFromRoutesUsed(toMovePath);
+                            sData.RemoveFromRoutesUsed(pathToBox);
+                            sData.RemoveFromFreePath(uTurnPos.Value);
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.E.DirectionDelta());
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.N.DirectionDelta());
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
+                            sData.RemoveFromFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
+                            sData.RemoveFromFreePath(goal);
+                            agentToUse = sData.GetEntity(agentIndex.Value);
+                            toMove = sData.GetEntity(toMoveIndex);
+                        }
+                    }
+                }
+
+                //If push wasn't possible then chose one of the possible pull positions
+                if (!positionFound && possibleAgentPositions.Count(x => !x.Item2) > 0)
+                {
+                    if (uTurnPos.HasValue)
+                    {
+                        newAgentPos = possibleAgentPositions.First(x => !x.Item2).Item1;
+                        positionFound = true;
+                    }
+
+                }
+                if (!positionFound && possibleAgentPositions.Count(x => x.Item2) == 0)
+                {
+                    newAgentPos = possibleAgentPositions.First().Item1;
+                }
+                else if (!positionFound)
+                {
+                    if (occupiedPositionFound)
+                    {
+                        if (startPush)
+                        {
+                            foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                            {
+                                // In clustered situations (friendOfDFS), it makes little sense to put the agent's end at the box's start position.
+                                if (endAgentPos == toMove.Pos)
+                                    continue;
+
+                                //If the box path contains the agents end position then the agent must've pushed the box
+                                if (toMovePath.Contains(endAgentPos))
+                                {
+                                    newAgentPos = endAgentPos;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach ((var endAgentPos, var positionOccupied) in possibleAgentPositions)
+                            {
+                                if (!toMovePath.Contains(endAgentPos))
+                                {
+                                    newAgentPos = endAgentPos;
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        newAgentPos= possibleAgentPositions.First().Item1;
+                    }
+                    
+
+                    var entityOnAgentEndPosition = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.Ent;
+                    var entityOnAgentEndPositionType = ((BoxConflictNode)sData.CurrentConflicts.GetNodeFromPosition(newAgentPos.Value)).Value.EntType;
+                    int entityOnAgentEndPositionIndex = sData.GetEntityIndex(entityOnAgentEndPosition);
+                    sData.AddToRoutesUsed(toMovePath);
+                    sData.AddToRoutesUsed(pathToBox);
+                    sData.AddToFreePath(goal);
+                    Point freeSpace = GetFreeSpaceToMoveConflictTo(entityOnAgentEndPosition, sData);
+                    sData.AddToFreePath(freeSpace);
+                    List<HighlevelMove> entityOnAgentEndPositionSolution;
+                    if (!TrySolveSubProblem(entityOnAgentEndPositionIndex, freeSpace, entityOnAgentEndPositionType == EntityType.AGENT, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
+                    {
+                        throw new Exception("Could not move wrong box from goal.");
+                    }
+                    solutionToSubProblem.AddRange(entityOnAgentEndPositionSolution);
+                    sData.RemoveFromRoutesUsed(toMovePath);
+                    sData.RemoveFromRoutesUsed(pathToBox);
+                    sData.RemoveFromFreePath(freeSpace);
+                    sData.RemoveFromFreePath(goal);
+                    agentToUse = sData.GetEntity(agentIndex.Value); 
+                }
+                toMove = sData.GetEntity(toMoveIndex);
+
+            }
+            sData.CurrentState = sData.CurrentState.GetCopy();
+            sData.CurrentState.Entities[toMoveIndex] = sData.CurrentState.Entities[toMoveIndex].Move(goal);
+            if (agentIndex.HasValue)
+            {
                 sData.CurrentState.Entities[agentIndex.Value] = sData.CurrentState.Entities[agentIndex.Value].Move(newAgentPos.Value);
             }
+
             //Console.WriteLine(sData.Level.WorldToString(sData.Level.GetWallsAsWorld()));
 
 
             sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
-            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos));
-            //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
+            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos, uTurnPos));
+            //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
             return true;
         }
@@ -821,6 +1160,7 @@ namespace BoxProblems.Solver
 #endif
 
             solutionToSubProblem = new List<HighlevelMove>();
+            int counter = 0;
             while (true)
             {
                 Entity toMove = sData.GetEntity(toMoveIndex);
@@ -849,6 +1189,11 @@ namespace BoxProblems.Solver
                 bool toMoveMoved = false;
                 do
                 {
+                    if (counter == 50)
+                    {
+                        throw new Exception($"Failed to solve conflicts in {counter} tries.");
+                    }
+                    counter++;
                     sData.CancelToken.ThrowIfCancellationRequested();
 
                     BoxConflictNode conflict = conflicts.First();
@@ -930,7 +1275,7 @@ namespace BoxProblems.Solver
                 if (edgeNode is BoxConflictNode boxNode && boxNode.Value.Ent.Pos == goal)
                 {
                     //if there is a box or agent on the end path and it's not supposed to be there then return that as a conflict
-                    if ((boxNode.Value.EntType == EntityType.AGENT || boxNode.Value.EntType == EntityType.BOX) && !(!isGoalAnObstable && boxNode.Value.Ent.Pos == goal))
+                    if ((boxNode.Value.EntType.IsMoveable()) && !(!isGoalAnObstable && boxNode.Value.Ent.Pos == goal))
                     {
                         return new List<BoxConflictNode>() { boxNode };
                     }
@@ -1000,6 +1345,37 @@ namespace BoxProblems.Solver
             }
 
             throw new Exception("Found no path from  entity to goal.");
+        }
+        private static Point? GetUTurnPos(SolverData sData, Point agentpos)
+        {
+            if (!IsCorridor(sData.Level, agentpos))
+            {
+                return agentpos;
+            }
+            short[,] distanceMap = Precomputer.GetDistanceMap(sData.Level.Walls, agentpos, false);
+            Point? bestTurningPoint = null;
+            int bestScore = int.MaxValue;
+            for (int x = 1; x < sData.Level.Width - 1; x++)
+            {
+                for (int y = 1; y < sData.Level.Height - 1; y++)
+                {
+                    Point p = new Point(x, y);
+                    if (!sData.Level.Walls[x, y] && !IsCorridor(sData.Level, p))
+                    {
+                        if (distanceMap[x, y] != 0)
+                        {
+                            int score = distanceMap[x, y] + ((sData.CurrentConflicts.PositionHasNode(p) && sData.CurrentConflicts.GetNodeFromPosition(p) is BoxConflictNode) ? 5 : 0);
+                            if (score < bestScore)
+                            {
+                                bestTurningPoint = p;
+                                bestScore = score;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return bestTurningPoint;
         }
     }
 }

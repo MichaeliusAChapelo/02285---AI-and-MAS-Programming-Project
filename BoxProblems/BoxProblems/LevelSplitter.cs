@@ -102,7 +102,7 @@ namespace BoxProblems
 
                 List<Entity> agents = new List<Entity>();
                 List<Entity> boxes = new List<Entity>();
-                List<Entity> goals = new List<Entity>();
+                List<Goal> goals = new List<Goal>();
 
                 foreach (var agent in level.GetAgents())
                 {
@@ -120,7 +120,7 @@ namespace BoxProblems
                 }
                 foreach (var goal in level.Goals)
                 {
-                    if (levelPart.Contains(goal.Pos))
+                    if (levelPart.Contains(goal.Ent.Pos))
                     {
                         goals.Add(goal);
                     }

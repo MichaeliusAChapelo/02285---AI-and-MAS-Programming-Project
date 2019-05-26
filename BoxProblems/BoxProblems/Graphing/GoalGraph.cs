@@ -30,9 +30,9 @@ namespace BoxProblems.Graphing
 
         public override string ToString()
         {
-            if (Value.EntType == EntityType.GOAL)
+            if (Value.EntType.IsGoal())
             {
-                return char.ToLower(Value.Ent.Type).ToString();
+                return char.ToLower(Value.Ent.Type).ToString() + " " + Value.Ent.Pos;
             }
             else
             {
@@ -44,7 +44,7 @@ namespace BoxProblems.Graphing
     internal sealed class GoalGraph : Graph
     {
         private readonly Dictionary<Point, GoalNode> PositionToGoalNode = new Dictionary<Point, GoalNode>();
-        private readonly Dictionary<Point, GoalNode> PositionToBoxNode = new Dictionary<Point, GoalNode>();
+        private readonly Dictionary<Point, GoalNode> PositionToMoveableNode = new Dictionary<Point, GoalNode>();
 
         public GoalGraph(GraphSearchData gsData, State state, Level level)
         {
@@ -52,28 +52,32 @@ namespace BoxProblems.Graphing
             {
                 AddNode(new GoalNode(new EntityNodeInfo(box, EntityType.BOX)));
             }
+            foreach (var agent in state.GetAgents(level))
+            {
+                AddNode(new GoalNode(new EntityNodeInfo(agent, EntityType.AGENT)));
+            }
             foreach (var goal in level.Goals)
             {
-                AddNode(new GoalNode(new EntityNodeInfo(goal, EntityType.GOAL)));
+                AddNode(new GoalNode(new EntityNodeInfo(goal.Ent, goal.EntType)));
             }
 
-            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.BOX);
+            GraphCreator.CreateGraphIgnoreEntityType(gsData, this, level, EntityType.MOVEABLE);
         }
 
         public void AddNode(GoalNode node)
         {
             base.AddNode(node);
-            if (node.Value.EntType == EntityType.GOAL)
+            if (node.Value.EntType.IsGoal())
             {
                 PositionToGoalNode.Add(node.Value.Ent.Pos, node);
             }
-            else if (node.Value.EntType == EntityType.BOX)
+            else if (node.Value.EntType.IsMoveable())
             {
-                PositionToBoxNode.Add(node.Value.Ent.Pos, node);
+                PositionToMoveableNode.Add(node.Value.Ent.Pos, node);
             }
             else
             {
-                throw new Exception("GoalGraph does not support any other entity type than goal and box.");
+                throw new Exception("GoalGraph does not support any other entity type than goal, box and agent.");
             }
         }
 
@@ -82,9 +86,9 @@ namespace BoxProblems.Graphing
             return PositionToGoalNode[pos];
         }
 
-        public GoalNode GetBoxNodeFromPosition(Point pos)
+        public GoalNode GetMoveableNodeFromPosition(Point pos)
         {
-            return PositionToBoxNode[pos];
+            return PositionToMoveableNode[pos];
         }
     }
 }

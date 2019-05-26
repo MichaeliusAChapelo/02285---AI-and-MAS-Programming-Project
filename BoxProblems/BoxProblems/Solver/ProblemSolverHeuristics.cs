@@ -9,22 +9,28 @@ namespace BoxProblems.Solver
 {
     public static partial class ProblemSolver
     {
-        private static Entity GetGoalToSolve(HashSet<Entity> goals, GoalGraph goalGraph, SolverData sData)
+        private static Goal GetGoalToSolve(HashSet<Goal> goals, GoalGraph goalGraph, SolverData sData)
         {
             if (goals.Count == 1)
             {
                 return goals.First();
             }
-            return GetEntityToSolveProblem(sData, EntityType.BOX, null, goals);
+            //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs); 
+            Entity ent = GetEntityToSolveProblem(sData, EntityType.BOX, null, goals);
+            if (ent ==new Entity())
+            {
+                throw new Exception("Could not find path from any goal in the layer to a box that can solve that goal");
+            }
+            return sData.Level.Goals.Single(x => x.Ent == ent);
         }
 
-        private static Entity GetBoxToSolveProblem(SolverData sData, Entity goal)
+        private static Entity GetBoxToSolveProblem(SolverData sData, Goal goal)
         {
             Entity returnEntity = new Entity();
             int numBoxes = 0;
             foreach (var iNode in sData.CurrentConflicts.Nodes)
             {
-                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Type)
+                if (iNode is BoxConflictNode boxNode && boxNode.Value.EntType == EntityType.BOX && boxNode.Value.Ent.Type == goal.Ent.Type)
                 {
                     numBoxes += 1;
                     returnEntity = boxNode.Value.Ent;
@@ -38,7 +44,12 @@ namespace BoxProblems.Solver
             {
                 return returnEntity;
             }
-            return GetEntityToSolveProblem(sData, EntityType.BOX, goal);
+            returnEntity = GetEntityToSolveProblem(sData, EntityType.BOX, goal.Ent);
+            if (returnEntity == new Entity())
+            {
+                throw new Exception("Could not find any path from the goal to a box of the correct type");
+            }
+            return returnEntity;
         }
 
         private static Entity GetAgentToSolveProblem(SolverData sData, Entity toMove)
@@ -64,7 +75,7 @@ namespace BoxProblems.Solver
             return GetEntityToSolveProblem(sData, EntityType.AGENT, toMove);
         }
 
-        private static Entity GetEntityToSolveProblem(SolverData sData, EntityType entitytype, Entity? entity = null, HashSet<Entity> goals = null)
+        private static Entity GetEntityToSolveProblem(SolverData sData, EntityType entitytype, Entity? entity = null, HashSet<Goal> goals = null)
         {
             int minimumConflict = int.MaxValue;
             Entity minimumConflictEntity = new Entity();
@@ -72,23 +83,35 @@ namespace BoxProblems.Solver
             {
                 foreach (var goal in goals)
                 {
-                    INode startnode = sData.CurrentConflicts.GetNodeFromPosition(goal.Pos);
-                    (int numConflicts, Entity goalEntity) = CalculateMinimumConflict(sData, startnode, goal, entitytype);
+                    INode startnode = sData.CurrentConflicts.GetNodeFromPosition(goal.Ent.Pos);
+                    (int numConflicts, Entity goalEntity) = CalculateMinimumConflict(sData, startnode, goal.Ent, goal.EntType == EntityType.AGENT_GOAL ? EntityType.AGENT : EntityType.BOX);
                     if (minimumConflict > numConflicts)
                     {
                         minimumConflict = numConflicts;
-                        minimumConflictEntity = goal;
+                        minimumConflictEntity = goal.Ent;
                         if (minimumConflict == 0)
                         {
                             break;
                         }
                     }
-
                 }
             }
             else
             {
                 INode startnode = sData.CurrentConflicts.GetNodeFromPosition(entity.Value.Pos);
+                if (startnode is FreeSpaceNode)
+                {
+                    //Dictionary<Point, INode> positionToNode = sData.CurrentConflicts.getPositionToNode();
+                    //Console.WriteLine("\n\n\n Entity: " + entity.ToString());
+                    //foreach (KeyValuePair<Point, INode> node in positionToNode)
+                    //{
+                    //    Console.WriteLine("Point = {0}, Node = {1}", node.Key, node.Value.ToString());
+                    //}
+                    //if (entity.Value.Pos == new Point(13, 6))
+                    //{
+                    //
+                    //}
+                } 
                 (minimumConflict, minimumConflictEntity) = CalculateMinimumConflict(sData, startnode, entity.Value, entitytype);
             }
             return minimumConflictEntity;
@@ -142,7 +165,7 @@ namespace BoxProblems.Solver
                     {
                         currentNumConflicts += 1;
                     }
-                    if (currentBoxNode.Value.EntType == bfsGoalEntType)
+                    if (currentBoxNode.Value.EntType.EntityEquals(bfsGoalEntType))
                     {
                         if (startNode is BoxConflictNode startBoxNode)
                         {
@@ -184,7 +207,7 @@ namespace BoxProblems.Solver
             return (minimumConflict, minimumConflictEntity);
         }
 
-        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData)
+        private static Point GetFreeSpaceToMoveConflictTo(Entity conflict, SolverData sData, int additonalIntoFreeSpace = 0)
         {
             //LevelVisualizer.PrintFreeSpace(sData.Level, sData.CurrentState, sData.RoutesUsed);
 
@@ -202,14 +225,7 @@ namespace BoxProblems.Solver
             Func<Point, bool> isFreeSpaceAvailable = new Func<Point, bool>(freeSpace => !sData.FreePath.ContainsKey(freeSpace) && !sData.RoutesUsed.ContainsKey(freeSpace) && !agentPositions.Contains(freeSpace));
 
             //See if there is even 1 free space.
-            int avaiableFreeSpacesCount = 0;
-            foreach (var iNode in sData.CurrentConflicts.Nodes)
-            {
-                if (iNode is FreeSpaceNode freeSpaceNode)
-                {
-                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => isFreeSpaceAvailable(x) ? 1 : 0);
-                }
-            }
+            int avaiableFreeSpacesCount = GetAvailableSpaces(sData, isFreeSpaceAvailable);
             if (avaiableFreeSpacesCount < 1)
             {
                 throw new Exception("No free space is available");
@@ -228,9 +244,11 @@ namespace BoxProblems.Solver
                         howFarIntoFreeSpace += 1;
                     }
                 }
-
             }
+            howFarIntoFreeSpace += additonalIntoFreeSpace;
             FreeSpaceNode freeSpaceNodeToUse = null;
+            FreeSpaceNode backUpFreeSpaceNode = null;
+            int backupNumFreespaces = int.MinValue;
             var visitedNodes = new HashSet<INode>();
             (INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes) starttuple = (startnode, 0, 0, 0);
             var bfsQueue = new Queue<(INode node, int extraBoxes, int numFreeSpaces, int repeatBoxes)>();
@@ -270,6 +288,11 @@ namespace BoxProblems.Solver
                     if (newFreeSpacesCount > 0)
                     {
                         currentNumFreeSpaces += newFreeSpacesCount;
+                        if ((currentNumFreeSpaces - howFarIntoFreeSpace- currentExtraBoxes) >backupNumFreespaces)
+                        {
+                            backUpFreeSpaceNode = currentFreeSpaceNode;
+                            backupNumFreespaces = currentNumFreeSpaces - howFarIntoFreeSpace - currentExtraBoxes;
+                        }
                         if (currentNumFreeSpaces >= howFarIntoFreeSpace + currentExtraBoxes)
                         {
                             if (currentExtraBoxes + currentRepeatBoxes < minExtraBoxes)
@@ -299,10 +322,24 @@ namespace BoxProblems.Solver
                     howFarIntoFreeSpace += totalExtraBoxes;
                 }
             }
-
-            if (freeSpaceNodeToUse == null)
+            if (freeSpaceNodeToUse == null && backUpFreeSpaceNode == null)
             {
-                throw new Exception("Not enough free space is available");
+                foreach (var iNode in sData.CurrentConflicts.Nodes)
+                {
+                    if (iNode is FreeSpaceNode freeSpaceNode)
+                    {
+                        if (freeSpaceNode.Value.FreeSpaces.Count(x => isFreeSpaceAvailable(x)) > 0)
+                        {
+                            return freeSpaceNode.Value.FreeSpaces.Where(x => isFreeSpaceAvailable(x)).First();
+                        }
+
+                    }
+                }
+                //throw new Exception("Not enough free space is available");
+            }
+            else if (freeSpaceNodeToUse == null)
+            {
+                freeSpaceNodeToUse = backUpFreeSpaceNode;
             }
             var potentialFreeSpacePoints = freeSpaceNodeToUse.Value.FreeSpaces.Where(isFreeSpaceAvailable).ToList();
             Point freeSpacePointToUse = potentialFreeSpacePoints.First();
@@ -328,35 +365,49 @@ namespace BoxProblems.Solver
 
             }
 
+            #region Deprecated Closer FreeSpacePick Heuristic
             // If 1) FreeSpacePoint was picked naively (default position)
             // 2) there is an abundance of freespace
             // 3) the FreeSpacePoint is far away from the conflict
             // THEN place the FreeSpacePoint somewhere closer.
 
-            if (false) // Disables heuristic
-                if (freeSpacePointToUse == potentialFreeSpacePoints.First()
-            && potentialFreeSpacePoints.Count > 5
-            && Point.ManhattenDistance(freeSpacePointToUse, conflict.Pos) > 3)
-                {
-                    int dist = int.MaxValue;
-                    var conflictDistMap = Precomputer.GetDistanceMap(sData.Level.Walls, conflict.Pos, false);
-                    foreach (var FSP in potentialFreeSpacePoints)
-                    {
-                        // If placing a box eliminates a turning point/creates a corridor, skip it.
-                        if (IsCorridor(sData.Level, FSP) && IsNextToTurningPoint(sData.Level, FSP))
-                            continue;
-
-                        if (conflictDistMap[FSP.X, FSP.Y] < dist)
-                        {
-                            dist = conflictDistMap[FSP.X, FSP.Y];
-                            freeSpacePointToUse = FSP;
-                        }
-                    }
-
-                }
+            //if (false) // Disables heuristic
+            //    if (freeSpacePointToUse == potentialFreeSpacePoints.First()
+            //    && potentialFreeSpacePoints.Count > 5
+            //    && Point.ManhattenDistance(freeSpacePointToUse, conflict.Pos) > 3)
+            //    {
+            //        int dist = int.MaxValue;
+            //        var conflictDistMap = Precomputer.GetDistanceMap(sData.Level.Walls, conflict.Pos, false);
+            //        foreach (var FSP in potentialFreeSpacePoints)
+            //        {
+            //            // If placing a box eliminates a turning point/creates a corridor, skip it.
+            //            if (IsCorridor(sData.Level, FSP) && IsNextToTurningPoint(sData.Level, FSP))
+            //                continue;
+            //            if (conflictDistMap[FSP.X, FSP.Y] < dist)
+            //            {
+            //                dist = conflictDistMap[FSP.X, FSP.Y];
+            //                freeSpacePointToUse = FSP;
+            //            }
+            //        }
+            //    }
+            #endregion
 
             return freeSpacePointToUse;
 
+        }
+
+        private static int GetAvailableSpaces(SolverData sData, Func<Point, bool> isFreeSpaceAvailable)
+        {
+            int avaiableFreeSpacesCount = 0;
+            foreach (var iNode in sData.CurrentConflicts.Nodes)
+            {
+                if (iNode is FreeSpaceNode freeSpaceNode)
+                {
+                    avaiableFreeSpacesCount += freeSpaceNode.Value.FreeSpaces.Sum(x => isFreeSpaceAvailable(x) ? 1 : 0);
+                }
+            }
+
+            return avaiableFreeSpacesCount;
         }
 
         private static bool IsNextToTurningPoint(Level level, Point FSP)

@@ -232,11 +232,54 @@ namespace BoxTests
             VerifyPriority(levelString, levelPriorityString);
         }
 
+        [TestMethod]
+        public void TestGoalPriorityWithAgentGoal()
+        {
+            string levelString = @"
+#domain
+hospital
+#levelname
+Test
+#colors
+green: 0, A, B, C, D
+#initial
+++++++++
++0+    +
++ A+   +
++ +B+  +
++  DC+ +
++ ++++ +
++      +
+++++++++
+#goal
+++++++++
++ + 0cb+
++  + ad+
++ + +  +
++    + +
++ ++++ +
++      +
+++++++++
+#end";
+
+            string levelPriorityString = @"
+++++++++
++ + 411+
++  + 32+
++ + +  +
++    + +
++ ++++ +
++      +
+++++++++";
+
+            VerifyPriority(levelString, levelPriorityString);
+        }
+
         private static void VerifyPriority(string levelString, string levelPriorityString)
         {
             levelPriorityString = levelPriorityString.Substring(2, levelPriorityString.Length - 2);
 
-            Level level = TestTools.StringToOldFormatLevel(levelString);
+            Level level = TestTools.StringToLevel(levelString);
             GraphSearchData gsData = new GraphSearchData(level);
             GoalGraph goalGraph = new GoalGraph(gsData, level.InitialState, level);
             var actualGoalPriority = new GoalPriority(level, goalGraph, new CancellationToken());

@@ -11,15 +11,17 @@ namespace BoxProblems.Solver
         internal Point ToHere;
         internal Entity? UsingThisAgent;
         internal Point? AgentFinalPos;
+        internal Point? UTurnPos;
 
 
-        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent, Point? agentFinalPos)
+        internal HighlevelMove(State state, Entity moveThis, Point toHere, Entity? usingThisAgent, Point? agentFinalPos, Point? uTurnPos)
         {
             this.CurrentState = state;
             this.MoveThis = moveThis;
             this.ToHere = toHere;
             this.UsingThisAgent = usingThisAgent;
             this.AgentFinalPos = agentFinalPos;
+            this.UTurnPos = uTurnPos;
         }
 
         public override string ToString()

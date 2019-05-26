@@ -22,7 +22,7 @@ namespace BoxTests
         [TestMethod]
         public void TestSimpleLevels()
         {
-            ServerCommunicator.SkipConsoleRead = true;
+            ServerCommunicator.SkipServerLaunch = true;
             TestLevel(@"Levels\New_Format\MAExample.lvl");
             TestLevel(@"Levels\New_Format\MAPullPush.lvl");
             TestLevel(@"Levels\New_Format\MAPullPush2.lvl");

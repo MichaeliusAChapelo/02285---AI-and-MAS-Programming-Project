@@ -12,12 +12,11 @@ namespace BoxProblems.Graphing
             foreach (var inode in graph.Nodes)
             {
                 var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)inode;
-                if (node.Value.EntType != notAHindrance)
+                if (!node.Value.EntType.EntityEquals(notAHindrance))
                 {
                     level.AddWall(node.Value.Ent.Pos);
                 }
             }
-            //Console.WriteLine(level.WorldToString(level.GetWallsAsWorld()));
 
             Dictionary<Point, List<Node<EntityNodeInfo, DistanceEdgeInfo>>> potentialGoals = new Dictionary<Point, List<Node<EntityNodeInfo, DistanceEdgeInfo>>>();
             foreach (var inode in graph.Nodes)
@@ -38,7 +37,8 @@ namespace BoxProblems.Graphing
             for (int i = 0; i < graph.Nodes.Count; i++)
             {
                 var node = (Node<EntityNodeInfo, DistanceEdgeInfo>)graph.Nodes[i];
-                level.Walls[node.Value.Ent.Pos.X, node.Value.Ent.Pos.Y] = false;
+                bool wasWall = level.IsWall(node.Value.Ent.Pos);
+                level.RemoveWall(node.Value.Ent.Pos);
                 var storedNodes = potentialGoals[node.Value.Ent.Pos];
                 potentialGoals.Remove(node.Value.Ent.Pos);
 
@@ -48,8 +48,8 @@ namespace BoxProblems.Graphing
                 {
                     foreach (var reached in reachedList.nodes)
                     {
-                        if (node.Value.EntType == notAHindrance &&
-                            reached.Value.EntType == notAHindrance)
+                        if (node.Value.EntType.EntityEquals(notAHindrance) &&
+                            reached.Value.EntType.EntityEquals(notAHindrance))
                         {
                             continue;
                         }
@@ -59,7 +59,7 @@ namespace BoxProblems.Graphing
                 }
 
                 potentialGoals.Add(node.Value.Ent.Pos, storedNodes);
-                if (node.Value.EntType != notAHindrance)
+                if (wasWall)
                 {
                     level.AddWall(node.Value.Ent.Pos);
                 }

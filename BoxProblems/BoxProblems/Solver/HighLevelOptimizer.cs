@@ -30,7 +30,7 @@ namespace BoxProblems.Solver
                     //Otherwise the agent could be moved to an incorrect position as agents now don't go back to their original position.
                     if (!solutionMoves[i].UsingThisAgent.HasValue || (solutionMoves[i].UsingThisAgent.HasValue && solutionMoves[i].UsingThisAgent.Value.Type == solutionMoves[i + 1].UsingThisAgent.Value.Type))
                     {
-                        optimizedSolution.Add(new HighlevelMove(solutionMoves[i + 1].CurrentState, solutionMoves[i].MoveThis, solutionMoves[i + 1].ToHere, solutionMoves[i].UsingThisAgent, solutionMoves[i + 1].AgentFinalPos));
+                        optimizedSolution.Add(new HighlevelMove(solutionMoves[i + 1].CurrentState, solutionMoves[i].MoveThis, solutionMoves[i + 1].ToHere, solutionMoves[i].UsingThisAgent, solutionMoves[i + 1].AgentFinalPos, solutionMoves[i].UTurnPos));
                         i++;
                         if (i == solutionMoves.Count - 1)
                             finalMoveWasEdited = true;

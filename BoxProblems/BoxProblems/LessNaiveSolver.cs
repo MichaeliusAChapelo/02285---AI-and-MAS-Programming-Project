@@ -251,33 +251,7 @@ namespace BoxProblems
             ref int skipFirst
             )
         {
-            //throw new Exception("Failed to find a turn point on the route.");
-
-            var turningPoints = new PriorityQueue<(int x, int y), int>();
-            int x, y;
-            for (x = 1; x < Level.Width - 1; x++)
-                for (y = 1; y < Level.Height - 1; y++)
-                    if (!Level.Walls[x, y] && !IsCorridor(x, y))
-                        turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentNextToBox) + Point.ManhattenDistance(x, y, agentEndPos));
-
-            if (turningPoints.Count == 0)
-            {
-                // Try disable blocking agents
-                foreach (Entity e in plan.CurrentState.GetAgents(Level))
-                    Level.RemoveWall(e.Pos);
-
-                for (x = 1; x < Level.Width - 1; x++)
-                    for (y = 1; y < Level.Height - 1; y++)
-                        if (!Level.Walls[x, y] && !IsCorridor(x, y))
-                            turningPoints.Enqueue((x, y), Point.ManhattenDistance(x, y, agentNextToBox) + Point.ManhattenDistance(x, y, agentEndPos));
-
-                if (turningPoints.Count == 0)
-                    throw new Exception("Failed to find any turning points in level, probably due to boxes.");
-                else
-                    throw new Exception("Failed to find any possible distant turning point, because of blockage by agents.");
-            }
-            (x, y) = turningPoints.DequeueWithPriority().Value;
-            turnPoint = new Point(x, y);
+            turnPoint = plan.UTurnPos.Value;
 
             // Find spot beside turning point.
             foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
@@ -293,23 +267,23 @@ namespace BoxProblems
             // Reach turning point.
             var pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
 
-            while (pathToTurnIntoPoint.Count == 1)
-            { // Found no path to this turning point; Pick another.
-                if (turningPoints.Count == 0)
-                    throw new Exception("Distant turning point exists, but none can be reached due to blockage by other boxes.");
-                (x, y) = turningPoints.DequeueWithPriority().Value;
-                turnPoint = new Point(x, y);
+            // If A* doesn't go through selected turn(into) points
+            //if (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
+            //{
+            //    List<Point> blocks = new List<Point>();
+            //    while (pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2] != turnPoint)
+            //    {
+            //        Point p = pathToTurnIntoPoint[pathToTurnIntoPoint.Count - 2];
+            //        Level.AddWall(p);
+            //        blocks.Add(p);
+            //        pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
+            //    }
+            //    foreach (Point p in blocks)
+            //        Level.RemoveWall(p);
+            //}
 
-                // Find spot beside turning point.
-                foreach (Point dirDelta in Direction.NONE.DirectionDeltas())
-                    if (!Level.IsWall(turnPoint.Value + dirDelta))
-                    {
-                        turnIntoPoint = turnPoint.Value + dirDelta;
-                        break;
-                    }
 
-                pathToTurnIntoPoint = RunAStar(boxPos, turnIntoPoint);
-            }
+
 
             startPull = !pathToTurnIntoPoint.Contains(agentNextToBox);
 

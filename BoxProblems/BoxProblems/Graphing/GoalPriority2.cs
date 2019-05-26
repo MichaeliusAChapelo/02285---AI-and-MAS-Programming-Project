@@ -133,10 +133,17 @@ namespace BoxProblems.Graphing
                     }
 
                     foreach (var pathNode in pathResult.pathNodes)
-                    {
+                    {   
                         nodeCounter[pathNode.Key] += (1f / (pathResult.pathsCount)) * pathNode.Value;
                     }
                 }
+
+                
+                //foreach (var stuff in nodeCounter)
+                //{
+                //    Console.WriteLine("Key: " + stuff.Key + " Priotity: " + stuff.Value);
+                //}
+                //Console.ReadLine();
 
                 GoalNode[] newPriorityGroup = nodeCounter.GroupBy(x => x.Value).OrderBy(x => x.First().Value).First().Select(x => x.Key).ToArray();
                 PriorityLayers.Add(newPriorityGroup);

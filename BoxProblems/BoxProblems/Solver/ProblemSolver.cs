@@ -1039,7 +1039,7 @@ namespace BoxProblems.Solver
                             sData.AddToFreePath(uTurnPos.Value + Direction.W.DirectionDelta());
                             sData.AddToFreePath(uTurnPos.Value + Direction.S.DirectionDelta());
                             List<HighlevelMove> entityOnAgentEndPositionSolution;
-                            if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, false))
+                            if (!TrySolveSubProblem(toMoveIndex, uTurnPos.Value, false, out entityOnAgentEndPositionSolution, sData, depth + 1, true))
                             {
                                 throw new Exception("Could not move wrong box from goal.");
                             }

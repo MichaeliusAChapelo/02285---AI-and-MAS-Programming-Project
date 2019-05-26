@@ -867,6 +867,7 @@ namespace BoxProblems.Solver
 
 
             Point? newAgentPos = null;
+            Point? uTurnPos = null;
             if (agentIndex.HasValue) // then set agent pos
             {
                 agentToUse = sData.CurrentState.Entities[agentIndex.Value];
@@ -932,7 +933,7 @@ namespace BoxProblems.Solver
                 }
                 //If the agent isn't in the box path to the goal then the agent will presumably start by pusing the box
                 bool startPush = !toMovePath.Contains(agentToUse.Value.Pos);
-                Point? uTurnPos = GetUTurnPos(sData, agentToUse.Value.Pos);
+                uTurnPos = GetUTurnPos(sData, agentToUse.Value.Pos);
                 if (!uTurnPos.HasValue)
                 {
                     startPush = startPush && !pathToBox.Contains(goal);
@@ -1146,7 +1147,7 @@ namespace BoxProblems.Solver
             sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, sData.Level, sData.RemovedEntities);
             sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
             sData.SolutionGraphs.Add(sData.CurrentConflicts);
-            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos));
+            solutionToSubProblem.Add(new HighlevelMove(sData.CurrentState, toMove, goal, agentToUse, newAgentPos, uTurnPos));
             //LevelVisualizer.PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);
             //GraphShower.ShowSimplifiedGraph<EmptyEdgeInfo>(sData.CurrentConflicts);
             return true;

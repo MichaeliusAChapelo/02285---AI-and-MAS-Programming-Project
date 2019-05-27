@@ -98,12 +98,20 @@ namespace BoxProblems
 
         public List<AgentCommand> CreateSolutionCommands(HighlevelMove plan, Point goalPos, int agentIndex, int boxIndex)
         {
+            if (plan.MoveThis.Pos == new Point(14, 19))
+            {
+
+            }
             List<AgentCommand> commands = new List<AgentCommand>();
 
             var agent = plan.UsingThisAgent.Value;
             var agentEndPos = plan.AgentFinalPos.Value;
             var box = plan.MoveThis;
             List<Point> agentToBox = null;
+
+            Level.RemoveWall(goalPos);
+            Level.RemoveWall(box.Pos);
+
 
             // Avoids stupid square problems.
             if (Point.ManhattenDistance(box.Pos, goalPos) == 1)
@@ -125,9 +133,8 @@ namespace BoxProblems
 
             if (agentToBox == null)
                 agentToBox = RunAStar(agent.Pos, box.Pos);
-
-            Level.RemoveWall(goalPos);
-            Level.RemoveWall(box.Pos);
+            LevelVisualizer.PrintPath(Level, plan.CurrentState, new List<Point>() { agent.Pos, box.Pos });
+            LevelVisualizer.PrintPath(Level, plan.CurrentState, agentToBox);
 
             //Remove box location from the path as the path should end next to the box
             agentToBox.RemoveAt(agentToBox.Count - 1);

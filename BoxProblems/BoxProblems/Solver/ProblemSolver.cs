@@ -1071,7 +1071,7 @@ namespace BoxProblems.Solver
                 {
                     newAgentPos = possibleAgentPositions.First().Item1;
                 }
-                if (!positionFound)
+                else if (!positionFound)
                 {
                     if (occupiedPositionFound)
                     {
@@ -1197,11 +1197,6 @@ namespace BoxProblems.Solver
                     sData.CancelToken.ThrowIfCancellationRequested();
 
                     //LevelVisualizer.PrintPath(sData.Level, sData.CurrentState, toMovePath.ToList());
-
-                    if (goal == new Point(25, 33))
-                    {
-
-                    }
 
                     BoxConflictNode conflict = conflicts.First();
                     if (agentNotConflict.HasValue && conflict.Value.Ent == agentNotConflict.Value)

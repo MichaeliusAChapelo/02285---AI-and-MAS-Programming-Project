@@ -46,7 +46,7 @@ namespace BoxRunner
         static void Main(string[] args)
         {
             ServerCommunicator.SkipServerLaunch = false;
-            bool Parallelize = false;
+            bool Parallelize = true;
 
             // Failed to find any possible distant turning point, possibly blocked by other agents.
             // string levelPath = "MANOAsArk.lvl";

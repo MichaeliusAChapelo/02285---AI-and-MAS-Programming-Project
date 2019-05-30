@@ -94,6 +94,12 @@ namespace BoxPerformance
         }
 
         Dictionary<string, LevelScore> Scores = new Dictionary<string, LevelScore>();
+        public readonly string CompetitionName;
+
+        public CompetitionScores(string competitionName)
+        {
+            this.CompetitionName = competitionName;
+        }
 
         public void Add(string name, int saMoves, int saTime, int maMoves, int maTimes)
         {
@@ -150,33 +156,36 @@ namespace BoxPerformance
 
     internal class Program
     {
-        private static CompetitionScores ScoreData = new CompetitionScores()
+        private static CompetitionScores[] ScoresData = new CompetitionScores[]
         {
-            { "AIMAS"       ,   492,  158,  115,    11 },
-            { "Avicii"      ,   432,  271,    5,     0 },
-            { "Bob"         ,  7423,  385,   78,   240 },
-            { "deepurple"   ,    70,   40,  126,    83 },
-            { "ForThePie"   ,   509,  376,  338,    90 },
-            { "Gronhoff"    ,     4,    0,    7,     2 },
-            { "group"       ,  1272,   16,  307,   420 },
-            { "GroupName"   ,  8261, 6155, 1826, 16378 },
-            { "GruppeTo"    ,   183,    9,   83,   174 },
-            { "gTHIRTEEN"   , 15118, 2353,  171, 10682 },
-            { "HelloWorl"   , 18996, 2980, 1435,   582 },
-            { "MASA"        ,    24,    0,   15,     1 },
-            { "MASAI"       ,  1857, 8636,   44,    36 },
-            { "MKM"         ,    63,    6,   21,     1 },
-            { "Nameless"    ,   699,  122,   62,     4 },
-            { "NOAsArk"     ,    42,    1,   18,     1 },
-            { "NulPoint"    ,   313,  255,  254,   623 },
-            { "OneOneTwo"   ,   291,   59,  510,   396 },
-            { "POPstars"    ,   954,  385,  186,   305 },
-            { "RegExAZ"     ,   127,   24,   87,    47 },
-            { "Soulman"     ,   597,  242,  180,   618 },
-            { "Subpoena"    ,  8666, 4194, 1053,   241 },
-            { "TheBTeam"    ,  4420, 5228, 1018,    62 },
-            { "VisualKei"   , 14325, 2148, 1825,  2671 },
-            { "WallZ"       ,    92,   18,   14,     4 },
+            new CompetitionScores("Year 2019")
+            {
+                { "AIMAS"       ,   492,  158,  115,    11 },
+                { "Avicii"      ,   432,  271,    5,     0 },
+                { "Bob"         ,  7423,  385,   78,   240 },
+                { "deepurple"   ,    70,   40,  126,    83 },
+                { "ForThePie"   ,   509,  376,  338,    90 },
+                { "Gronhoff"    ,     4,    0,    7,     2 },
+                { "group"       ,  1272,   16,  307,   420 },
+                { "GroupName"   ,  8261, 6155, 1826, 16378 },
+                { "GruppeTo"    ,   183,    9,   83,   174 },
+                { "gTHIRTEEN"   , 15118, 2353,  171, 10682 },
+                { "HelloWorl"   , 18996, 2980, 1435,   582 },
+                { "MASA"        ,    24,    0,   15,     1 },
+                { "MASAI"       ,  1857, 8636,   44,    36 },
+                { "MKM"         ,    63,    6,   21,     1 },
+                { "Nameless"    ,   699,  122,   62,     4 },
+                { "NOAsArk"     ,    42,    1,   18,     1 },
+                { "NulPoint"    ,   313,  255,  254,   623 },
+                { "OneOneTwo"   ,   291,   59,  510,   396 },
+                { "POPstars"    ,   954,  385,  186,   305 },
+                { "RegExAZ"     ,   127,   24,   87,    47 },
+                { "Soulman"     ,   597,  242,  180,   618 },
+                { "Subpoena"    ,  8666, 4194, 1053,   241 },
+                { "TheBTeam"    ,  4420, 5228, 1018,    62 },
+                { "VisualKei"   , 14325, 2148, 1825,  2671 },
+                { "WallZ"       ,    92,   18,   14,     4 },
+            }
         };
 
         private static List<string> GetFilePathsFromFolderRecursively(string folderPath)
@@ -284,19 +293,23 @@ namespace BoxPerformance
             Console.WriteLine($"Timeout: {statistics.Sum(x => x.Status == SolverStatus.TIMEOUT ? 1 : 0)}");
             Console.WriteLine($"Error  : {statistics.Sum(x => x.Status == SolverStatus.ERROR ? 1 : 0)}");
 
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine();
+            foreach (var scoreData in ScoresData)
+            {
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine();
 
-            var score = ScoreData.GetScore(levelStatisticsBag.ToList());
-            Console.WriteLine($"SA move score: {score.SAMoveScore.ToString("N2")}");
-            Console.WriteLine($"SA time score: {score.SATimeScore.ToString("N2")}");
-            Console.WriteLine($"MA move score: {score.MAMoveScore.ToString("N2")}");
-            Console.WriteLine($"MA time score: {score.MATimeScore.ToString("N2")}");
-            Console.WriteLine();
-            Console.WriteLine($"Moves score:   {(score.SAMoveScore + score.MAMoveScore).ToString("N2")}");
-            Console.WriteLine($"Time score:    {(score.SATimeScore + score.MATimeScore).ToString("N2")}");
-            Console.WriteLine($"Total score:   {(score.SAMoveScore + score.MAMoveScore + score.SATimeScore + score.MATimeScore).ToString("N2")}");
+                var score = scoreData.GetScore(levelStatisticsBag.ToList());
+                Console.WriteLine($"Competition: {scoreData.CompetitionName}");
+                Console.WriteLine($"SA move score: {score.SAMoveScore.ToString("N2")}");
+                Console.WriteLine($"SA time score: {score.SATimeScore.ToString("N2")}");
+                Console.WriteLine($"MA move score: {score.MAMoveScore.ToString("N2")}");
+                Console.WriteLine($"MA time score: {score.MATimeScore.ToString("N2")}");
+                Console.WriteLine();
+                Console.WriteLine($"Moves score:   {(score.SAMoveScore + score.MAMoveScore).ToString("N2")}");
+                Console.WriteLine($"Time score:    {(score.SATimeScore + score.MATimeScore).ToString("N2")}");
+                Console.WriteLine($"Total score:   {(score.SAMoveScore + score.MAMoveScore + score.SATimeScore + score.MATimeScore).ToString("N2")}");
+            }
 
 
             Console.Read();

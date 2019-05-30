@@ -282,6 +282,7 @@ namespace BoxPerformance
             Parallel.ForEach(filePaths, x =>
             {
                 var statistic = ProblemSolver.GetSolveStatistics(x, TimeSpan.FromSeconds(70), false);
+                int? movesCount = null;
 
                 if (statistic.Status == SolverStatus.SUCCESS)
                 {
@@ -290,10 +291,10 @@ namespace BoxPerformance
                         long startTime = watch.ElapsedMilliseconds;
                         var sc = new ServerCommunicator();
                         var commands = sc.NonAsyncSolve(statistic.Level, statistic.Solution);
-                        int moves = CommandParallelizer.Parallelize(commands, statistic.Level).Length;
+                        movesCount = CommandParallelizer.Parallelize(commands, statistic.Level).Length;
                         long endTime = watch.ElapsedMilliseconds;
 
-                        levelStatisticsBag.Add(new LevelStatistic(statistic.LevelName, moves, endTime - startTime));
+                        levelStatisticsBag.Add(new LevelStatistic(statistic.LevelName, movesCount.Value, endTime - startTime));
                     }
                     catch (Exception e)
                     {
@@ -302,7 +303,7 @@ namespace BoxPerformance
                     }
                 }
 
-                Console.WriteLine($"{statistic.Status.ToString()} {Path.GetFileName(x)} Time: {statistic.RunTimeInMiliseconds}");
+                Console.WriteLine($"{statistic.Status.ToString()} {Path.GetFileName(x)} Time: {statistic.RunTimeInMiliseconds} Moves: {(movesCount ?? -1)}");
                 statisticsBag.Add(statistic);
             });
             watch.Stop();

@@ -94,10 +94,12 @@ namespace BoxPerformance
         }
 
         Dictionary<string, LevelScore> Scores = new Dictionary<string, LevelScore>();
+        private readonly string CompetitionFolder;
         public readonly string CompetitionName;
 
-        public CompetitionScores(string competitionName)
+        public CompetitionScores(string subFolder, string competitionName)
         {
+            this.CompetitionFolder = subFolder;
             this.CompetitionName = competitionName;
         }
 
@@ -115,6 +117,11 @@ namespace BoxPerformance
 
             foreach (var statistic in solutions)
             {
+                //if (!Directory.EnumerateDirectories(statistic.LevelPath).Any(x => x == CompetitionFolder))
+                //{
+                //    continue;
+                //}
+
                 ReadOnlySpan<char> nameWithType = statistic.LevelName;
                 ReadOnlySpan<char> name = nameWithType.Slice(2);
                 if (Scores.ContainsKey(name.ToString()))
@@ -158,61 +165,61 @@ namespace BoxPerformance
     {
         private static CompetitionScores[] ScoresData = new CompetitionScores[]
         {
-            new CompetitionScores("Year 2017")
+            new CompetitionScores("comp_levels_2017", "Year 2017")
             {
-                { "AIoliMAsh"       ,   1930,  1416,  80,    281 },
-                { "Beliebers"      ,   316,  252,    99,     385 },
-                { "Blinky"         ,  124,  17,   52,   46 },
-                { "BoxBunny"   ,    3213,   1054,  842,    902 },
-                { "Bronies"   ,   12662,  1830,  214,    530 },
-                { "DAT"    ,     953,    484,    231,     216 },
-                { "DoDo"       ,  228,   122,  4,   15 },
-                { "EvilCorp"    ,   3262,    5970,   192,   253 },
-                { "FooBar"   , 193, 3341,  12, 106 },
-                { "GeneralAI"   , 521, 287, 128,   265 },
-                { "groupname"        ,    3687,    433,   32,     104 },
-                { "HiveMind"         ,    234,    269,   107,     264 },
-                { "IamGreedy"    ,   927,  608,   188,     1168 },
-                { "Jomarki"     ,    60,    15,   41,     71 },
-                { "Kalle"    ,   202,  152,  31,   128 },
-                { "Lemmings"   ,   114,   118,  53,   71 },
-                { "Liquorice"    ,   95,  80,  69,   151 },
-                { "MasAiArne"     ,   604,   203,   1563,    2073 },
-                { "MASters"     ,   212,  268,  214,   526 },
-                { "NeverMind"    ,  238, 182, 27,   114 },
-                { "Omnics"    ,  3592, 2307, 579,    658 },
-                { "tnrbts"       ,    262,   205,   1108,     1714 },
+                { "AIoliMAsh"   ,  1930, 1416,   80,  281 },
+                { "Beliebers"   ,   316,  252,   99,  385 },
+                { "Blinky"      ,   124,   17,   52,   46 },
+                { "BoxBunny"    ,  3213, 1054,  842,  902 },
+                { "Bronies"     , 12662, 1830,  214,  530 },
+                { "DAT"         ,   953,  484,  231,  216 },
+                { "DoDo"        ,   228,  122,    4,   15 },
+                { "EvilCorp"    ,  3262, 5970,  192,  253 },
+                { "FooBar"      ,   193, 3341,   12,  106 },
+                { "GeneralAI"   ,   521,  287,  128,  265 },
+                { "groupname"   ,  3687,  433,   32,  104 },
+                { "HiveMind"    ,   234,  269,  107,  264 },
+                { "IamGreedy"   ,   927,  608,  188, 1168 },
+                { "Jomarki"     ,    60,   15,   41,   71 },
+                { "Kalle"       ,   202,  152,   31,  128 },
+                { "Lemmings"    ,   114,  118,   53,   71 },
+                { "Liquorice"   ,    95,   80,   69,  151 },
+                { "MasAiArne"   ,   604,  203, 1563, 2073 },
+                { "MASters"     ,   212,  268,  214,  526 },
+                { "NeverMind"   ,   238,  182,   27,  114 },
+                { "Omnics"      ,  3592, 2307,  579,  658 },
+                { "tnrbts"      ,   262,  205, 1108, 1714 },
             },
-            new CompetitionScores("Year 2018")
+            new CompetitionScores("real_levels", "Year 2018")
             {
-                { "AiAiCap"       ,   70,  260,  114,    89 },
-                { "AIFather"      ,   90,  255,    50,     137 },
-                { "AiMasTers"         ,  15702,  2249,   9,   169 },
-                { "AlphaOne"   ,    89,   260,  467,    658 },
-                { "AntsStar"   ,   238,  224,  88,    319 },
-                { "BahaMAS"    ,     90,    105,    64,     312 },
-                { "bAnAnA"       ,  409,   678,  77,   153 },
-                { "BeTrayEd"   ,  234, 257, 188, 405 },
-                { "bongu"    ,   80,    73,   63,   224 },
-                { "ByteMe"   , 970, 403,  131, 334 },
-                { "Cybot"   , 140, 305, 68,   260 },
-                { "dashen"        ,    3857,    859,   467,     337 },
-                { "DaVinci"       ,  4102, 840,   102,    283 },
-                { "EasyPeasy"         ,    604,    408,   44,     215 },
-                { "GreenDots"    ,   187,  266,   113,     298 },
-                { "Kaldi"     ,    2809,    1381,   133,     377 },
-                { "KarlMarx"    ,   13792,  1011,  1683,   167943 },
-                { "KJFWAOL"   ,   43,   41,  15,   67 },
-                { "Lobot"    ,   75,  227,  131,   329 },
-                { "Magicians"     ,   397,   220,   61,    116 },
-                { "Navy"     ,   4579,  1483,  299,   689 },
-                { "Nikrima"    ,  222, 44, 30,   99 },
-                { "NotHard"    ,  150, 37, 58,    370 },
-                { "ora"   , 199, 42, 82,  314 },
-                { "PushPush"       ,    770,   561,   147,     466 },
-                { "ZEROagent"       ,    480,   98,   295,     534 },
+                { "AiAiCap"     ,    70,  260,  114,     89 },
+                { "AIFather"    ,    90,  255,   50,    137 },
+                { "AiMasTers"   , 15702, 2249,    9,    169 },
+                { "AlphaOne"    ,    89,  260,  467,    658 },
+                { "AntsStar"    ,   238,  224,   88,    319 },
+                { "BahaMAS"     ,    90,  105,   64,    312 },
+                { "bAnAnA"      ,   409,  678,   77,    153 },
+                { "BeTrayEd"    ,   234,  257,  188,    405 },
+                { "bongu"       ,    80,   73,   63,    224 },
+                { "ByteMe"      ,   970,  403,  131,    334 },
+                { "Cybot"       ,   140,  305,   68,    260 },
+                { "dashen"      ,  3857,  859,  467,    337 },
+                { "DaVinci"     ,  4102,  840,  102,    283 },
+                { "EasyPeasy"   ,   604,  408,   44,    215 },
+                { "GreenDots"   ,   187,  266,  113,    298 },
+                { "Kaldi"       ,  2809, 1381,  133,    377 },
+                { "KarlMarx"    , 13792, 1011, 1683, 167943 },
+                { "KJFWAOL"     ,    43,   41,   15,     67 },
+                { "Lobot"       ,    75,  227,  131,    329 },
+                { "Magicians"   ,   397,  220,   61,    116 },
+                { "Navy"        ,  4579, 1483,  299,    689 },
+                { "Nikrima"     ,   222,   44,   30,     99 },
+                { "NotHard"     ,   150,   37,   58,    370 },
+                { "ora"         ,   199,   42,   82,    314 },
+                { "PushPush"    ,   770,  561,  147,    466 },
+                { "ZEROagent"   ,   480,   98,  295,    534 },
             },
-            new CompetitionScores("Year 2019")
+            new CompetitionScores("comp_levels", "Year 2019")
             {
                 { "AIMAS"       ,   492,  158,  115,    11 },
                 { "Avicii"      ,   432,  271,    5,     0 },
@@ -258,11 +265,13 @@ namespace BoxPerformance
         internal class LevelStatistic
         {
             public string LevelName;
+            public string LevelPath;
             public int Moves;
             public long Time;
 
-            public LevelStatistic(string name, int moves, long time)
+            public LevelStatistic(string path, string name, int moves, long time)
             {
+                this.LevelPath = path;
                 this.LevelName = name;
                 this.Moves = moves;
                 this.Time = time;
@@ -294,7 +303,7 @@ namespace BoxPerformance
                         movesCount = CommandParallelizer.Parallelize(commands, statistic.Level).Length;
                         long endTime = watch.ElapsedMilliseconds;
 
-                        levelStatisticsBag.Add(new LevelStatistic(statistic.LevelName, movesCount.Value, endTime - startTime));
+                        levelStatisticsBag.Add(new LevelStatistic(x, statistic.LevelName, movesCount.Value, endTime - startTime));
                     }
                     catch (Exception e)
                     {

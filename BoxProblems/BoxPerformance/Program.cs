@@ -270,9 +270,9 @@ namespace BoxPerformance
 
         static void Main(string[] args)
         {
-            //List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\Old_Format\\comp_levels_2017"); // 66.87
-            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\Old_Format\\real_levels"); // 81.41
-            //List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels"); // 66.40
+            //List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\Old_Format\\comp_levels_2017"); // 68.37
+            //List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\Old_Format\\real_levels"); // 81.41
+            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels"); // 66.44
             ConcurrentBag<SolveStatistic> statisticsBag = new ConcurrentBag<SolveStatistic>();
             ConcurrentBag<LevelStatistic> levelStatisticsBag = new ConcurrentBag<LevelStatistic>();
 

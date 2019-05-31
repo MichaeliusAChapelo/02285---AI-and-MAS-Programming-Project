@@ -430,6 +430,7 @@ namespace BoxProblems.Solver
             SolverData sData = new SolverData(level, cancelToken);
             GoalGraph goalGraph = new GoalGraph(sData.gsData, level.InitialState, level);
             GoalPriority priority = new GoalPriority(level, goalGraph, cancelToken);
+            HashSet<Goal> solvedGoals = new HashSet<Goal>();
             //Console.WriteLine(priority.ToLevelString(sData.Level));
             var goalPriorityLinkedLayers = priority.GetAsLinkedLayers();
             var currentLayerNode = goalPriorityLinkedLayers.First;
@@ -473,7 +474,7 @@ namespace BoxProblems.Solver
                     }
 
                     sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
-                    sData.CurrentConflicts.AddGoalNodes(sData.gsData, sData.Level, goalToSolve.Ent);
+                    sData.CurrentConflicts.AddGoalNodes(sData.gsData, sData.Level, goalToSolve.Ent, solvedGoals);
                     sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
                     sData.Level.RemovePermanentWall(goalToSolve.Ent.Pos);
                     sData.Level.RemoveWall(goalToSolve.Ent.Pos);
@@ -701,6 +702,7 @@ namespace BoxProblems.Solver
                     sData.CurrentConflicts = new BoxConflictGraph(sData.gsData, sData.CurrentState, level, sData.RemovedEntities);
                     //sData.CurrentConflicts.AddGoalNodes(sData.Level, goalToSolve);
                     sData.CurrentConflicts.AddFreeSpaceNodes(sData.gsData, sData.Level);
+                    //GraphShower.ShowGraph(sData.CurrentConflicts);
                     //sData.CurrentConflicts.RemoveGoalNodes();
                     //sData.CurrentConflicts.AddFreeSpaceNodes(level);
 
@@ -761,8 +763,8 @@ namespace BoxProblems.Solver
                     }
 
                     solution.AddRange(solutionMoves);
-
                     level.AddPermanentWalll(goalToSolve.Ent.Pos);
+                    solvedGoals.Add(goalToSolve);
 
                     currentLayer.Goals.Remove(goalToSolve);
                     //PrintLatestStateDiff(sData.Level, sData.SolutionGraphs);

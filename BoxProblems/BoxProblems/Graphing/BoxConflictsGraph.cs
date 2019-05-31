@@ -105,7 +105,7 @@ namespace BoxProblems.Graphing
             }
         }
 
-        internal void AddGoalNodes(GraphSearchData gsData, Level level, Entity exceptThisGoal)
+        internal void AddGoalNodes(GraphSearchData gsData, Level level, Entity exceptThisGoal, HashSet<Goal> solvedGoals)
         {
             foreach (var node in Nodes)
             {
@@ -121,7 +121,7 @@ namespace BoxProblems.Graphing
             });
             foreach (var goal in level.Goals)
             {
-                if (level.IsWall(goal.Ent.Pos))
+                if (solvedGoals.Contains(goal))
                 {
                     continue;
                 }

@@ -45,12 +45,7 @@ namespace BoxPerformance
                 {
                     return 0;
                 }
-                float ass = (float)(Math.Log(Math.Min(time, (float)SATimeScore)) / Math.Log(time));
-                if (float.IsNaN(ass))
-                {
-
-                }
-                return ass;
+                return (float)(Math.Log(Math.Min(time, (float)SATimeScore)) / Math.Log(time));
             }
 
             public float CalculateMAMoveScore(int moves)
@@ -68,12 +63,7 @@ namespace BoxPerformance
                 {
                     return 0;
                 }
-                float ass = (float)(Math.Log(Math.Min(time, (float)MATimeScore)) / Math.Log(time));
-                if (float.IsNaN(ass))
-                {
-
-                }
-                return ass;
+                return (float)(Math.Log(Math.Min(time, (float)MATimeScore)) / Math.Log(time));
             }
         }
 
@@ -280,9 +270,9 @@ namespace BoxPerformance
 
         static void Main(string[] args)
         {
-            float asd = (float)(Math.Log(1) / Math.Log(1));
-
-            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels");
+            //List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\Old_Format\\comp_levels_2017"); // 66.87
+            List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\Old_Format\\real_levels"); // 81.41
+            //List<string> filePaths = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels"); // 66.40
             ConcurrentBag<SolveStatistic> statisticsBag = new ConcurrentBag<SolveStatistic>();
             ConcurrentBag<LevelStatistic> levelStatisticsBag = new ConcurrentBag<LevelStatistic>();
 

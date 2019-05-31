@@ -831,7 +831,7 @@ namespace BoxProblems.Solver
             }
             List<HighlevelMove> solveConflictMoves;
             Point[] toMovePath;
-            if (!TrySolveConflicts(toMoveIndex, goal, out solveConflictMoves, out toMovePath, sData, agentToUse, depth, isGoalAnObstable))
+            if (!TrySolveConflicts(toMoveIndex, goal, out solveConflictMoves, out toMovePath, sData, agentToUse, depth, !toMoveIsAgent ? true : isGoalAnObstable))
             {
                 return false;
             }

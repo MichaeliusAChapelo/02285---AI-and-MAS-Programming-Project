@@ -455,7 +455,7 @@ namespace BoxTests
             Entity goal = level.InitialState.Entities.Single(x => x.Type == 'G');
             Point agentFinalPos = level.InitialState.Entities.Single(x => x.Type == 'F').Pos;
 
-            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, box, goal.Pos, agent, agentFinalPos);
+            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, box, goal.Pos, agent, agentFinalPos, null);
 
             VerifyCommands(clearedLevel, move, expectedCommands);
         }
@@ -468,7 +468,7 @@ namespace BoxTests
             Entity agent = level.InitialState.Entities.Single(x => x.Type == '0');
             Entity goal = level.InitialState.Entities.Single(x => x.Type == 'G');
 
-            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, agent, goal.Pos, null, null);
+            HighlevelMove move = new HighlevelMove(clearedLevel.InitialState, agent, goal.Pos, null, null, null);
 
             VerifyCommands(clearedLevel, move, expectedCommands);
         }

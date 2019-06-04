@@ -25,7 +25,7 @@ namespace BoxRunner
 
         private static string GetLevelPath(string levelFileName)
         {
-            List<string> files = GetFilePathsFromFolderRecursively("Levels");
+            List<string> files = GetFilePathsFromFolderRecursively("Levels\\New_Format\\comp_levels");
             return files.Single(x => Path.GetFileName(x) == levelFileName);
         }
 
@@ -45,7 +45,7 @@ namespace BoxRunner
 
         static void Main(string[] args)
         {
-            ServerCommunicator.SkipServerLaunch = false;
+            ServerCommunicator.SkipServerLaunch = true;
             bool Parallelize = true;
 
             // Failed to find any possible distant turning point, possibly blocked by other agents.
@@ -77,7 +77,7 @@ namespace BoxRunner
             // string levelPath = "MANulPoint.lvl";
 
             //Not enough free space is available
-            string levelPath = "MABob.lvl";
+            //string levelPath = "MATALK.lvl";
             //string levelPath = "SAWallZ.lvl";
             //string levelPath = "SAgTHIRTEEN.lvl";
             //string levelPath = "SANulPoint.lvl";
@@ -91,8 +91,13 @@ namespace BoxRunner
 
 
             #region Mein Levels
-            //string levelPath = "SAVisualKei.lvl";
-            //string levelPath = "MAVisualKei.lvl";
+            string levelPath = "MAVisualKei.lvl";
+            //string levelPath = "MAAIMAS.lvl";
+            //string levelPath = "MAAIFather.lvl";
+            //string levelPath = "MAJMAI.lvl";
+            //string levelPath = "MANikrima.lvl";
+            //string levelPath = "MAExample.lvl";
+            //string levelPath = "MAMKM.lvl";
             #endregion
 
             #region Optimize these
@@ -142,7 +147,8 @@ namespace BoxRunner
                     serverCom.SendCommandsSequentially(lowLevelCommands, level);
                 else
                 {
-                    var finalCommands = CommandParallelizer.Parallelize(lowLevelCommands, level);
+                    var finalCommands = CommandParallelizer.Parallelize2(lowLevelCommands, level.GetAgents(), level.GetBoxes(), level);
+                    //var finalCommands = CommandParallelizer.Parallelize(lowLevelCommands, level);
                     serverCom.SendCommands(finalCommands);
                 }
                 Console.Read();

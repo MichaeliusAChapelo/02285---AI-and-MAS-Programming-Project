@@ -45,12 +45,12 @@ namespace BoxProblems
             Array.Copy(Walls, 0, OriginalWalls, 0, Walls.GetLength(0) * Walls.GetLength(1));
         }
 
-        internal Span<Entity> GetAgents()
+        public Span<Entity> GetAgents()
         {
             return InitialState.GetAgents(this);
         }
 
-        internal Span<Entity> GetBoxes()
+        public Span<Entity> GetBoxes()
         {
             return InitialState.GetBoxes(this);
         }

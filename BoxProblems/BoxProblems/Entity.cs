@@ -4,27 +4,27 @@ using System.Text;
 
 namespace BoxProblems
 {
-    internal readonly struct Entity
+    public readonly struct Entity
     {
-        public readonly Point Pos;
-        public readonly int Color;
-        public readonly char Type;
+        internal readonly Point Pos;
+        internal readonly int Color;
+        internal readonly char Type;
 
-        public Entity(int x, int y, int color, char type)
+        internal Entity(int x, int y, int color, char type)
         {
             this.Pos = new Point(x, y);
             this.Color = color;
             this.Type = type;
         }
 
-        public Entity(Point pos, int color, char type)
+        internal Entity(Point pos, int color, char type)
         {
             this.Pos = pos;
             this.Color = color;
             this.Type = type;
         }
 
-        public Entity Move(Point pos)
+        internal Entity Move(Point pos)
         {
             return new Entity(pos, Color, Type);
         }

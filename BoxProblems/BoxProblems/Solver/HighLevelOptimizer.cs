@@ -36,6 +36,13 @@ namespace BoxProblems.Solver
                             finalMoveWasEdited = true;
                     }
                 }
+                else if (solutionMoves[i].UsingThisAgent == null && solutionMoves[i + 1].UsingThisAgent != null && solutionMoves[i].ToHere == solutionMoves[i + 1].UsingThisAgent.Value.Pos)
+                {
+                    optimizedSolution.Add(new HighlevelMove(solutionMoves[i + 1].CurrentState, solutionMoves[i + 1].MoveThis, solutionMoves[i + 1].ToHere, solutionMoves[i].MoveThis, solutionMoves[i + 1].AgentFinalPos, solutionMoves[i + 1].UTurnPos));
+                    i++;
+                    if (i == solutionMoves.Count - 1)
+                        finalMoveWasEdited = true;
+                }
                 else
                 {
                     optimizedSolution.Add(solutionMoves[i]);

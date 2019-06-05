@@ -140,12 +140,24 @@ namespace BoxProblems
                 }
                 else
                 {
+                    bool reset = false;
+                    int nextBestTime = -1;
                     for (int i = time; i < newTime; i++)
                     {
                         if (boxPositions[i].Contains(newAgentPos))
                         {
-                            return (false, GetNextAvailableTime(boxPositions, i, newAgentPos));
+                            nextBestTime = GetNextAvailableTime(boxPositions, i, newAgentPos);
+                            if (nextBestTime == boxPositions.Count)
+                            {
+                                return (false, nextBestTime);
+                            }
+                            reset = true;
                         }
+                    }
+                    if (reset)
+                    {
+                        agentTime = nextBestTime;
+                        continue;
                     }
                     //var isMostRecentBoxMovement = GetIfCanStayAtPosAndIfNotThenAtWhatTimeItCanStayAtThePos(time, newTime, boxPositions, agentPos, newAgentPos, boxPos, nextBoxPos);
                     //if (!isMostRecentBoxMovement.valid)

@@ -93,6 +93,11 @@ namespace BoxProblems
             int startTime = agentTime;
             while (true)
             {
+                if (agentTime > 20_000)
+                {
+                    throw new Exception("command parallelizer infinite loop.");
+                }
+
                 int time = agentTime;
                 AgentCommand command = agentCommands.Commands[commandIndex];
 
@@ -156,6 +161,7 @@ namespace BoxProblems
                     return canStayHere;
                 }
 
+                int maxTime = newTime;
                 if (commandIndex < agentCommands.Commands.Count - 1)
                 {
                     for (int i = boxPositions.Count; i <= newTime; i++)
@@ -184,6 +190,7 @@ namespace BoxProblems
                         agentTime = newTime;
                         continue;
                     }
+                    maxTime = Math.Max(maxTime, mergeResult.invalidTime);
                 }
 
                 if (commandIndex == agentCommands.Commands.Count - 1)
@@ -201,11 +208,21 @@ namespace BoxProblems
                 }
                 if (boxPos != null)
                 {
-                    boxPositions[newTime].Remove(boxPos.Value);
+                    for (int i = newTime; i < boxPositions.Count; i++)
+                    {
+                        if (boxPositions[i].Contains(boxPos.Value))
+                        {
+                            boxPositions[i].Remove(boxPos.Value);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                     boxPositions[newTime].Add(nextBoxPos.Value);
                 }
                 commandTimings[commandIndex] = new CommandParInfo(startTime, newTime);
-                return (true, -1);
+                return (true, maxTime);
             }
         }
 

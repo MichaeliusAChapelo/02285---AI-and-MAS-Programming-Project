@@ -65,6 +65,38 @@ namespace BoxPerformance
                 }
                 return (float)(Math.Log(Math.Min(time, (float)MATimeScore)) / Math.Log(time));
             }
+
+            public (bool, float) GetSATimesFaster(long time)
+            {
+                if (time < SATimeScore)
+                {
+                    if (time == 0)
+                    {
+                        return (false, SATimeScore);
+                    }
+                    return (true, SATimeScore / time);
+                }
+                else
+                {
+                    return (false, -1f);
+                }
+            }
+
+            public (bool, float) GetMATimesFaster(long time)
+            {
+                if (time < MATimeScore)
+                {
+                    if (time == 0)
+                    {
+                        return (false, MATimeScore);
+                    }
+                    return (true, MATimeScore / time);
+                }
+                else
+                {
+                    return (false, -1f);
+                }
+            }
         }
 
         internal class CompetitionScore
@@ -73,13 +105,15 @@ namespace BoxPerformance
             public float SATimeScore;
             public float MAMoveScore;
             public float MATimeScore;
+            public float TimesFaster;
             
-            public CompetitionScore(float saMoves, float saTime, float maMoves, float maTimes)
+            public CompetitionScore(float saMoves, float saTime, float maMoves, float maTimes, float timesFaster)
             {
                 this.SAMoveScore = saMoves;
                 this.SATimeScore = saTime;
                 this.MAMoveScore = maMoves;
                 this.MATimeScore = maTimes;
+                this.TimesFaster = timesFaster;
             }
         }
 
@@ -105,6 +139,9 @@ namespace BoxPerformance
             float maMovesScore = 0;
             float maTimeScore = 0;
 
+            float timesFaster = 0;
+            int levelsFaster = 0;
+
             foreach (var statistic in solutions)
             {
                 //if (!Directory.EnumerateDirectories(statistic.LevelPath).Any(x => x == CompetitionFolder))
@@ -124,16 +161,28 @@ namespace BoxPerformance
                     {
                         saMovesScore += score.CalculateSAMoveScore(statistic.Moves);
                         saTimeScore += score.CalculateSATimeScore(statistic.Time);
+                        var fasterInfo = score.GetSATimesFaster(statistic.Time);
+                        if (fasterInfo.Item1)
+                        {
+                            timesFaster += fasterInfo.Item2;
+                            levelsFaster++;
+                        }
                     }
                     else
                     {
                         maMovesScore += score.CalculateMAMoveScore(statistic.Moves);
                         maTimeScore += score.CalculateMATimeScore(statistic.Time);
+                        var fasterInfo = score.GetMATimesFaster(statistic.Time);
+                        if (fasterInfo.Item1)
+                        {
+                            timesFaster += fasterInfo.Item2;
+                            levelsFaster++;
+                        }
                     }
                 }
             }
 
-            return new CompetitionScore(saMovesScore, saTimeScore, maMovesScore, maTimeScore);
+            return new CompetitionScore(saMovesScore, saTimeScore, maMovesScore, maTimeScore, timesFaster / levelsFaster);
         }
 
 
@@ -359,6 +408,7 @@ namespace BoxPerformance
                 Console.WriteLine($"SA time score: {score.SATimeScore.ToString("N2")}");
                 Console.WriteLine($"MA move score: {score.MAMoveScore.ToString("N2")}");
                 Console.WriteLine($"MA time score: {score.MATimeScore.ToString("N2")}");
+                Console.WriteLine($"Times faster:  {score.TimesFaster.ToString("N2")}");
                 Console.WriteLine();
                 Console.WriteLine($"Moves score:   {(score.SAMoveScore + score.MAMoveScore).ToString("N2")}");
                 Console.WriteLine($"Time score:    {(score.SATimeScore + score.MATimeScore).ToString("N2")}");

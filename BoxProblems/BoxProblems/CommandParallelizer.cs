@@ -129,13 +129,6 @@ namespace BoxProblems
                             }
                             prevWasBox = boxPositions[i].Contains(boxPos.Value);
                         }
-
-
-                        //var isMostRecentBoxMovement = GetIfCanStayAtPosAndIfNotThenAtWhatTimeItCanStayAtThePos(newTime, boxPositions.Count - 1, boxPositions, agentPos, newAgentPos, boxPos, nextBoxPos);
-                        //if (!isMostRecentBoxMovement.valid)
-                        //{
-                        //    return isMostRecentBoxMovement;
-                        //}
                     }
                 }
                 else
@@ -159,11 +152,6 @@ namespace BoxProblems
                         agentTime = nextBestTime;
                         continue;
                     }
-                    //var isMostRecentBoxMovement = GetIfCanStayAtPosAndIfNotThenAtWhatTimeItCanStayAtThePos(time, newTime, boxPositions, agentPos, newAgentPos, boxPos, nextBoxPos);
-                    //if (!isMostRecentBoxMovement.valid)
-                    //{
-                    //    return isMostRecentBoxMovement;
-                    //}
                 }
 
                 //Check that the agent(and box if any) can stay at its current positions until it has to move
@@ -295,10 +283,22 @@ namespace BoxProblems
             {
                 if (notAllowedAtThesePos.Count > i && (notAllowedAtThesePos[i].Contains(agentPos) || (boxPos != null && notAllowedAtThesePos[i].Contains(boxPos.Value))))
                 {
-                    return (false, Math.Max(GetNextAvailableTime(notAllowedAtThesePos, i, agentPos),
-                        Math.Max(GetNextAvailableTime(notAllowedAtThesePos, i, nextAgentPos),
-                        Math.Max(boxPos.HasValue ? GetNextAvailableTime(notAllowedAtThesePos, i, boxPos.Value) : -1,
-                        nextBoxPos.HasValue ? GetNextAvailableTime(notAllowedAtThesePos, i, nextBoxPos.Value) : -1))));
+                    int time1 = GetNextAvailableTime(notAllowedAtThesePos, i, agentPos);
+                    int time2 = GetNextAvailableTime(notAllowedAtThesePos, i, nextAgentPos);
+                    int time3 = -1;
+                    int time4 = -1;
+                    if (boxPos.HasValue)
+                    {
+                        if (boxPos.Value != agentPos && boxPos.Value != nextAgentPos)
+                        {
+                            time3 = GetNextAvailableTime(notAllowedAtThesePos, i, boxPos.Value);
+                        }
+                        if (nextBoxPos.Value != agentPos && nextBoxPos.Value != nextAgentPos)
+                        {
+                            time4 = GetNextAvailableTime(notAllowedAtThesePos, i, nextBoxPos.Value);
+                        }
+                    }
+                    return (false, Math.Max(time1, Math.Max(time2, Math.Max(time3, time4))));
                 }
             }
 

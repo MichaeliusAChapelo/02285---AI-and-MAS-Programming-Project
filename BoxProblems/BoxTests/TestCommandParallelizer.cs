@@ -171,8 +171,6 @@ namespace BoxTests
             string[] expectedPar = new string[]
             {
                 ToCommand(AgentCommand.CreateMove(Direction.E), AgentCommand.NoOp()),
-                //ToCommand(AgentCommand.CreateMove(Direction.E), AgentCommand.CreateMove(Direction.E)),
-                //ToCommand(AgentCommand.CreateMove(Direction.E), AgentCommand.CreateMove(Direction.E)),
                 ToCommand(AgentCommand.NoOp(), AgentCommand.CreateMove(Direction.E))
             };
 
